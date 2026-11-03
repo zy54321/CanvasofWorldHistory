@@ -1,0 +1,94 @@
+[
+ {
+  "file": "CORE_DATA_MODEL_V2.1.1.md",
+  "bytes": 149607,
+  "exp_bytes": 149607,
+  "lf": 1720,
+  "exp_lf": 1720,
+  "sha": "34ff192009a5d2dd",
+  "exp_sha": "34ff192009a5d2dd",
+  "hash_ok": true,
+  "bytes_ok": true,
+  "lf_ok": true,
+  "mtime": "2026-11-03 11:04:59"
+ },
+ {
+  "file": "ER_DIAGRAM_V2.1.1.svg",
+  "bytes": 60681,
+  "exp_bytes": 60681,
+  "lf": 458,
+  "exp_lf": 458,
+  "sha": "0fafbee24fbf720b",
+  "exp_sha": "0fafbee24fbf720b",
+  "hash_ok": true,
+  "bytes_ok": true,
+  "lf_ok": true,
+  "mtime": "2026-11-03 11:01:27"
+ },
+ {
+  "file": "IMPORT_RULES_V2.1.1.md",
+  "bytes": 52925,
+  "exp_bytes": 52925,
+  "lf": 773,
+  "exp_lf": 773,
+  "sha": "efbbe99b19e83e4d",
+  "exp_sha": "efbbe99b19e83e4d",
+  "hash_ok": true,
+  "bytes_ok": true,
+  "lf_ok": true,
+  "mtime": "2026-11-03 11:20:10"
+ },
+ {
+  "file": "FIELD_MAPPING_V2.1.1.csv",
+  "bytes": 44248,
+  "exp_bytes": 44248,
+  "lf": 222,
+  "exp_lf": 222,
+  "sha": "d06e7d47dc37b6e5",
+  "exp_sha": "d06e7d47dc37b6e5",
+  "hash_ok": true,
+  "bytes_ok": true,
+  "lf_ok": true,
+  "mtime": "2026-11-03 11:05:15"
+ },
+ {
+  "file": "ROLLBACK_AND_MANUAL_PROTECTION_V2.1.1.md",
+  "bytes": 74963,
+  "exp_bytes": 74963,
+  "lf": 1060,
+  "exp_lf": 1060,
+  "sha": "15089fb35715b4b9",
+  "exp_sha": "15089fb35715b4b9",
+  "hash_ok": true,
+  "bytes_ok": true,
+  "lf_ok": true,
+  "mtime": "2026-11-03 11:14:47"
+ },
+ {
+  "file": "DATA_PROVENANCE_V2.1.1.md",
+  "bytes": 41084,
+  "exp_bytes": 41084,
+  "lf": 561,
+  "exp_lf": 561,
+  "sha": "05164fc50c8e1385",
+  "exp_sha": "05164fc50c8e1385",
+  "hash_ok": true,
+  "bytes_ok": true,
+  "lf_ok": true,
+  "mtime": "2026-11-03 11:02:45"
+ },
+ {
+  "file": "V2.1_TO_V2.1.1_CHANGELOG.md",
+  "bytes": 150397,
+  "exp_bytes": 150397,
+  "lf": 1294,
+  "exp_lf": 1294,
+  "sha": "5c80f224876983de",
+  "exp_sha": "5c80f224876983de",
+  "hash_ok": true,
+  "bytes_ok": true,
+  "lf_ok": true,
+  "mtime": "2026-11-03 11:06:59"
+ }
+]
+ALL_HASH_OK= True

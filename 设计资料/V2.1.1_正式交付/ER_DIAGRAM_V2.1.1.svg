@@ -1,0 +1,459 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1720 2170" width="1720" height="2170" role="img" aria-label="Core Data Model V2.1.1 ER diagram: 9 tables plus 3 derived views">
+<title>Core Data Model V2.1.1 · ER 图（9 表 + 3 派生视图）</title>
+<desc>世界历史时空画布 · 版本 V2.1.1 模型 ER 图。本图依据 V0.2.2-r2（00_PROBLEM_LIST_AND_PLAN_V0.2.2.md）编制；字段与 CORE_DATA_MODEL_V2.1.1.md §5 逐字对齐。取代并作废 架构/V2.1/ER_DIAGRAM_V2.1.svg。本图为唯一有效 ER 图。</desc>
+<rect x="0" y="0" width="1720" height="2170" fill="#ffffff"/>
+<defs>
+  <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/></marker>
+  <marker id="arw3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ea580c"/></marker>
+  <marker id="arw2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0ea5e9"/></marker>
+</defs>
+
+<!-- ===================== 标题 ===================== -->
+<text x="20" y="38" font-family="Segoe UI, Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="700" fill="#0f172a">CORE DATA MODEL V2.1.1 · 世界历史时空画布 · ER 图</text>
+<text x="20" y="62" font-family="Segoe UI, Microsoft YaHei, Arial, sans-serif" font-size="12" fill="#64748b">PostgreSQL + PostGIS · EPSG:4326 · 9 表 + 3 派生视图 · 五段业务键 · 地点不带时间/几何/失效原因 · 许可模型已废除（无许可列、无许可门禁）</text>
+<text x="20" y="80" font-family="Segoe UI, Microsoft YaHei, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#b91c1c">【作废声明】架构/V2.1/ER_DIAGRAM_V2.1.svg 自 V2.1.1 起作废，不得作为施工依据。</text>
+<text x="20" y="95" font-family="Segoe UI, Microsoft YaHei, Arial, sans-serif" font-size="10.5" fill="#b91c1c">作废理由：其图注把时间视图的聚合条件写成「子行 record_status 等于某一个已发布状态值」，而该状态在子表上从未被置位；照图施工会使 19,039 个地点的时间跨度全部为 NULL（实测 0/19,039 有跨度）。正确条件见本图 v_place_time_span 卡片。本图为唯一有效 ER 图。</text>
+
+<!-- ===================== 连线（先画，压在卡片下面） ===================== -->
+<!-- A. data_source N:1 data_dataset -->
+<path d="M540,190 H576" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arw)"/>
+<text x="558" y="183" text-anchor="middle" font-family="Consolas, Menlo, monospace" font-size="9.5" fill="#475569">N:1</text>
+
+<!-- B. data_dataset 1:N import_batch -->
+<path d="M1100,340 H1136" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arw)"/>
+<text x="1118" y="333" text-anchor="middle" font-family="Consolas, Menlo, monospace" font-size="9.5" fill="#475569">1:N</text>
+
+<!-- C. data_dataset 1:N source_record -->
+<path d="M700,390 V456" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arw)"/>
+<text x="708" y="426" font-family="Consolas, Menlo, monospace" font-size="9.5" fill="#475569">1:N</text>
+
+<!-- D. import_batch 1:N source_record（first_batch_id / last_batch_id / inactive_in_batch_id） -->
+<path d="M1140,410 H556 V500 H542" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arw)"/>
+<text x="760" y="404" text-anchor="middle" font-family="Consolas, Menlo, monospace" font-size="9.5" fill="#475569">1:N（first_batch_id / last_batch_id / inactive_in_batch_id / rollback_of_batch_id 自引用）</text>
+
+<!-- E. source_record N:1(0..1) historical_place（created_from_source_record_id） -->
+<path d="M540,600 H576" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arw)"/>
+<text x="558" y="593" text-anchor="middle" font-family="Consolas, Menlo, monospace" font-size="9.5" fill="#475569">0..1:1</text>
+
+<!-- F. historical_place 1:N historical_place_location -->
+<path d="M350,840 V866" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arw)"/>
+<text x="358" y="860" font-family="Consolas, Menlo, monospace" font-size="9.5" fill="#475569">1:N</text>
+
+<!-- G. historical_place 1:N historical_place_name -->
+<path d="M1000,840 V866" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arw)"/>
+<text x="1008" y="860" font-family="Consolas, Menlo, monospace" font-size="9.5" fill="#475569">1:N</text>
+
+<!-- H. historical_place 1:N candidate_match（place_id_a / _b 两端） -->
+<path d="M1100,700 H1136" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arw)"/>
+<text x="1118" y="693" text-anchor="middle" font-family="Consolas, Menlo, monospace" font-size="9.5" fill="#475569">1:N</text>
+
+<!-- I. historical_place 1:N historical_place（merged_into_place_id 自引用，一层） -->
+<path d="M540,792 H556 V880 H576" fill="none" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="3 3" marker-end="url(#arw)"/>
+<text x="600" y="876" font-family="Consolas, Menlo, monospace" font-size="9" fill="#475569">自引用：merged_into_place_id（只允许一层）</text>
+
+<!-- S. source_record 总线 → 两张子表 + 台账（1:N 追溯） -->
+<path d="M150,810 V866" fill="none" stroke="#94a3b8" stroke-width="1.6"/>
+<path d="M800,846 V866" fill="none" stroke="#94a3b8" stroke-width="1.6"/>
+<path d="M1520,774 V866" fill="none" stroke="#94a3b8" stroke-width="1.6"/>
+<path d="M150,866 H1520" fill="none" stroke="#94a3b8" stroke-width="1.6"/>
+<path d="M150,866 V868" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arw)"/>
+<path d="M800,866 V868" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arw)"/>
+<path d="M1520,866 V868" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arw)"/>
+<text x="160" y="853" font-family="Consolas, Menlo, monospace" font-size="9.5" fill="#475569">1:N 追溯（source_record_id → 两张子表 / 台账）</text>
+
+<!-- T. 视图层依赖总线（不落库） -->
+<path d="M150,1352 V1368" fill="none" stroke="#0ea5e9" stroke-width="1.4" stroke-dasharray="5 4"/>
+<path d="M800,1242 V1368" fill="none" stroke="#0ea5e9" stroke-width="1.4" stroke-dasharray="5 4"/>
+<path d="M1680,1264 V1368" fill="none" stroke="#0ea5e9" stroke-width="1.4" stroke-dasharray="5 4"/>
+<path d="M150,1368 H1680" fill="none" stroke="#0ea5e9" stroke-width="1.4" stroke-dasharray="5 4"/>
+<path d="M280,1368 V1376" fill="none" stroke="#0ea5e9" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#arw2)"/>
+<path d="M840,1368 V1376" fill="none" stroke="#0ea5e9" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#arw2)"/>
+<path d="M1400,1368 V1376" fill="none" stroke="#0ea5e9" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#arw2)"/>
+<text x="1660" y="1362" text-anchor="end" font-family="Consolas, Menlo, monospace" font-size="9.5" fill="#0369a1">视图读取（不落库）· v_place_liveness 另需 JOIN source_record，见橙色虚线与其卡片</text>
+
+<!-- U. 视图另读上两层（左侧长虚线） -->
+<path d="M6,1640 V866" fill="none" stroke="#0ea5e9" stroke-width="1.4" stroke-dasharray="3 5"/>
+<text x="5" y="1300" font-family="Consolas, Menlo, monospace" font-size="9" fill="#0369a1" transform="rotate(-90 5,1300)">视图另读上两层</text>
+
+<!-- ===================== 行 1 · C1 data_source ===================== -->
+<g>
+  <rect x="20" y="100" width="520" height="196" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+  <rect x="20" y="100" width="520" height="28" rx="8" fill="#e2e8f0"/>
+  <rect x="20" y="114" width="520" height="14" fill="#e2e8f0"/>
+  <text x="34" y="119" font-family="Consolas, Menlo, monospace" font-size="12.5" font-weight="700" fill="#0f172a">data_source</text>
+  <text x="526" y="119" text-anchor="end" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10" fill="#64748b">配置表 · 无暂存 CSV · source_id 值域 4 值</text>
+  <text x="34" y="150" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">PK  source_id  text  CHECK IN (chgis, pleiades, whg, mcgd)</text>
+  <text x="34" y="167" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    display_name  text NOT NULL</text>
+  <text x="34" y="184" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    homepage_url  text                       ← V2 既有（V2.1.1 删除 2 列许可列，见 CORE §5.1）</text>
+  <text x="34" y="201" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    display_priority  smallint NOT NULL DEFAULT 0  ← V2 既有（渲染层）</text>
+  <text x="34" y="218" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    notes  text</text>
+  <text x="34" y="235" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    created_at  timestamptz NOT NULL DEFAULT now()</text>
+  <text x="34" y="256" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#64748b">CK  source_id IN (chgis, pleiades, whg, mcgd)</text>
+  <text x="34" y="270" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#94a3b8">data_source：6 列（source_id / display_name / homepage_url / display_priority / notes / created_at）</text>
+  <text x="34" y="282" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#94a3b8">无任何许可列 —— V2.1.1 删除 2 列许可列（default_license_id / default_redistributable，见 CORE §5.1）</text>
+</g>
+
+<!-- ===================== 行 1 · C2 data_dataset ===================== -->
+<g>
+  <rect x="580" y="100" width="520" height="290" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+  <rect x="580" y="100" width="520" height="28" rx="8" fill="#dbeafe"/>
+  <rect x="580" y="114" width="520" height="14" fill="#dbeafe"/>
+  <text x="594" y="119" font-family="Consolas, Menlo, monospace" font-size="12.5" font-weight="700" fill="#0f172a">data_dataset</text>
+  <text x="1086" y="119" text-anchor="end" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10" fill="#1d4ed8">7 行 · 预计入库 · 许可相关列 = 0</text>
+  <text x="594" y="150" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">PK  dataset_id  text  自然键 · 7 实测值</text>
+  <text x="594" y="167" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">FK  source_id  text NOT NULL  → data_source</text>
+  <text x="594" y="184" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    display_name  text NOT NULL</text>
+  <text x="594" y="201" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    dataset_version  text   v6 / 2026_08_25 / 4.1</text>
+  <text x="594" y="218" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    record_scopes  text[] NOT NULL  ⊆ {place,name,location,edge}</text>
+  <text x="594" y="235" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#1d4ed8">    place_grain  text NOT NULL  CHECK IN (per_record,</text>
+  <text x="594" y="250" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#1d4ed8">                                        per_parent_external_id)</text>
+  <text x="594" y="267" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#1d4ed8">    location_grain  text NOT NULL  CHECK IN (同上 2 值)</text>
+  <text x="594" y="284" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    grain_evidence  text  该 grain 判定从哪几个数推出 · 必填</text>
+  <text x="594" y="301" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    external_id_nature  text NOT NULL  CHECK IN (source_declared,</text>
+  <text x="594" y="316" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">                                                  pipeline_composed)</text>
+  <text x="594" y="333" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    content_sha256  text       local_path  text</text>
+  <text x="594" y="350" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    record_count  integer     is_active  boolean NOT NULL DEFAULT true</text>
+  <text x="594" y="367" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#64748b">CK  array_length(record_scopes,1) &gt;= 1    序键规则列本版不参与键生成（从略）</text>
+  <text x="594" y="381" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#64748b">CK  external_id_nature &lt;&gt; 'pipeline_composed' OR 序键规则 = none</text>
+</g>
+
+<!-- ===================== 行 1 · C3 import_batch ===================== -->
+<g>
+  <rect x="1140" y="100" width="520" height="330" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+  <rect x="1140" y="100" width="520" height="28" rx="8" fill="#dbeafe"/>
+  <rect x="1140" y="114" width="520" height="14" fill="#dbeafe"/>
+  <text x="1154" y="119" font-family="Consolas, Menlo, monospace" font-size="12.5" font-weight="700" fill="#0f172a">import_batch</text>
+  <text x="1646" y="119" text-anchor="end" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10" fill="#1d4ed8">运行期累积 · 无暂存对应表 · status 6 值</text>
+  <text x="1154" y="150" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">PK  batch_id  bigint identity</text>
+  <text x="1154" y="167" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">FK  dataset_id  text NOT NULL  → data_dataset</text>
+  <text x="1154" y="184" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    dataset_version  text</text>
+  <text x="1154" y="201" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#1d4ed8">    derivation_version  text NOT NULL   本次导入所用派生规则版本</text>
+  <text x="1154" y="218" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    status  text NOT NULL  CHECK IN (running, succeeded, partial,</text>
+  <text x="1154" y="233" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">                                    failed, rolled_back, quarantined_only)</text>
+  <text x="1154" y="250" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    input_file  text     input_sha256  text     input_row_count  integer</text>
+  <text x="1154" y="267" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    inserted_source_record_ids  bigint[]   本批新增</text>
+  <text x="1154" y="284" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    updated_source_record_ids   bigint[]   本批更新</text>
+  <text x="1154" y="301" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#1d4ed8">    quarantined_count  integer NOT NULL DEFAULT 0</text>
+  <text x="1154" y="316" font-family="Consolas, Menlo, monospace" font-size="10" fill="#1d4ed8">                      本批隔离数 · 既不是 inserted 也不是 failed</text>
+  <text x="1154" y="333" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    skipped_count  integer     failed_count  integer</text>
+  <text x="1154" y="350" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    blocked_count  integer    记录级跳过（不是操作级阻断）</text>
+  <text x="1154" y="367" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">FK  rollback_of_batch_id  bigint  自引用 → import_batch</text>
+  <text x="1154" y="384" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    started_at / finished_at  timestamptz     operator  text     notes  text</text>
+  <text x="1154" y="406" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#64748b">回滚 = 一次新 batch（rollback_of_batch_id），不原地改状态</text>
+  <text x="1154" y="420" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#64748b">failed ⇒ 一行都不许落库</text>
+</g>
+
+<!-- ===================== 行 2 · C1 source_record ===================== -->
+<g>
+  <rect x="20" y="460" width="520" height="350" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+  <rect x="20" y="460" width="520" height="28" rx="8" fill="#dbeafe"/>
+  <rect x="20" y="474" width="520" height="14" fill="#dbeafe"/>
+  <text x="34" y="479" font-family="Consolas, Menlo, monospace" font-size="12.5" font-weight="700" fill="#0f172a">source_record</text>
+  <text x="526" y="479" text-anchor="end" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10" fill="#1d4ed8">29,388 · 预计入库（活性行）</text>
+  <text x="34" y="510" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">PK  source_record_id  bigint identity</text>
+  <text x="34" y="527" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">FK  dataset_id  text NOT NULL  → data_dataset   唯一权威归属</text>
+  <text x="34" y="544" font-family="Consolas, Menlo, monospace" font-size="10" fill="#0f766e">D   record_scope  text NOT NULL  CHECK IN (place, name, location, edge)</text>
+  <text x="34" y="559" font-family="Consolas, Menlo, monospace" font-size="10" fill="#0f766e">                     ⛔ 只有 4 值，第五种取值已废弃（见 CORE §5.4.2 / A12：出现即整批 failed）</text>
+  <text x="34" y="576" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    external_id  text NOT NULL   源声明 ID 或拼装 ID</text>
+  <text x="34" y="593" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#b91c1c">*   parent_external_id  text NOT NULL   五段键必需段 · 哨兵 '-'</text>
+  <text x="34" y="608" font-family="Consolas, Menlo, monospace" font-size="10" fill="#b91c1c">                    不得 NULL、不得空串（C29）</text>
+  <text x="34" y="625" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#b91c1c">*   duplicate_ordinal  integer NOT NULL DEFAULT 0   五段键必需段</text>
+  <text x="34" y="642" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    raw_file  text NOT NULL     raw_record_index  integer（不保证文件内唯一）</text>
+  <text x="34" y="659" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    raw_payload  jsonb NOT NULL     键名保持源文件原样，不做归一</text>
+  <text x="34" y="676" font-family="Consolas, Menlo, monospace" font-size="10" fill="#0f766e">D   content_hash  bytea NOT NULL   sha256(json.dumps(payload, sort_keys=True,</text>
+  <text x="34" y="691" font-family="Consolas, Menlo, monospace" font-size="10" fill="#0f766e">                                  ensure_ascii=False, separators=(',',':')))</text>
+  <text x="34" y="708" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">FK  first_batch_id  bigint NOT NULL  → import_batch</text>
+  <text x="34" y="725" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">FK  last_batch_id   bigint           → import_batch</text>
+  <text x="34" y="742" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    is_active  boolean NOT NULL DEFAULT true   失效不 DELETE</text>
+  <text x="34" y="759" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#1d4ed8">+   inactive_reason  text CHECK IN (source_absent, batch_rolled_back,</text>
+  <text x="34" y="774" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#1d4ed8">                                       duplicate_quarantine)   +NULL 表 active</text>
+  <text x="34" y="790" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#64748b">UQ  (dataset_id, record_scope, parent_external_id, external_id, duplicate_ordinal)</text>
+  <text x="34" y="803" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#64748b">C03 (is_active AND inactive_reason IS NULL) OR (NOT is_active AND inactive_reason IS NOT NULL)</text>
+</g>
+
+<!-- ===================== 行 2 · C2 historical_place ===================== -->
+<g>
+  <rect x="580" y="460" width="520" height="402" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+  <rect x="580" y="460" width="520" height="28" rx="8" fill="#dcfce7"/>
+  <rect x="580" y="474" width="520" height="14" fill="#dcfce7"/>
+  <text x="594" y="479" font-family="Consolas, Menlo, monospace" font-size="12.5" font-weight="700" fill="#0f172a">historical_place</text>
+  <text x="1086" y="479" text-anchor="end" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10" fill="#15803d">19,039 · 预计入库 · 无时间列 / 无几何列 / 无失效原因列</text>
+  <text x="594" y="510" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">PK  place_id  bigint identity</text>
+  <text x="594" y="527" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#b91c1c">+   dataset_id  text NOT NULL → data_dataset   §5.2.1 规则 1 已推翻</text>
+  <text x="594" y="542" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#b91c1c">+   grain_key   text NOT NULL   按 place_grain 派生（见 CORE §5.5.3）</text>
+  <text x="594" y="559" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    canonical_name  text NOT NULL   无唯一约束</text>
+  <text x="594" y="576" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    canonical_name_lang  text   BCP-47（zh / und / zh-Latn）</text>
+  <text x="594" y="593" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    place_type  text NOT NULL DEFAULT 'unknown'  CHECK IN (admin_center_prefecture,</text>
+  <text x="594" y="608" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">        admin_center_county, admin_center_other, settlement, unknown)</text>
+  <text x="594" y="625" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    place_type_source  text NOT NULL  CHECK IN (lev_rank, lev_rank_unmapped,</text>
+  <text x="594" y="640" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">        source_code_unconfirmed, unknown, manual)</text>
+  <text x="594" y="657" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    place_type_basis_note  text      description  text（本阶段留空）</text>
+  <text x="594" y="674" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#b91c1c">~   record_status  text NOT NULL DEFAULT 'staging'</text>
+  <text x="594" y="689" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#b91c1c">        【地点表 3 值】CHECK IN (staging, rejected, merged)</text>
+  <text x="594" y="704" font-family="Consolas, Menlo, monospace" font-size="10" fill="#b91c1c">        ⛔ 与子表值域不同，不得合并（地点表独有 merged；子表独有第三个合法值）</text>
+  <text x="594" y="721" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">FK  merged_into_place_id  bigint  自引用 · 合并墓碑 · 只允许一层</text>
+  <text x="594" y="738" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">FK  merge_review_ref  bigint  → candidate_match      merged_at  timestamptz</text>
+  <text x="594" y="755" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">FK  created_from_source_record_id  bigint  → source_record   锚点 IDENTITY 永不改写</text>
+  <text x="594" y="772" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    created_by  text NOT NULL DEFAULT 'import'  CHECK IN (import, manual)</text>
+  <text x="594" y="788" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    locked  boolean NOT NULL DEFAULT false</text>
+  <text x="594" y="804" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    manual_edited_fields  text[] NOT NULL DEFAULT '{}'</text>
+  <text x="594" y="820" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    notes  text      created_at / updated_at  timestamptz NOT NULL</text>
+  <text x="594" y="836" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#64748b">UQ C04 (dataset_id, grain_key)</text>
+  <text x="594" y="849" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#64748b">C05 created_by = 'manual' OR created_from_source_record_id IS NOT NULL</text>
+</g>
+
+<!-- ===================== 行 2 · C3 candidate_match ===================== -->
+<g>
+  <rect x="1140" y="460" width="520" height="312" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+  <rect x="1140" y="460" width="520" height="28" rx="8" fill="#fef3c7"/>
+  <rect x="1140" y="474" width="520" height="14" fill="#fef3c7"/>
+  <text x="1154" y="479" font-family="Consolas, Menlo, monospace" font-size="12.5" font-weight="700" fill="#0f172a">candidate_match</text>
+  <text x="1646" y="479" text-anchor="end" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10" fill="#a16207">行数不进权威数字表（U18 待 Owner 拍板）</text>
+  <text x="1154" y="510" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">PK  candidate_id  bigint identity</text>
+  <text x="1154" y="527" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    relation_type  text NOT NULL  CHECK IN (same_coord_diff_entity,</text>
+  <text x="1154" y="542" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">        homonym_diff_place, same_entity_same_seat, location_migration_candidate,</text>
+  <text x="1154" y="557" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">        pleiades_connection, true_duplicate_suspected, cross_layer_disagreement)  7 值</text>
+  <text x="1154" y="574" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">FK  place_id_a  bigint NOT NULL  → historical_place</text>
+  <text x="1154" y="591" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">FK  place_id_b  bigint NOT NULL  → historical_place     CHECK place_id_a &lt;&gt; place_id_b</text>
+  <text x="1154" y="608" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">FK  source_record_id_a  bigint    → source_record      FK  source_record_id_b  bigint</text>
+  <text x="1154" y="625" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    distance_m  double precision</text>
+  <text x="1154" y="642" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    direction  text NOT NULL DEFAULT 'none'  CHECK IN (none, a_to_b, b_to_a)</text>
+  <text x="1154" y="659" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    evidence  jsonb     结构随 relation_type 变</text>
+  <text x="1154" y="676" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    confidence  text NOT NULL  CHECK IN (high, medium, low, source_asserted)</text>
+  <text x="1154" y="693" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    status  text NOT NULL DEFAULT 'candidate'  CHECK IN (candidate,</text>
+  <text x="1154" y="708" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">        needs_manual_review, confirmed, rejected, superseded)</text>
+  <text x="1154" y="725" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    reviewer  text（人工名，或哨兵 system:source_attested）</text>
+  <text x="1154" y="742" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    reviewed_at / review_note      created_at / updated_at</text>
+  <text x="1154" y="756" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#64748b">UQ C09 (relation_type, place_id_a, place_id_b)</text>
+  <text x="1154" y="770" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#64748b">C17 direction='none' OR relation_type='location_migration_candidate'</text>
+</g>
+
+<!-- ===================== 行 3 · C1 historical_place_location ===================== -->
+<g>
+  <rect x="20" y="870" width="520" height="480" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+  <rect x="20" y="870" width="520" height="28" rx="8" fill="#dcfce7"/>
+  <rect x="20" y="884" width="520" height="14" fill="#dcfce7"/>
+  <text x="34" y="889" font-family="Consolas, Menlo, monospace" font-size="12.5" font-weight="700" fill="#0f172a">historical_place_location</text>
+  <text x="526" y="889" text-anchor="end" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10" fill="#15803d">18,101 · 预计入库</text>
+  <text x="34" y="920" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">PK  location_id  bigint identity</text>
+  <text x="34" y="937" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">FK  place_id  bigint NOT NULL  → historical_place</text>
+  <text x="34" y="954" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">FK  source_record_id  bigint  → source_record   导入创建时必填</text>
+  <text x="34" y="971" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    geom  geometry(Geometry,4326)   10 条 CHGIS 坐标为 ********** ⇒ NULL</text>
+  <text x="34" y="988" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    geom_type  text CHECK IN (Point, Polygon, MultiPolygon)   实测全为 Point</text>
+  <text x="34" y="1005" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    representative_lon / representative_lat  double precision</text>
+  <text x="34" y="1022" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    original_x / original_y  text  ⛔ 必须 text：********** 转 numeric 就丢</text>
+  <text x="34" y="1039" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    original_crs  text    EPSG:4326 17,457 / unknown 646</text>
+  <text x="34" y="1056" font-family="Consolas, Menlo, monospace" font-size="10" fill="#0f766e">D   crs_confidence  text NOT NULL  CHECK IN (confirmed, inferred, unknown)</text>
+  <text x="34" y="1071" font-family="Consolas, Menlo, monospace" font-size="10" fill="#0f766e">                    只能由 original_crs 派生；人工可上调为 inferred</text>
+  <text x="34" y="1088" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    axis_order_verified  boolean NOT NULL DEFAULT false   与 CRS 判定无关</text>
+  <text x="34" y="1105" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    crs_transform_meta  jsonb</text>
+  <text x="34" y="1122" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    location_precision  text NOT NULL DEFAULT 'unknown'</text>
+  <text x="34" y="1137" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">        CHECK IN (precise, approximate, rough, unknown)</text>
+  <text x="34" y="1154" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    uncertainty_m  integer    uncertainty_source  text</text>
+  <text x="34" y="1171" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    valid_from_year_astro / valid_to_year_astro  integer   倒挂 28 条留空</text>
+  <text x="34" y="1188" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    time_bound_type  text NOT NULL DEFAULT 'unknown'   7 值，见 CORE §6.1</text>
+  <text x="34" y="1205" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    source_beg_rule / source_end_rule  smallint   数字规则码</text>
+  <text x="34" y="1222" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    source_time_columns  text NOT NULL DEFAULT ''   列级掩码，逐字保留 ⭐改名</text>
+  <text x="34" y="1239" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    time_note  text</text>
+  <text x="34" y="1256" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    conflict_status  text NOT NULL DEFAULT 'none'  CHECK IN (none, disputed, arbitrated)</text>
+  <text x="34" y="1273" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    is_preferred  boolean NOT NULL DEFAULT false   ⛔ 导入器永不置 true</text>
+  <text x="34" y="1290" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#b91c1c">~   record_status  text NOT NULL DEFAULT 'staging'</text>
+  <text x="34" y="1305" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#b91c1c">        【子表 3 值】CHECK IN (staging, published, rejected)  ⛔ 无 merged</text>
+  <text x="34" y="1320" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#b91c1c">        ⛔ 与地点表值域不同，不得合并（地点表独有 merged）</text>
+  <text x="34" y="1335" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#b91c1c">+   rejected_by  text  CHECK IN (auto, manual)  ⛔ 'manual' 永不自动恢复</text>
+  <text x="34" y="1348" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#64748b">UQ C07 (source_record_id) WHERE source_record_id IS NOT NULL   实测 0 冲突</text>
+</g>
+
+<!-- ===================== 行 3 · C2 historical_place_name ===================== -->
+<g>
+  <rect x="580" y="870" width="520" height="387" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+  <rect x="580" y="870" width="520" height="28" rx="8" fill="#dcfce7"/>
+  <rect x="580" y="884" width="520" height="14" fill="#dcfce7"/>
+  <text x="594" y="889" font-family="Consolas, Menlo, monospace" font-size="12.5" font-weight="700" fill="#0f172a">historical_place_name</text>
+  <text x="1086" y="889" text-anchor="end" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10" fill="#15803d">47,499 · 预计入库</text>
+  <text x="594" y="920" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">PK  name_id  bigint identity</text>
+  <text x="594" y="937" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">FK  place_id  bigint NOT NULL  → historical_place</text>
+  <text x="594" y="954" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">FK  source_record_id  bigint  → source_record</text>
+  <text x="594" y="971" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    name_text  text NOT NULL   原样，不做归一化</text>
+  <text x="594" y="988" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    name_lang  text   BCP-47，实测 48 种；字面量 'None' 4 行 ⇒ 入库写 NULL</text>
+  <text x="594" y="1005" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    name_script  text  ISO 15924；空 2,297 行保持空串，不填 Zyyy</text>
+  <text x="594" y="1022" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    name_type  text NOT NULL  CHECK IN (primary, alternate, transliteration,</text>
+  <text x="594" y="1037" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">        historical, colloquial)</text>
+  <text x="594" y="1054" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    transliteration_scheme  text</text>
+  <text x="594" y="1071" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    association_certainty  text  CHECK IN (certain, less-certain, uncertain)</text>
+  <text x="594" y="1088" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    valid_from_year_astro / valid_to_year_astro  integer</text>
+  <text x="594" y="1105" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">        ⚠️ 该名称用于该实体的时间窗，不是地名存在时间</text>
+  <text x="594" y="1122" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    time_bound_type  text NOT NULL DEFAULT 'unknown'   7 值</text>
+  <text x="594" y="1139" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#0f766e">+   source_time_columns  text NOT NULL DEFAULT ''  ⭐新增（V0.2.1 §5.7）</text>
+  <text x="594" y="1156" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    time_note  text      notes  text（本表必填；暂存态实测全部非空）</text>
+  <text x="594" y="1173" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#b91c1c">~   record_status  text NOT NULL DEFAULT 'staging'</text>
+  <text x="594" y="1188" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#b91c1c">        【子表 3 值】CHECK IN (staging, published, rejected)  ⛔ 无 merged</text>
+  <text x="594" y="1203" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#b91c1c">        ⛔ 与地点表值域不同，不得合并（地点表独有 merged）</text>
+  <text x="594" y="1218" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#b91c1c">+   rejected_by  text  CHECK IN (auto, manual)  ⛔ 'manual' 永不自动恢复</text>
+  <text x="594" y="1233" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    locked / manual_edited_fields / created_by / created_at + updated_at</text>
+  <text x="594" y="1249" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#64748b">UQ C08 (source_record_id, name_type, name_text, name_lang)  ⛔ 不得改单列</text>
+</g>
+
+<!-- ===================== 行 3 · C3 data_quality_issue ===================== -->
+<g>
+  <rect x="1140" y="870" width="520" height="392" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+  <rect x="1140" y="870" width="520" height="28" rx="8" fill="#f1f5f9"/>
+  <rect x="1140" y="884" width="520" height="14" fill="#f1f5f9"/>
+  <text x="1154" y="889" font-family="Consolas, Menlo, monospace" font-size="12.5" font-weight="700" fill="#0f172a">data_quality_issue</text>
+  <text x="1646" y="889" text-anchor="end" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10" fill="#475569">12,831 · 预计入库 · issue_type 19 值</text>
+  <text x="1154" y="920" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">PK  issue_id  bigint identity</text>
+  <text x="1154" y="937" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#b91c1c">FK  dataset_id  text  → data_dataset    ⚠️ 可空（非 NOT NULL）</text>
+  <text x="1154" y="952" font-family="Consolas, Menlo, monospace" font-size="10" fill="#b91c1c">        可空性由 C11 / C12 保证，不是漏洞：</text>
+  <text x="1154" y="967" font-family="Consolas, Menlo, monospace" font-size="10" fill="#b91c1c">        C11 CHECK (dataset_id IS NOT NULL OR place_id IS NOT NULL)</text>
+  <text x="1154" y="982" font-family="Consolas, Menlo, monospace" font-size="10" fill="#b91c1c">        C12 CHECK (dataset_id IS NOT NULL OR source_record_id IS NULL)</text>
+  <text x="1154" y="999" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">FK  source_record_id  bigint  → source_record   可空</text>
+  <text x="1154" y="1016" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">FK  place_id  bigint  → historical_place   可空 · 指纹必需段</text>
+  <text x="1154" y="1033" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">FK  batch_id  bigint  → import_batch   可空 · ⛔ 不进指纹</text>
+  <text x="1154" y="1050" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#1d4ed8">+   issue_fingerprint  text NOT NULL  GENERATED ALWAYS AS STORED</text>
+  <text x="1154" y="1065" font-family="Consolas, Menlo, monospace" font-size="10" fill="#1d4ed8">        md5(jsonb_build_array(source_record_id, dataset_id, place_id,</text>
+  <text x="1154" y="1080" font-family="Consolas, Menlo, monospace" font-size="10" fill="#1d4ed8">        issue_type, field_name, observed_value)::text)   六段含 place_id</text>
+  <text x="1154" y="1097" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    issue_type  text NOT NULL  19 值（本版删去 1 个许可类值【留痕】，完整 19 值见 CORE §5.9）</text>
+  <text x="1154" y="1114" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    severity  text NOT NULL  CHECK IN (blocking, warning, info)</text>
+  <text x="1154" y="1131" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    field_name  text NOT NULL DEFAULT ''      observed_value / expected_rule  text</text>
+  <text x="1154" y="1148" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">    action_taken  text NOT NULL  CHECK IN (preserved_and_flagged, needs_manual_review,</text>
+  <text x="1154" y="1163" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">        rejected, fixed_manually, ignored, discarded)   6 值</text>
+  <text x="1154" y="1180" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#1d4ed8">+   first_batch_id  bigint  → import_batch   首次发现该问题的批次，重复发现时不变</text>
+  <text x="1154" y="1197" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#1d4ed8">+   last_batch_id   bigint  → import_batch   最近一次发现，重复发现时置为本批</text>
+  <text x="1154" y="1214" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#1d4ed8">+   occurrence_count  integer NOT NULL DEFAULT 1   重复发现时 += 1</text>
+  <text x="1154" y="1231" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#64748b">UQ C10 (issue_fingerprint)   语义 A：重复发现走 UPDATE 不 INSERT</text>
+  <text x="1154" y="1245" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#64748b">回滚期台账类型只有 rollback_conflict / manual_edit_conflict</text>
+  <text x="1154" y="1258" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#64748b">import_row_error 属导入阶段，由 R2c 单独校验</text>
+</g>
+
+<!-- ===================== 行 4 · C1 v_place_evidence ===================== -->
+<g>
+  <rect x="20" y="1380" width="520" height="278" rx="8" fill="#f0f9ff" stroke="#7dd3fc" stroke-dasharray="6 4"/>
+  <rect x="20" y="1380" width="520" height="28" rx="8" fill="#e0f2fe"/>
+  <rect x="20" y="1394" width="520" height="14" fill="#e0f2fe"/>
+  <text x="34" y="1399" font-family="Consolas, Menlo, monospace" font-size="12.5" font-weight="700" fill="#0f172a">v_place_evidence</text>
+  <text x="526" y="1399" text-anchor="end" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10" fill="#0369a1">派生视图 · 11 列 · 不是表</text>
+  <text x="34" y="1430" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">   1  place_id  bigint</text>
+  <text x="34" y="1446" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">   2  source_record_id  bigint</text>
+  <text x="34" y="1462" font-family="Consolas, Menlo, monospace" font-size="10" fill="#0f766e">   3  evidence_role  text  【3 值】CHECK IN (creator, name, location)</text>
+  <text x="34" y="1477" font-family="Consolas, Menlo, monospace" font-size="10" fill="#b91c1c">        ⛔ 只有 3 值；V0.2.1 的旧第四值是禁用词，本图与本版任何交付物均不出现</text>
+  <text x="34" y="1494" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">   4  source_is_active  boolean   5  source_inactive_reason  text</text>
+  <text x="34" y="1510" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">   6  child_table  text（'name' | 'location' | NULL，creator 行为 NULL）</text>
+  <text x="34" y="1526" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">   7  child_row_id  bigint    8  child_record_status  text    9  child_rejected_by  text</text>
+  <text x="34" y="1542" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">  10  is_anchor  boolean   = (sr.source_record_id = p.created_from_source_record_id)</text>
+  <text x="34" y="1558" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#b91c1c">  11  is_canonical_row  boolean</text>
+  <text x="34" y="1573" font-family="Consolas, Menlo, monospace" font-size="10" fill="#b91c1c">        外层窗口 6 键：⓿ 有效证据优先 → ① creator 优先 → ② sr.duplicate_ordinal</text>
+  <text x="34" y="1588" font-family="Consolas, Menlo, monospace" font-size="10" fill="#b91c1c">        → ③ sr.external_id → ④ source_record_id → ⑤ child_row_id；canonical ≠ 有效</text>
+  <text x="34" y="1602" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#0369a1">依赖：historical_place · source_record · historical_place_name ·</text>
+  <text x="34" y="1616" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#0369a1">      historical_place_location · data_dataset(place_grain)</text>
+  <text x="34" y="1632" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.2" fill="#0369a1">有效证据 ⇔ source_is_active IS TRUE AND child_record_status IS DISTINCT FROM 'rejected'</text>
+  <text x="34" y="1648" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.2" fill="#0369a1">source_record_id 为 NULL 的人工子行保留，但不计作有效源证据</text>
+</g>
+
+<!-- ===================== 行 4 · C2 v_place_liveness ===================== -->
+<g>
+  <rect x="580" y="1380" width="520" height="278" rx="8" fill="#f0f9ff" stroke="#7dd3fc" stroke-dasharray="6 4"/>
+  <rect x="580" y="1380" width="520" height="28" rx="8" fill="#e0f2fe"/>
+  <rect x="580" y="1394" width="520" height="14" fill="#e0f2fe"/>
+  <text x="594" y="1399" font-family="Consolas, Menlo, monospace" font-size="12.5" font-weight="700" fill="#0f172a">v_place_liveness</text>
+  <text x="1086" y="1399" text-anchor="end" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10" fill="#0369a1">派生视图 · 对外列 7 个 · liveness 8 值</text>
+  <text x="594" y="1430" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">   1  place_id  bigint           2  dataset_id  text（来自 historical_place）</text>
+  <text x="594" y="1446" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">   3  grain_key  text            4  record_status  text（地点表 3 值）</text>
+  <text x="594" y="1462" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">   5  manual_rejected_rows  integer   = count(child_rejected_by='manual')</text>
+  <text x="594" y="1478" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">   6  distinct_inactive_reasons  integer   7  liveness  text  【8 值】</text>
+  <text x="594" y="1493" font-family="Consolas, Menlo, monospace" font-size="10" fill="#0f766e">        merged / manual / active / all_sources_absent / all_sources_rolled_back /</text>
+  <text x="594" y="1508" font-family="Consolas, Menlo, monospace" font-size="10" fill="#0f766e">        quarantined_only / mixed_inactive / orphaned</text>
+  <text x="594" y="1526" font-family="Consolas, Menlo, monospace" font-size="10" fill="#b91c1c">⭐ 依赖（修正后）：本视图【必须】LEFT JOIN source_record 取 inactive_at /</text>
+  <text x="594" y="1541" font-family="Consolas, Menlo, monospace" font-size="9.2" fill="#b91c1c">   inactive_in_batch_id；同时保留 source_record_id 为 NULL 的人工子行</text>
+  <text x="594" y="1556" font-family="Consolas, Menlo, monospace" font-size="9.2" fill="#b91c1c">   路径：v_place_evidence e LEFT JOIN source_record sr USING (source_record_id)</text>
+  <text x="594" y="1574" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#0369a1">依赖：v_place_evidence · source_record（inactive_at / inactive_in_batch_id）· historical_place</text>
+  <text x="594" y="1590" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#0369a1">FAILURE_SET = {all_sources_absent, all_sources_rolled_back, quarantined_only, mixed_inactive}</text>
+  <text x="594" y="1606" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#0369a1">rejected ⟺ liveness ∈ FAILURE_SET</text>
+  <text x="594" y="1626" font-family="Consolas, Menlo, monospace" font-size="9.2" fill="#b91c1c">⚠️ CORE §5.10.2 对外 7 列（编号 1–7）：place_id / dataset_id / grain_key / record_status /</text>
+  <text x="594" y="1640" font-family="Consolas, Menlo, monospace" font-size="9.2" fill="#b91c1c">   manual_rejected_rows / distinct_inactive_reasons / liveness  ← 与 SQL 的 SELECT 逐字一致</text>
+</g>
+
+<!-- ===================== 行 4 · C3 v_place_time_span ===================== -->
+<g>
+  <rect x="1140" y="1380" width="520" height="260" rx="8" fill="#f0f9ff" stroke="#7dd3fc" stroke-dasharray="6 4"/>
+  <rect x="1140" y="1380" width="520" height="28" rx="8" fill="#e0f2fe"/>
+  <rect x="1140" y="1394" width="520" height="14" fill="#e0f2fe"/>
+  <text x="1154" y="1399" font-family="Consolas, Menlo, monospace" font-size="12.5" font-weight="700" fill="#0f172a">v_place_time_span</text>
+  <text x="1646" y="1399" text-anchor="end" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10" fill="#0369a1">派生视图 · 10 列 · derivation_kind 3 值</text>
+  <text x="1154" y="1430" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">   1  place_id        2  span_from_astro = MIN(有效子行 f)</text>
+  <text x="1154" y="1446" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">   3  span_to_astro = MAX(有效子行 t)        4  from_evidence_rows</text>
+  <text x="1154" y="1462" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">   5  to_evidence_rows        6  staging_evidence_rows</text>
+  <text x="1154" y="1478" font-family="Consolas, Menlo, monospace" font-size="9.2" fill="#1d4ed8">   7  valid_child_rows = count(e.place_id) ⛔ 不是 count(*)：无匹配时会=1</text>
+  <text x="1154" y="1494" font-family="Consolas, Menlo, monospace" font-size="10" fill="#1d4ed8">   8  child_rows_total（不过滤）    9  derivation_kind</text>
+  <text x="1154" y="1509" font-family="Consolas, Menlo, monospace" font-size="9.2" fill="#1d4ed8">  10  all_children_rejected = (child_rows_total &gt; 0 AND valid_child_rows = 0)</text>
+  <text x="1154" y="1529" font-family="Consolas, Menlo, monospace" font-size="10" font-weight="700" fill="#b91c1c">⭐ 过滤条件（写死）：record_status &lt;&gt; 'rejected'  AND  sr.is_active</text>
+  <text x="1154" y="1544" font-family="Consolas, Menlo, monospace" font-size="9.2" fill="#b91c1c">   ⛔ 不是「等于某个已发布状态值」：该条件 ⇒ 0/19,039 有跨度，视图空转</text>
+  <text x="1154" y="1560" font-family="Consolas, Menlo, monospace" font-size="9.2" fill="#b91c1c">   ⛔ 只聚合 name + location 两张子表，排除 edge（edge 年份=关系存续期，</text>
+  <text x="1154" y="1575" font-family="Consolas, Menlo, monospace" font-size="9.2" fill="#b91c1c">      不是地点存在期；量纲错误）。child CTE 刻意不 UNION 任何 edge 来源</text>
+  <text x="1154" y="1595" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#0369a1">derivation_kind 3 值：no_evidence / single_point / envelope_of_name_and_location_rows</text>
+  <text x="1154" y="1611" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#0369a1">依赖：historical_place · historical_place_name · historical_place_location · source_record</text>
+  <text x="1154" y="1627" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="9.5" fill="#0369a1">三值各自的计数见 CORE §6.3（暂存态干跑口径，入库后须重跑）</text>
+</g>
+
+<!-- V. v_place_liveness 对 source_record 的必需依赖（修正 D4-10 / P0-01）——走 540..580 gutter，不上穿卡片 -->
+<path d="M580,1440 H560 V700 H544" fill="none" stroke="#ea580c" stroke-width="1.7" stroke-dasharray="4 3" marker-end="url(#arw3)"/>
+<text x="566" y="1080" font-family="Consolas, Menlo, monospace" font-size="8.5" fill="#c2410c" transform="rotate(-90 566,1080)">v_place_liveness 必须 LEFT JOIN source_record 取 inactive_at / inactive_in_batch_id</text>
+
+<!-- ===================== 行 5 · 图例与声明 ===================== -->
+<g>
+  <rect x="20" y="1670" width="1670" height="470" rx="8" fill="#ffffff" stroke="#e2e8f0"/>
+
+  <text x="40" y="1698" font-family="Segoe UI, Microsoft YaHei, Arial, sans-serif" font-size="13" font-weight="700" fill="#0f172a">图例 · V2.1.1 相对 V2.1 的改动</text>
+  <text x="1150" y="1698" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10.5" fill="#64748b">本图依据 V0.2.2-r2（00_PROBLEM_LIST_AND_PLAN_V0.2.2.md）编制 · 字段与 CORE §5 逐字对齐</text>
+
+  <rect x="40" y="1710" width="12" height="12" rx="2" fill="#dbeafe" stroke="#93c5fd"/>
+  <text x="60" y="1721" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10.5" fill="#334155">表头浅蓝 = 本表有结构 / 约束变更</text>
+  <rect x="320" y="1710" width="12" height="12" rx="2" fill="#dcfce7" stroke="#86efac"/>
+  <text x="340" y="1721" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10.5" fill="#334155">表头浅绿 = 业务主表（地点与其子表）</text>
+  <rect x="620" y="1710" width="12" height="12" rx="2" fill="#e0f2fe" stroke="#7dd3fc" stroke-dasharray="3 2"/>
+  <text x="640" y="1721" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10.5" fill="#334155">蓝色虚线框 = 派生视图（不落库）</text>
+
+  <text x="40" y="1748" font-family="Consolas, Menlo, monospace" font-size="11" font-weight="700" fill="#1d4ed8">+</text>
+  <text x="56" y="1748" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10.5" fill="#334155">本版新增列</text>
+  <text x="320" y="1748" font-family="Consolas, Menlo, monospace" font-size="11" font-weight="700" fill="#b91c1c">~</text>
+  <text x="336" y="1748" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10.5" fill="#334155">约束 / 值域变更</text>
+  <text x="620" y="1748" font-family="Consolas, Menlo, monospace" font-size="11" font-weight="700" fill="#b91c1c">*</text>
+  <text x="636" y="1748" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10.5" fill="#334155">五段业务键的必需段</text>
+  <text x="960" y="1748" font-family="Consolas, Menlo, monospace" font-size="11" font-weight="700" fill="#0f766e">D</text>
+  <text x="976" y="1748" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10.5" fill="#334155">派生列（规则写死在导入规则 / CORE）</text>
+
+  <path d="M1290,1742 H1330" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arw)"/>
+  <text x="1340" y="1746" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10.5" fill="#334155">实体关系</text>
+  <path d="M1460,1742 H1500" stroke="#0ea5e9" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#arw2)"/>
+  <text x="1510" y="1746" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10.5" fill="#334155">视图读取</text>
+
+  <line x1="40" y1="1764" x2="1690" y2="1764" stroke="#e2e8f0"/>
+
+  <text x="40" y="1790" font-family="Segoe UI, Microsoft YaHei, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">① 行数口径声明（全部带口径词，本图不混用两个口径）</text>
+  <text x="40" y="1810" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10.5" fill="#334155">本图所有行数一律为「<tspan font-weight="700">预计入库</tspan>」口径：data_dataset 7 · source_record 29,388（活性）· historical_place 19,039 ·</text>
+  <text x="40" y="1827" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10.5" fill="#334155">historical_place_location 18,101 · historical_place_name 47,499 · data_quality_issue 12,831。</text>
+  <text x="40" y="1844" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10.5" fill="#334155">唯一例外：source_record 卡片另注「<tspan font-weight="700">隔离后</tspan> 29,391（不删行）」——它标注的是同一口径下的补充事实（隔离不删行，只置 is_active=false），</text>
+  <text x="40" y="1861" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10.5" fill="#334155">该差额 3 = 被隔离的 3 条源记录（2 CHGIS + 1 Pleiades edge），隔离不删行故两者可以并存。candidate_match 的行数<tspan font-weight="700">不进权威数字表</tspan>（登记项 U18，待 Owner 拍板），故图中不给数字。</text>
+
+  <line x1="40" y1="1876" x2="1690" y2="1876" stroke="#e2e8f0"/>
+
+  <text x="40" y="1900" font-family="Segoe UI, Microsoft YaHei, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">② 时间视图的聚合口径（旧图作废的直接原因）</text>
+  <text x="40" y="1920" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10.5" fill="#334155">v_place_time_span 的过滤条件<b>写死为</b> record_status &lt;&gt; 'rejected'  <b>AND</b>  sr.is_active；聚合范围<b>只含 name + location 两张子表，排除 edge</b>。</text>
+  <text x="40" y="1937" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10.5" fill="#334155">⛔ 全图<tspan font-weight="700">不接受任何「等于某一已发布状态值」的过滤条件</tspan>：该值在子表上从未被置位（V2.1 全文无发布动作），</text>
+  <text x="40" y="1954" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10.5" fill="#334155">用它聚合会使 19,039 个地点的时间跨度<b>全部为 NULL</b>（实测 0/19,039 有跨度）。改为 &lt;&gt; 'rejected' 后 17,469/19,039 有跨度（暂存态）。</text>
+  <text x="40" y="1971" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10.5" fill="#334155">两套 record_status 值域<tspan font-weight="700">不同、不得合并</tspan>：地点表 = (staging, rejected, merged) 3 值；子表 = (staging, rejected, 第三个合法值) 3 值。</text>
+  <text x="40" y="1988" font-family="Segoe UI, Microsoft YaHei, sans-serif" font-size="10.5" fill="#334155">子表第三个合法值的字面量逐字见 CORE §5.6 / §5.7 的 CHECK；本图只标注「它存在且与地点表不同」，不重复该字面量。</text>
+
+  <line x1="40" y1="1986" x2="1690" y2="1986" stroke="#e2e8f0"/>
+
+  <text x="40" y="2010" font-family="Segoe UI, Microsoft YaHei, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b91c1c">③ 关键 FK 全清单（本图未画全所有连线，以下为完整外键约束）</text>
+  <text x="40" y="2028" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">data_dataset.source_id → data_source.source_id    import_batch.dataset_id → data_dataset.dataset_id    import_batch.rollback_of_batch_id → import_batch.batch_id</text>
+  <text x="40" y="2044" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">source_record.dataset_id → data_dataset.dataset_id    source_record.first_batch_id / last_batch_id / inactive_in_batch_id → import_batch.batch_id</text>
+  <text x="40" y="2060" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">historical_place.dataset_id → data_dataset.dataset_id    historical_place.created_from_source_record_id → source_record.source_record_id</text>
+  <text x="40" y="2076" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">historical_place.merged_into_place_id → historical_place.place_id    historical_place.merge_review_ref → candidate_match.candidate_id</text>
+  <text x="40" y="2092" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">historical_place_location.place_id / historical_place_name.place_id → historical_place.place_id    二者 .source_record_id → source_record.source_record_id</text>
+  <text x="40" y="2108" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">candidate_match.place_id_a / _b → historical_place.place_id    candidate_match.source_record_id_a / _b → source_record.source_record_id</text>
+  <text x="40" y="2124" font-family="Consolas, Menlo, monospace" font-size="10" fill="#334155">data_quality_issue.dataset_id → data_dataset.dataset_id（可空）  .source_record_id → source_record  .place_id → historical_place  .batch_id / first_batch_id / last_batch_id → import_batch</text>
+</g>
+
+</svg>

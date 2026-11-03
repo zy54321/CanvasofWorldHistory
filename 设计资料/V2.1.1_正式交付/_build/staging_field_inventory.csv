@@ -1,0 +1,106 @@
+﻿staging_table,staging_column,column_index,row_count_total,non_empty_rows,empty_rows,null_rate_pct,unique_values,max_value_length,sample_1,sample_2,sample_3,inferred_type
+data_datasets,dataset_id,1,7,7,0,0.00,7,29,chgis_v6_prefecture_points,chgis_v6_county_points,mcgd_zenodo_22094815_head960,"text(短,<=64字符)"
+data_datasets,source_id,2,7,7,0,0.00,4,8,chgis,mcgd,pleiades,"text(短,<=64字符)"
+data_datasets,dataset_name,3,7,7,0,0.00,7,66,CHGIS V6 time_pref_pts (prefecture-level point layer),CHGIS V6 time_cnty_pts (county-level point layer),"MCGD (Modern China Geospatial Database) 2026-08-25, first 960 rows","text(中,<=512字符)"
+data_datasets,homepage,4,7,7,0,0.00,5,39,https://sites.fas.harvard.edu/~chgis/,https://doi.org/10.5281/zenodo.22094815,https://pleiades.stoa.org/,"text(短,<=64字符)"
+data_datasets,license_id,5,7,7,0,0.00,5,30,no_spdx_academic_noncommercial,CC-BY-4.0,CC-BY-3.0,"text(短,<=64字符)"
+data_datasets,license_url,6,7,6,1,14.29,4,44,https://doi.org/10.7910/DVN/FDLFJ3,https://creativecommons.org/licenses/by/4.0/,https://creativecommons.org/licenses/by/3.0/,"text(短,<=64字符)"
+data_datasets,redistributable,7,7,7,0,0.00,3,20,no,yes_with_attribution,unconfirmed,"text(短,<=64字符)"
+data_datasets,attribution_text,8,7,6,1,14.29,5,158,"CHGIS, Version: 6. (c) Fairbank Center for Chinese Studies of Harvard University and the Center for Historical Geographi…","Christian Henriot / ENP-China, MCGD (Zenodo 22094815), CC BY 4.0",Pleiades: A community-built gazetteer and graph of ancient places. Copyright (c) Institute for the Study of the Ancient …,"text(中,<=512字符)"
+data_datasets,acquisition_method,9,7,7,0,0.00,6,56,full DBF + sidecars read from the shipped V6 zip,"head slice of the CSV, 960 data rows, taken upstream",from_slice=1MB_head; HTTP Range bytes=0-1048575 per file,"text(短,<=64字符)"
+data_datasets,evidence,10,7,7,0,0.00,7,459,sample_data/chgis/api/dataset_FDLFJ3_EULA.json -> termsOfUse clause (3) forbids redistribution and clause (4) mandates t…,same zip family and same EULA as chgis_v6_prefecture_points; the .prj sidecar inside the county zip is GEOGCS['GCS_WGS_1…,sample_data/mcgd/zenodo_record_22094815.json -> metadata.license.id = 'cc-by-4.0'; metadata.access_right = 'open',"text(中,<=512字符)"
+data_datasets,notes,11,7,7,0,0.00,7,437,"The README citation and the EULA mandatory citation disagree on three points (punctuation of 'Version 6', 'Center for Hi…","Second CHGIS layer, listed separately because LEV_RANK, field order and BEG_RULE completeness differ from the prefecture…","Row count is a fixed head slice, not the full dataset: any frequency computed here describes the slice, not MCGD.","text(中,<=512字符)"
+source_records,source_record_id,1,29391,29391,0,0.00,29391,10,sr_0000001,sr_0000002,sr_0000003,"text(短,<=64字符)"
+source_records,source_id,2,29391,29391,0,0.00,4,8,chgis,mcgd,pleiades,"text(短,<=64字符)"
+source_records,source_dataset,3,29391,29391,0,0.00,5,28,chgis_pref,chgis_cnty,mcgd_zenodo_22094815_head960,"text(短,<=64字符)"
+source_records,dataset_id,4,29391,29391,0,0.00,7,29,chgis_v6_prefecture_points,chgis_v6_county_points,mcgd_zenodo_22094815_head960,"text(短,<=64字符)"
+source_records,external_id,5,29391,29391,0,0.00,27319,72,210001,210002,210003,integer
+source_records,external_id_type,6,29391,29391,0,0.00,11,22,chgis_sys_id,mcgd_nameid,pleiades_place_id,"text(短,<=64字符)"
+source_records,raw_file,7,29391,29391,0,0.00,14,81,设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip,设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip,设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv,"text(中,<=512字符)"
+source_records,raw_record_index,8,29391,29391,0,0.00,10522,5,1,2,3,integer
+source_records,raw_payload_json,9,29391,29391,0,0.00,29386,42469,"{'BEG_CHG_TY':'新建','BEG_RULE':'4','BEG_YR':'993','CHECKER':'','COMPILER':'王尚义王杰','END_CHG_TY':'更名','END_DATE':'','END_RU…","{'BEG_CHG_TY':'更名','BEG_RULE':'4','BEG_YR':'1005','CHECKER':'','COMPILER':'王尚义王杰','END_CHG_TY':'更名','END_DATE':'','END_R…","{'BEG_CHG_TY':'更名','BEG_RULE':'4','BEG_YR':'1182','CHECKER':'','COMPILER':'王尚义王杰','END_CHG_TY':'撤销','END_DATE':'','END_R…",json_like
+source_records,license_status,10,29391,29391,0,0.00,6,24,restricted_academic_only,cc-by-4.0,CC-BY-3.0,"text(短,<=64字符)"
+source_records,redistributable,11,29391,29391,0,0.00,3,20,no,yes_with_attribution,unconfirmed,"text(短,<=64字符)"
+source_records,attribution_text,12,29391,29383,8,0.03,5,161,"'CHGIS, Version: 6.' (c) Fairbank Center for Chinese Studies of Harvard University and the Center for Historical Geograp…","Christian Henriot / ENP-China, MCGD (Zenodo 22094815), CC BY 4.0",Pleiades: A community-built gazetteer and graph of ancient places. Copyright (c) Institute for the Study of the Ancient …,"text(中,<=512字符)"
+source_records,ingested_at,13,29391,29391,0,0.00,1,20,2026-11-02T00:00:00Z,,,timestamp
+source_records,pipeline_version,14,29391,29391,0,0.00,1,22,wb-002-normalize/1.2.0,,,"text(短,<=64字符)"
+historical_places,place_id,1,19039,19039,0,0.00,19039,9,hp_000001,hp_000002,hp_000003,"text(短,<=64字符)"
+historical_places,canonical_name,2,19039,19039,0,0.00,11062,90,福宁府,永春州,邵武府,"text(短,<=64字符)"
+historical_places,canonical_name_lang,3,19039,19039,0,0.00,3,7,zh,zh-Latn,und,"text(短,<=64字符)"
+historical_places,place_type,4,19039,19039,0,0.00,4,23,admin_center_prefecture,unknown,admin_center_other,"text(短,<=64字符)"
+historical_places,source_id,5,19039,19039,0,0.00,4,8,chgis,mcgd,pleiades,"text(短,<=64字符)"
+historical_places,source_dataset,6,19039,19039,0,0.00,5,28,chgis_pref,chgis_cnty,mcgd_zenodo_22094815_head960,"text(短,<=64字符)"
+historical_places,primary_external_id,7,19039,19039,0,0.00,18997,15,32019,32020,32021,integer
+historical_places,record_status,8,19039,19039,0,0.00,1,7,staging,,,"text(短,<=64字符)"
+historical_places,locked,9,19039,19039,0,0.00,1,5,false,,,boolean
+historical_places,created_at,10,19039,19039,0,0.00,1,20,2026-11-02T00:00:00Z,,,timestamp
+historical_places,valid_from_year_astro,11,19039,17534,1505,7.90,1724,8,1734,1368,1662,integer
+historical_places,valid_to_year_astro,12,19039,17534,1505,7.90,1553,5,1911,1683,606,integer
+historical_places,time_bound_type,13,19039,19039,0,0.00,6,16,exact,exact_or_bounded,unknown,"text(短,<=64字符)"
+historical_places,time_derivation,14,19039,19039,0,0.00,3,19,min_max_of_children,none,tpq_taq_of_children,"text(短,<=64字符)"
+historical_places,notes,15,19039,19039,0,0.00,19039,244,sys_id=32019; records=1; canonical_record_index=3602; type_py=Fu; type_ch=府; lev_rank=3; place_type_basis=lev_rank=3,sys_id=32020; records=1; canonical_record_index=3603; type_py=Zhilizhou; type_ch=直隶州; lev_rank=3; place_type_basis=lev_r…,sys_id=32021; records=1; canonical_record_index=3604; type_py=Fu; type_ch=府; lev_rank=3; place_type_basis=lev_rank=3,"text(中,<=512字符)"
+historical_place_names,name_id,1,47503,47503,0,0.00,47503,10,nm_0000001,nm_0000002,nm_0000003,"text(短,<=64字符)"
+historical_place_names,place_id,2,47503,47503,0,0.00,17532,9,hp_000001,hp_000002,hp_000003,"text(短,<=64字符)"
+historical_place_names,name,3,47503,47503,0,0.00,25185,54,福宁府,Funing Fu,福寧府,"text(短,<=64字符)"
+historical_place_names,name_lang,4,47503,47503,0,0.00,48,7,zh,zh-Latn,und,"text(短,<=64字符)"
+historical_place_names,name_script,5,47503,45206,2297,4.84,3,4,Hani,Latn,Hant,"text(短,<=64字符)"
+historical_place_names,name_type,6,47503,47503,0,0.00,3,15,primary,transliteration,alternate,"text(短,<=64字符)"
+historical_place_names,transliteration_scheme,7,47503,16708,30795,64.83,2,19,pinyin,wade_giles_probable,,"text(短,<=64字符)"
+historical_place_names,valid_from_year_astro,8,47503,45942,1561,3.29,1708,8,1734,1368,1662,integer
+historical_place_names,valid_to_year_astro,9,47503,45942,1561,3.29,1553,5,1911,1683,606,integer
+historical_place_names,time_bound_type,10,47503,47503,0,0.00,6,16,exact,exact_or_bounded,unknown,"text(短,<=64字符)"
+historical_place_names,time_rule_code,11,47503,46320,1183,2.49,52,34,4|5,5|6,3|5,"text(短,<=64字符)"
+historical_place_names,source_record_id,12,47503,47503,0,0.00,19005,10,sr_0003602,sr_0003603,sr_0003604,"text(短,<=64字符)"
+historical_place_names,notes,13,47503,47503,0,0.00,10540,403,"NAME_CH from record 3602; this is the name attested for the entity during this record's own time window, not the entity'…",NAME_PY from the same record as the primary NAME_CH name,NAME_FT differs from NAME_CH (traditional-character form),"text(中,<=512字符)"
+historical_place_locations,location_id,1,18103,18103,0,0.00,18103,11,loc_0000001,loc_0000002,loc_0000003,"text(短,<=64字符)"
+historical_place_locations,place_id,2,18103,18103,0,0.00,17981,9,hp_000001,hp_000002,hp_000003,"text(短,<=64字符)"
+historical_place_locations,geom_type,3,18103,18103,0,0.00,1,5,Point,,,"text(短,<=64字符)"
+historical_place_locations,lon,4,18103,18093,10,0.06,8302,12,119.990395,118.28717,117.483398,numeric
+historical_place_locations,lat,5,18103,18093,10,0.06,8309,12,26.883463,25.32579,27.337692,numeric
+historical_place_locations,geom_wkt,6,18103,18093,10,0.06,8366,63,POINT(119.990395 26.883463),POINT(118.28717 25.32579),POINT(117.483398 27.337692),"text(短,<=64字符)"
+historical_place_locations,representative_lon,7,18103,18093,10,0.06,8302,12,119.990395,118.28717,117.483398,numeric
+historical_place_locations,representative_lat,8,18103,18093,10,0.06,8309,12,26.883463,25.32579,27.337692,numeric
+historical_place_locations,original_x,9,18103,18103,0,0.00,8303,18,119.990395,118.287170,117.483398,numeric
+historical_place_locations,original_y,10,18103,18103,0,0.00,8311,18,26.883463,25.325790,27.337692,numeric
+historical_place_locations,original_crs,11,18103,18103,0,0.00,2,9,EPSG:4326,unknown,,"text(短,<=64字符)"
+historical_place_locations,crs_confidence,12,18103,18103,0,0.00,3,9,confirmed,unknown,inferred,"text(短,<=64字符)"
+historical_place_locations,axis_order_verified,13,18103,18103,0,0.00,1,4,true,,,boolean
+historical_place_locations,location_precision,14,18103,18103,0,0.00,2,7,point,precise,,"text(短,<=64字符)"
+historical_place_locations,uncertainty_m,15,18103,1703,16400,90.59,16,7,5.0,20.0,10.0,numeric
+historical_place_locations,valid_from_year_astro,16,18103,16879,1224,6.76,1716,8,1734,1368,1662,integer
+historical_place_locations,valid_to_year_astro,17,18103,16879,1224,6.76,1560,5,1911,1683,606,integer
+historical_place_locations,time_bound_type,18,18103,18103,0,0.00,6,16,exact,exact_or_bounded,unknown,"text(短,<=64字符)"
+historical_place_locations,time_rule_code,19,18103,17452,651,3.60,52,34,4|5,5|6,3|5,"text(短,<=64字符)"
+historical_place_locations,quality_flag,20,18103,685,17418,96.22,6,41,beg_gt_end,missing_coordinate,crs_unknown,"text(短,<=64字符)"
+historical_place_locations,source_record_id,21,18103,18103,0,0.00,18103,10,sr_0003602,sr_0003603,sr_0003604,"text(短,<=64字符)"
+historical_place_locations,notes,22,18103,18103,0,0.00,16396,896,"original_crs=EPSG:4326 confirmed from the .prj sidecar in the source zip (GEOGCS['GCS_WGS_1984'], DATUM['D_WGS_1984']); …","original_crs=EPSG:4326 confirmed from the .prj sidecar in the source zip (GEOGCS['GCS_WGS_1984'], DATUM['D_WGS_1984']); …","original_crs=EPSG:4326 confirmed from the .prj sidecar in the source zip (GEOGCS['GCS_WGS_1984'], DATUM['D_WGS_1984']); …","text(长,>512字符)"
+candidate_matches,candidate_id,1,53137,53137,0,0.00,53137,14,cm_0000001,cm_0000002,cm_0000003,"text(短,<=64字符)"
+candidate_matches,relation_type,2,53137,53137,0,0.00,6,28,homonym_diff_place,location_migration_candidate,same_coord_diff_entity,"text(短,<=64字符)"
+candidate_matches,place_id_a,3,53137,53137,0,0.00,12339,9,hp_011276,hp_011274,hp_011275,"text(短,<=64字符)"
+candidate_matches,source_record_id_a,4,53137,53137,0,0.00,12353,10,sr_0010675,sr_0010673,sr_0010674,"text(短,<=64字符)"
+candidate_matches,name_a,5,53137,53137,0,0.00,6452,90,邓川州,云州,太和县,"text(短,<=64字符)"
+candidate_matches,lon_a,6,53137,52747,390,0.73,4210,10,100.0416,100.07986,100.08584,numeric
+candidate_matches,lat_a,7,53137,52747,390,0.73,4218,9,25.99123,25.97593,25.98929,numeric
+candidate_matches,place_id_b,8,53137,53137,0,0.00,11994,9,hp_004930,hp_011275,hp_011276,"text(短,<=64字符)"
+candidate_matches,source_record_id_b,9,53137,53137,0,0.00,11996,10,sr_0002954,sr_0010674,sr_0010675,"text(短,<=64字符)"
+candidate_matches,name_b,10,53137,53137,0,0.00,6143,49,邓川州,云州,太和县,"text(短,<=64字符)"
+candidate_matches,lon_b,11,53137,52747,390,0.73,4303,10,100.04159,100.08584,100.0416,numeric
+candidate_matches,lat_b,12,53137,52747,390,0.73,4311,9,25.99123,25.98929,24.40797,numeric
+candidate_matches,distance_m,13,53137,52747,390,0.73,4622,9,1.0,4186.6,1601.3,numeric
+candidate_matches,same_name,14,53137,53137,0,0.00,2,5,true,false,,boolean
+candidate_matches,evidence,15,53137,53137,0,0.00,53125,194,"same NAME_CH='邓川州' at two places 1 m apart; sys_id 80079 (1384|1640,云南省洱源县旧州) vs 212376 (1384|1640,今云南省洱源县邓川镇旧州); either…","same NAME_CH='邓川州' at two places 4187 m apart; sys_id 80077 (1641|1911,云南省洱源县邓川镇新州) vs 212376 (1384|1640,今云南省洱源县邓川镇旧州); …","same NAME_CH='邓川州' at two places 1601 m apart; sys_id 80077 (1641|1911,云南省洱源县邓川镇新州) vs 80078 (1274|1383,云南省洱源县邓川镇德源城遗址处)…","text(中,<=512字符)"
+candidate_matches,confidence,16,53137,53137,0,0.00,4,15,low,high,medium,"text(短,<=64字符)"
+candidate_matches,status,17,53137,53137,0,0.00,2,19,candidate,needs_manual_review,,"text(短,<=64字符)"
+candidate_matches,reviewer,18,53137,0,53137,100.00,0,0,,,,empty(全空)
+candidate_matches,reviewed_at,19,53137,0,53137,100.00,0,0,,,,empty(全空)
+data_quality_issues,issue_id,1,12631,12631,0,0.00,12631,10,dq_0000001,dq_0000002,dq_0000003,"text(短,<=64字符)"
+data_quality_issues,source_id,2,12631,12631,0,0.00,4,8,chgis,mcgd,whg,"text(短,<=64字符)"
+data_quality_issues,source_dataset,3,12631,12631,0,0.00,5,28,chgis_pref,chgis_cnty,mcgd_zenodo_22094815_head960,"text(短,<=64字符)"
+data_quality_issues,source_record_id,4,12631,12625,6,0.05,12504,10,sr_0003606,sr_0003610,sr_0003623,"text(短,<=64字符)"
+data_quality_issues,issue_type,5,12631,12631,0,0.00,13,29,unknown_time_bound_type,beg_eq_end,beg_gt_end,"text(短,<=64字符)"
+data_quality_issues,severity,6,12631,12631,0,0.00,3,8,info,blocking,warning,"text(短,<=64字符)"
+data_quality_issues,field_name,7,12631,12631,0,0.00,17,22,END_RULE,BEG_YR/END_YR,BEG_RULE|END_RULE,"text(短,<=64字符)"
+data_quality_issues,observed_value,8,12631,12304,327,2.59,3406,212,END_RULE=7,BEG_YR=1887;END_YR=1887,BEG_YR=606;END_YR=606,"text(中,<=512字符)"
+data_quality_issues,expected_rule,9,12631,12631,0,0.00,16,111,every BEG_RULE/END_RULE code should appear in xtra_date_rules so the determinacy of the year can be established,BEG_YR < END_YR for a span; equal years are valid only for a time slice (date rule 9),BEG_YR <= END_YR,"text(中,<=512字符)"
+data_quality_issues,action_taken,10,12631,12631,0,0.00,3,21,preserved_and_flagged,needs_manual_review,discarded,"text(短,<=64字符)"
+data_quality_issues,notes,11,12631,12631,0,0.00,50,233,one row per record listing each field whose rule code is blank or absent from the CHGIS date-rule workbook; time_bound_t…,"single-year span; beg_rule=6, end_rule=6","single-year span; beg_rule=4, end_rule=4","text(中,<=512字符)"

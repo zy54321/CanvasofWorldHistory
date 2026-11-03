@@ -1,0 +1,222 @@
+﻿staging_table,staging_column,target_table,target_column,target_type,required,transform,enum_rule,notes
+data_datasets.csv,dataset_id,data_dataset,dataset_id,text,Y,direct,-,自然键。7 个值全部合法（见 CORE §5.2.3）
+data_datasets.csv,source_id,data_dataset,source_id,text,Y,direct,-,
+data_datasets.csv,dataset_name,data_dataset,display_name,text,Y,direct,-,源列名是 dataset_name，目标列名是 display_name
+data_datasets.csv,homepage,data_dataset,(dropped),-,-,dropped,-,V2.1.1 删除映射行：目标列 license_url 已随 9 列许可列一并删除（CORE §5.2）；data_dataset 不设 homepage 列。⛔ 不得改落到 notes / evidence 变相保留，也不得改指 data_source。暂存列真实存在（7/7 非空）。；【留痕：已删除列/禁用正则说明，非现行模型】
+data_datasets.csv,license_id,data_dataset,(dropped),-,-,dropped,-,V2.1.1 删除：目标列 license_id 已删（CORE §5.2 删除 9 列之一）。暂存列真实存在（7/7 非空、唯一 5）但失去入库通路。⛔ 无替代列。；【留痕：已删除列/禁用正则说明，非现行模型】
+data_datasets.csv,license_url,data_dataset,(dropped),-,-,dropped,-,与 homepage 同源重复；V2.1.1 目标模型不设任何许可列 ⇒ 整列 dropped。（V2.1 notes「保留在 license_evidence 文本里」指向已删除的列，已作废。）暂存 6/7 非空、1 行空。；【留痕：已删除列/禁用正则说明，非现行模型】
+data_datasets.csv,redistributable,data_dataset,(dropped),-,-,dropped,-,V2.1.1 删除：目标列 redistributable 已删；V2.1 的「三态拆分 unconfirmed⇒true + license_id=unknown」随 license_id 一起消失 ⇒ transform 无落点。暂存 7/7 非空、唯一 3。；【留痕：已删除列/禁用正则说明，非现行模型】
+data_datasets.csv,attribution_text,data_dataset,(dropped),-,-,dropped,-,V2.1.1 删除：§3.3 明令不重新引入该列或任何替代字段——不改名、不落其它列、不新增引文列。导出时「原样带出」的义务随之不存在。暂存 6/7 非空、1 行空、最长 158 字符。；【留痕：已删除列/禁用正则说明，非现行模型】
+data_datasets.csv,acquisition_method,data_dataset,(dropped),-,-,dropped,-,V2.1.1：原落点 license_evidence 已删 ⇒ 本列无落点。判为**有意丢弃**（STAGING_FIELD_BASELINE §2.6 Q2 处置 (a)）。内容（取数方式）如需保留须由 Owner 新增非许可目标列，属新设计，本轮不做。暂存 7/7 非空、唯一 6。；【留痕：已删除列/禁用正则说明，非现行模型】
+data_datasets.csv,evidence,data_dataset,(dropped),-,-,dropped,-,V2.1.1：目标列 license_evidence 已删；本列主要内容为取证文本 ⇒ 整列 dropped。暂存 7/7 非空、唯一 7、最长 459 字符。；【留痕：已删除列/禁用正则说明，非现行模型】
+data_datasets.csv,notes,data_dataset,notes,text,N,direct,-,
+data_datasets.csv,(derived),data_dataset,dataset_version,text,N,literal,-,v6 / 2026_08_25 / 4.1，从 raw_file 路径取
+data_datasets.csv,(derived),data_dataset,(dropped),-,-,dropped,-,V2.1.1 删除：目标列已删（9 列之一）；判据「attribution_text 非空 ⇒ true」随源列一起删。；【留痕：已删除列/禁用正则说明，非现行模型】
+data_datasets.csv,(derived),data_dataset,(dropped),-,-,dropped,-,V2.1.1 删除：目标列已删（9 列之一）。；【留痕：已删除列/删枚举值说明，非现行映射】
+data_datasets.csv,(derived),data_dataset,(dropped),-,-,dropped,-,V2.1.1 删除：目标列已删（9 列之一）。；【留痕：已删除列/删枚举值说明，非现行映射】
+data_datasets.csv,(derived),data_dataset,(dropped),-,-,dropped,-,V2.1.1 删除：目标列已删（9 列之一）。连带：V2.1 CORE 行 759 的许可门禁前置校验在 V2.1.1 不存在（CORE §8）。；【留痕：已删除列/删枚举值说明，非现行映射】
+data_datasets.csv,(derived),data_dataset,record_scopes,text[],Y,literal_table,-,CORE §5.2.3 第三列
+data_datasets.csv,(derived),data_dataset,place_grain,text,Y,literal_table,per_record|per_parent_external_id,"CORE §5.2.2：V2 既有列（CORE_DATA_MODEL_V2.md:208），V2.1 由 3 值收敛为 2 值（per_external_id 作废）。⛔ 不是 V2.1.1 新增列。暂存 data_datasets 11 列未导出它 ⇒ 标 derived（""暂存没有"" ≠ ""设计没有""）。MCGD = per_parent_external_id；Pleiades / CHGIS = per_record。"
+data_datasets.csv,(derived),data_dataset,location_grain,text,Y,literal_table,per_record|per_parent_external_id,V2 既有列，V2.1 由 3 值收敛为 2 值。⛔ 非 V2.1.1 新增。
+data_datasets.csv,(derived),data_dataset,grain_evidence,text,Y,literal_table,-,必填：这条 grain 是从哪几个数推出来的
+data_datasets.csv,(derived),data_dataset,occurrence_key_rule,text,Y,literal_table,none|parent_ordinal,V2.1 新增列。⭐ V-3 裁定（team-lead）：**保留该列**；但其服务对象 occurrence_key 已被 parent_external_id + duplicate_ordinal 取代（V0.2.2 全篇零命中）⇒ 本列在 V2.1.1 中不再参与键生成；去留待施工验证后由下轮决定。
+data_datasets.csv,(derived),data_dataset,external_id_nature,text,Y,literal_table,source_declared|pipeline_composed,WHG 三个数据集为 pipeline_composed
+data_datasets.csv,(derived),data_dataset,content_sha256,text,N,sha256_file,-,本版本输入文件哈希
+data_datasets.csv,(derived),data_dataset,local_path,text,N,literal,-,原始文件位置
+data_datasets.csv,(derived),data_dataset,record_count,integer,N,rule,-,count(source_record WHERE dataset_id=:d AND is_active)
+data_datasets.csv,(derived),data_dataset,is_active,boolean,Y,literal true,-,数据集整体停用时置 false，不再导入
+data_datasets.csv,(derived),data_dataset,created_at,timestamptz,Y,batch.started_at,-,
+data_datasets.csv,(derived),data_dataset,updated_at,timestamptz,Y,= created_at,-,P1-2 核实：本表**确有** updated_at（V2 §5.2 行 215，V2 明列 created_at / updated_at）⇒ 真实映射，非幽灵行
+source_records.csv,source_record_id,source_record,(discarded),-,-,discarded,-,暂存流水号 sr_*，仅本批有效，不入库（CORE §3）。入库后由 identity 重新分配
+source_records.csv,source_id,source_record,(discarded),-,-,discarded,-,可从 dataset_id → data_dataset.source_id 推出，且源已存在跨源不一致风险
+source_records.csv,source_dataset,source_record,(dropped),-,-,dropped,-,值域含 whg_api_sample 等 3 个非法值，CORE §5.2.1 判定作废；【留痕：已删除列/删枚举值说明，非现行映射】
+source_records.csv,dataset_id,source_record,dataset_id,text,Y,direct,-,唯一权威。7 值全部 ⊆ data_datasets.dataset_id
+source_records.csv,external_id,source_record,external_id,text,Y,direct,-,MCGD 是 D/E 前缀字符串，必须 text 不能 bigint
+source_records.csv,external_id_type,source_record,(derived),-,-,derived→record_scope,CORE §5.4.2 判定表,⭐ D-3 更正：暂存实测 external_id_type **只有 11 种**（不是 V2.1 notes 写的 16 种——16 是映射行数，不是类型数）。11 种 = chgis_sys_id / mcgd_nameid / pleiades_place_id / pleiades_name_id / pleiades_location_id / pleiades_connection_id / whg_source_id / whg_place_name_index / whg_geometry / whg_place_id / whg_geom_index。逐条查表，不猜。
+source_records.csv,raw_file,source_record,raw_file,text,Y,direct,-,
+source_records.csv,raw_record_index,source_record,raw_record_index,integer,Y,direct,-,
+source_records.csv,raw_payload_json,source_record,raw_payload,jsonb,Y,json_parse,-,键名保持源原样，含 ENT_DATE/END_DATE 差异，不做归一
+source_records.csv,license_status,source_record,(dropped),-,-,dropped,-,"暂存按行冗余的许可三列，V2.1 已判 dropped；V2.1.1 目标模型不设任何许可列（§3.3）⇒ 判据改为「目标模型无许可列」。（V2.1 notes「许可只从 data_dataset 读」已随 data_dataset 9 列删除而失效。）暂存 29,391/29,391 非空、唯一 6。；【留痕：已删除列/禁用正则说明，非现行模型】"
+source_records.csv,redistributable,source_record,(dropped),-,-,dropped,-,"同上（§3.3）。暂存 29,391/29,391 非空、唯一 3（no / yes_with_attribution / unconfirmed）。；【留痕：已删除列/禁用正则说明，非现行模型】"
+source_records.csv,attribution_text,source_record,(dropped),-,-,dropped,-,"同上（§3.3）。暂存 29,383/29,391 非空、8 行空、唯一 5。；【留痕：已删除列/禁用正则说明，非现行模型】"
+source_records.csv,ingested_at,source_record,ingested_at,timestamptz,Y,direct,-,
+source_records.csv,pipeline_version,source_record,(derived),-,-,derived→batch.derivation_version,-,流水线版本记在 import_batch 上，不逐行冗余
+source_records.csv,(derived),source_record,record_scope,text,Y,"lookup(dataset_id,external_id_type) + 白名单",place|name|location|edge,"⭐ 4 值，**不得出现 connection**。11 → 4 权威查表（CORE §5.4.2，暂存原始口径）：place = chgis_sys_id 15,748 + pleiades_place_id 2,643 + whg_source_id 5 + whg_place_id 2 = **18,398**；name = pleiades_name_id 4,579 + mcgd_nameid 960 + whg_place_name_index 223 = **5,762**；location = pleiades_location_id 2,460 + whg_geometry 5 + whg_geom_index 3 = **2,468**；edge = pleiades_connection_id **2,763**；合计 **29,391** ✓。⛔ 命名陷阱：whg_place_name_index 名字含 place 但映射 name；whg_place_id（2 行）才映射 place——不得按名字子串推断。第五种取值 ⇒ A12 整批 failed，不默认放行。"
+source_records.csv,(derived),source_record,(dropped),-,-,dropped,-,"⭐ CORE §5.0：occurrence_key **已删除**，被 parent_external_id + duplicate_ordinal 取代（V0.2.2 全篇零命中）。V2.1 的 UNIQUE(dataset_id, record_scope, external_id, occurrence_key) 由 C01 五段键取代。⛔ 取代关系须写入 CHANGELOG。（CORE §5.4 另列 V-13 待裁定是否物理保留列；本表按删除处置，不写值。）；【留痕：已删除列/删枚举值说明，非现行映射】"
+source_records.csv,(derived),source_record,parent_external_id,text,Y,json_field+sentinel,-,"⭐ **C29 五段键必需段**：NOT NULL，不得 NULL、不得空串（Postgres UNIQUE 对多列 NULL 不去重 ⇒ 五段键静默退化为四段键，398 组 / 2,335 行会被误隔离）。Pleiades name / location / edge → raw_payload.place_id；MCGD → raw_payload.LocID；record_scope='place'（本身即实体、无父级）一律落哨兵 '-'；payload 顶层确无 place_id / LocID 的 WHG 子记录同样落 '-'。实测（暂存原始口径）：可派生 **10,765** / 落哨兵 **18,626** / 合计 29,391 ✓。⛔ whg_geom_index 那 3 行 payload 顶层确有父键，属**可派生**，不得计入缺口。「缺口 2,878」是相对 C29② 原文的口径（18,626 与 2,878 是两个不同口径，都对）。派生失败 ⇒ 整批 failed（同 A12）。哨兵只在常量表声明一次（C29④）。"
+source_records.csv,(derived),source_record,content_hash,bytea,Y,sha256(canonical_json(raw_payload)),-,"CORE §4.4 八条规则。规范表达式（唯一）：sha256(json.dumps(payload, sort_keys=True, ensure_ascii=False, separators=(',',':')))；完整串 len == 85、sha1 == 9b0414f5c7b9a4f3d3bfc1d6d5998ab73a6435a5；内层 json.dumps(...) len == 77、sha1 == 781f68645c4e2e3af4b18871f2f5b7848c5f3798。逐字节形式仅当 normalize.py:306 约定不变时等价。⚠️ H1：normalize.py:306 一旦改动必须回归 content_hash（否则 29,391 条哈希全变 ⇒ ordinal 大规模重排 ⇒ STOP_AUTO 误触发、整批 SKIP_UPDATE）。raw_payload 键名保持源原样；不含导入器补齐的任何字段。"
+source_records.csv,(derived),source_record,first_batch_id,bigint,Y,batch,-,
+source_records.csv,(derived),source_record,last_batch_id,bigint,N,batch,-,
+source_records.csv,(derived),source_record,is_active,boolean,Y,rule,-,⭐ 判据改写（V0.2.2 §2.3.1 第 0 行）：is_active=false ⇔ 同**五段键的四段前缀**（含 parent_external_id）下，存在另一行 content_hash 相同且 duplicate_ordinal 更小——即「每 hash 子组内最小 ordinal 保留、后续同 hash 隔离」。隔离是**每批重算的派生结论**，不是一次置位；O7 解除人工保护不得复活它。⛔ 禁止「只比 ordinal=1 的 hash」（会漏掉混合组 sr_0027175）；⛔ 禁止「要求整组内容完全相同才隔离」。本批 3 行（入库口径）：sr_0004941 / sr_0004942 / sr_0027175。
+source_records.csv,(derived),source_record,source_record_id,bigint,Y,identity,-,
+source_records.csv,(derived),source_record,duplicate_ordinal,integer,Y,ordinal_by_hash,0|1..n,"⭐ V2.1.1 新增（C01 五段键必需段，NOT NULL DEFAULT 0）。组内按 (content_hash ASC, raw_record_index ASC) 定序后的名次；单行组 = 0。实测（暂存原始口径）：ordinal=0 共 **29,377**，另 7 组 × 2 行 = 14 行（ordinal 1/2 各 7 行）。⛔ raw_record_index **只能**在 content_hash 完全相等时破并列；它不保证文件内唯一（14 个 raw_file 中 7 个不唯一，全为 WHG）。语义是""内容的函数""，不是身份：ordinal 绑定了哪一行没有语义。"
+source_records.csv,(derived),source_record,inactive_reason,text,N,rule,source_absent|batch_rolled_back|duplicate_quarantine,⭐ V2.1.1 新增（V0.2.1 §4.3 C19；V2.1 目标表无此列）。3 值 + NULL 表 active；import_error 已删除（0 条可达路径）。C03/C18：与 is_active 同生同灭；C20：inactive_reason = duplicate_quarantine ⇒ duplicate_ordinal > 0。本批落 duplicate_quarantine **3** 行（入库口径）。暂存 14 列无此列 ⇒ derived。
+source_records.csv,(derived),source_record,inactive_at,timestamptz,N,rule,-,⭐ V2.1.1 新增。失效时间戳，与 inactive_reason 同生。C21：(inactive_at IS NULL) = (inactive_reason IS NULL)。暂存无此列 ⇒ derived。
+source_records.csv,(derived),source_record,inactive_in_batch_id,bigint,N,batch,-,⭐ V2.1.1 新增。FK → import_batch。C22：(inactive_in_batch_id IS NULL) = (inactive_reason IS NULL)。暂存无此列 ⇒ derived。
+historical_places.csv,place_id,historical_place,(discarded),-,-,discarded,-,暂存 hp_* 流水号；导入时建 hp_*→place_id 内存映射，用完即弃
+historical_places.csv,canonical_name,historical_place,canonical_name,text,Y,direct,-,无唯一约束；可被人工改写并进 manual_edited_fields
+historical_places.csv,canonical_name_lang,historical_place,canonical_name_lang,text,N,direct,-,"zh 15,746 / und 2,650 / zh-Latn 643"
+historical_places.csv,place_type,historical_place,place_type,text,Y,direct,admin_center_prefecture|admin_center_county|admin_center_other|settlement|unknown,5 值域内，0 例外
+historical_places.csv,source_id,historical_place,(discarded),-,-,discarded,-,可从 created_from_source_record_id 推出
+historical_places.csv,source_dataset,historical_place,(dropped),-,-,dropped,-,"含 chgis_pref/chgis_cnty/whg_api_sample 三个非法值，15,753 行受影响；【留痕：已删除列/删枚举值说明，非现行映射】"
+historical_places.csv,primary_external_id,historical_place,(dropped),-,-,dropped,-,"MCGD 643 行填 LocID 而 source_record.external_id 是 NameID ⇒ 不能用于 external_id 的 join；但 LocID 正是 parent_external_id 的来源（C29），**二者用途不同、不可混淆**。地点归属一律走 created_from_source_record_id。暂存 19,039/19,039 非空、唯一 18,997。；【留痕：已删除列/删枚举值说明，非现行映射】"
+historical_places.csv,record_status,historical_place,record_status,text,Y,direct,staging|rejected|merged,"⭐ 地点 **3 值**（V0.2.2 §2.1.1 行 76、§4.1 K5）；V2.1 的 4 值含 published **已作废**。⛔ 子表 3 值是 staging / published / rejected——两套值域不同（地点有 merged 无 published；子表有 published 无 merged），不得合并成一套。本批暂存唯一 1 值 = staging（19,039/19,039）。rejected 是**派生态**（由证据集合求出），不是人置位。"
+historical_places.csv,locked,historical_place,locked,boolean,Y,parse_bool,-,CSV 'false' 字符串 → false，禁止空串当 false
+historical_places.csv,created_at,historical_place,created_at,timestamptz,Y,direct,-,
+historical_places.csv,valid_from_year_astro,historical_place,(dropped),-,-,dropped→v_place_time_span,-,CORE §5.5.4：地点无时间列，改派生视图；【留痕：已删除列/删枚举值说明，非现行映射】
+historical_places.csv,valid_to_year_astro,historical_place,(dropped),-,-,dropped→v_place_time_span,-,同上；【留痕：已删除列/删枚举值说明，非现行映射】
+historical_places.csv,time_bound_type,historical_place,(dropped),-,-,dropped→v_place_time_span,-,同上；【留痕：已删除列/删枚举值说明，非现行映射】
+historical_places.csv,time_derivation,historical_place,(dropped),-,-,dropped,-,纯流水线产物，不承载业务语义；【留痕：已删除列/删枚举值说明，非现行映射】
+historical_places.csv,notes,historical_place,notes,text,N,direct,-,
+historical_places.csv,(derived),historical_place,place_type_source,text,Y,rule_by_dataset,lev_rank|lev_rank_unmapped|source_code_unconfirmed|unknown|manual,"CHGIS→lev_rank(15,745)/lev_rank_unmapped(1)；MCGD→source_code_unconfirmed；Pleiades/WHG→unknown"
+historical_places.csv,(derived),historical_place,place_type_basis_note,text,N,rule_by_dataset,-,如 LEV_RANK='' 且 TYPE_PY 未能映射
+historical_places.csv,(derived),historical_place,created_from_source_record_id,bigint,Y,rule_by_dataset,-,CORE §5.5.3：CHGIS/Pleiades/WHG 取本 place 的 place-scope 记录；MCGD 取 parent=LocID 中 NameID 最小的 name 记录
+historical_places.csv,(derived),historical_place,description,text,N,literal NULL,-,本阶段不提取；Pleiades description 留在 raw_payload
+historical_places.csv,(derived),historical_place,merged_into_place_id,bigint,N,literal NULL,-,合并墓碑，导入器永不写
+historical_places.csv,(derived),historical_place,merge_review_ref,bigint,N,literal NULL,-,
+historical_places.csv,(derived),historical_place,merged_at,timestamptz,N,literal NULL,-,
+historical_places.csv,(derived),historical_place,manual_edited_fields,text[],Y,literal '{}',-,
+historical_places.csv,(derived),historical_place,created_by,text,Y,literal 'import',import|manual,
+historical_places.csv,(derived),historical_place,updated_at,timestamptz,Y,= created_at,-,P1-2 核实：本表**确有** updated_at（V2 §5.5 行 309，V2 明列 created_at / updated_at）⇒ 真实映射，非幽灵行
+historical_places.csv,(derived),historical_place,place_id,bigint,Y,identity,-,
+historical_places.csv,(derived),historical_place,dataset_id,text,Y,join(created_from_source_record_id→source_record.dataset_id),-,"⭐ V2.1.1 新增（Owner 决策 5）。⛔ V2.1 §5.2.1 规则 1「地点不带 dataset 列」**已被推翻**（CORE §5.5.0）。与 grain_key 组成 UNIQUE(dataset_id, grain_key)（C04）。这是 §5.5.5 建点白名单与 v_place_evidence 的 ON sr.dataset_id = p.dataset_id 能成立的唯一前提；⛔ 下轮不得按 V2.1 旧规则把这两列删回去。暂存 15 列无此列 ⇒ derived。"
+historical_places.csv,(derived),historical_place,grain_key,text,Y,rule_by_dataset,-,"⭐ V2.1.1 新增（CORE §5.0）。派生唯一实现（CORE §5.5.3）：dataset.place_grain = 'per_record' ⇒ record.external_id；= 'per_parent_external_id' ⇒ record.parent_external_id；其余 ⇒ NULL（NOT NULL + CHECK 2 值已封死；发生即整批 failed）。⛔ 两件事必须分开写：① **grain_key 列**——V2.1 没有，V2.1.1 **新增**；② 它在 v_place_evidence join 里的**旧用法** `p.grain_key = sr.parent_external_id AND sr.record_scope <> 'place'`——**已作废**，被 V0.2.2 §2.7 白名单取代。本行只登记列，不登记旧谓词。⚠️ 与 QA STAGING_FIELD_BASELINE §2.7 判定式 **M2** 冲突：M2 判「含 target_column = grain_key 的行 > 0 即 FAIL」，该判据把""列""与""旧用法""混为一谈；本表按 team-lead 对 D-2 的裁定保留该行，**冲突已登记，待裁定**。"
+historical_place_locations.csv,location_id,historical_place_location,(discarded),-,-,discarded,-,暂存 loc_* 流水号
+historical_place_locations.csv,place_id,historical_place_location,place_id,bigint,Y,map(hp_*→place_id),-,必须命中映射表，未命中即单行失败 import_row_error
+historical_place_locations.csv,geom_type,historical_place_location,geom_type,text,Y,direct,Point|Polygon|MultiPolygon,实测全 Point
+historical_place_locations.csv,lon,historical_place_location,(derived),-,-,derived→geom/representative_lon,-,"lon/lat 合成为 geom（ST_SetSRID(ST_MakePoint(lon,lat),4326)），并复制到 representative_lon"
+historical_place_locations.csv,lat,historical_place_location,(derived),-,-,derived→geom/representative_lat,-,同上
+historical_place_locations.csv,geom_wkt,historical_place_location,(dropped),-,-,dropped,-,与 lon/lat 重复；WKT 文本不作为主存储；【留痕：已删除列/删枚举值说明，非现行映射】
+historical_place_locations.csv,representative_lon,historical_place_location,representative_lon,double precision,N,direct,-,
+historical_place_locations.csv,representative_lat,historical_place_location,representative_lat,double precision,N,direct,-,
+historical_place_locations.csv,original_x,historical_place_location,original_x,text,Y,direct,-,必须 text：含 ********** 溢出标记
+historical_place_locations.csv,original_y,historical_place_location,original_y,text,Y,direct,-,同上
+historical_place_locations.csv,original_crs,historical_place_location,original_crs,text,N,direct,EPSG:4326|unknown|NULL,"17,457 / 646"
+historical_place_locations.csv,crs_confidence,historical_place_location,(derived),-,-,derived,confirmed|inferred|unknown,只能由 original_crs 派生：EPSG:4326→confirmed；unknown/NULL→unknown。禁止照抄暂存列
+historical_place_locations.csv,axis_order_verified,historical_place_location,axis_order_verified,boolean,Y,parse_bool,-,与 CRS 判定独立，实测全 true
+historical_place_locations.csv,location_precision,historical_place_location,location_precision,text,Y,enum_map,point→unknown；precise→precise,CORE §5.6.1：point 是几何事实不是精度声明
+historical_place_locations.csv,uncertainty_m,historical_place_location,uncertainty_m,integer,N,direct,-,全空
+historical_place_locations.csv,valid_from_year_astro,historical_place_location,valid_from_year_astro,integer,N,direct,-,
+historical_place_locations.csv,valid_to_year_astro,historical_place_location,valid_to_year_astro,integer,N,direct,-,倒挂 28 条留空，不交换不夹取
+historical_place_locations.csv,time_bound_type,historical_place_location,time_bound_type,text,Y,direct,7 值域,实测 6 值，均在域内
+historical_place_locations.csv,time_rule_code,historical_place_location,(split),-,-,split('|'),-,拆成 source_beg_rule / source_end_rule / source_time_columns 三列，见下三行（第三列原名 source_rule_vocabulary，V0.2.1 §2.7.1 行 1449–1451 已改名为 source_time_columns）
+historical_place_locations.csv,quality_flag,historical_place_location,(derived),-,-,derived→data_quality_issue,-,7 种取值逐一映射为 issue 行（见 QA 报告 §4），不落 location 列
+historical_place_locations.csv,source_record_id,historical_place_location,source_record_id,bigint,Y,map(sr_*→source_record_id),-,
+historical_place_locations.csv,notes,historical_place_location,notes,text,N,direct,-,
+historical_place_locations.csv,(derived),historical_place_location,geom,"geometry(Geometry,4326)",N,"ST_SetSRID(ST_MakePoint(lon,lat),4326)",-,lon/lat 均为空 ⇒ NULL（10 条 CHGIS **********）
+historical_place_locations.csv,(derived),historical_place_location,crs_confidence,text,Y,derive_from(original_crs),confirmed|inferred|unknown,见上方 crs_confidence 行
+historical_place_locations.csv,(derived),historical_place_location,source_beg_rule,smallint,N,regex ^[0-9]+$,-,非数字 ⇒ NULL
+historical_place_locations.csv,(derived),historical_place_location,source_end_rule,smallint,N,regex ^[0-9]+$,-,同上
+historical_place_locations.csv,(derived),historical_place_location,source_time_columns,text,Y,rule,-,"【改名】V2.1 名 source_rule_vocabulary ⇒ V0.2.1 §2.7.1 行 1449–1451 改为 source_time_columns；旧名作废。语义改为「该行来源文件声明了哪些时间列（列级掩码），逐字保留；不是本行实际使用的规则」。非数字词元整串留存，实测仅 year_after_which|year_before_which（入库 3,778 行 = name 2,074 + location 1,704）"
+historical_place_locations.csv,(derived),historical_place_location,crs_transform_meta,jsonb,N,literal NULL,-,本轮无坐标转换，全 NULL
+historical_place_locations.csv,(derived),historical_place_location,uncertainty_source,text,N,literal NULL,-,
+historical_place_locations.csv,(derived),historical_place_location,time_note,text,N,literal NULL,-,
+historical_place_locations.csv,(derived),historical_place_location,conflict_status,text,Y,literal 'none',none|disputed|arbitrated,导入器不判冲突，一律 none
+historical_place_locations.csv,(derived),historical_place_location,is_preferred,boolean,Y,literal false,-,导入器永不置 true
+historical_place_locations.csv,(derived),historical_place_location,record_status,text,Y,gate + rejected_by 联动,staging|published|rejected,⭐ 子表 **3 值**（含 published），与地点表值域不同，不得合并。C25：(record_status = 'rejected') = (rejected_by IS NOT NULL)——由本行与 rejected_by 行**共同**满足。crs_confidence='unknown' 或 geom NULL ⇒ staging。暂存 historical_place_locations 22 列中无 record_status、无 rejected_by ⇒ derived。
+historical_place_locations.csv,(derived),historical_place_location,locked,boolean,Y,literal false,-,
+historical_place_locations.csv,(derived),historical_place_location,manual_edited_fields,text[],Y,literal '{}',-,
+historical_place_locations.csv,(derived),historical_place_location,created_by,text,Y,literal 'import',import|manual,
+historical_place_locations.csv,(derived),historical_place_location,created_at,timestamptz,Y,batch.started_at,-,
+historical_place_locations.csv,(derived),historical_place_location,updated_at,timestamptz,Y,= created_at,-,P1-2 核实：本表**确有** updated_at（V2 §5.6 行 350，V2 明列 created_at / updated_at）⇒ 真实映射，非幽灵行
+historical_place_locations.csv,(derived),historical_place_location,location_id,bigint,Y,identity,-,
+historical_place_locations.csv,(derived),historical_place_location,rejected_by,text,N,literal NULL,auto|manual,"⭐ V2.1.1 新增（C25 / C26）。本批暂存 0 条 rejected ⇒ 初值 literal NULL，C25 / C26 **构造上自动满足**，无需运行期判定（实现者不要去找一个不存在的暂存列）。⛔ rejected_by = 'manual' 永不自动恢复；O7 解除人工保护不得复活它。⛔ 不得""把所有 rejected 子行恢复成 staging""来绕过本条。"
+historical_place_names.csv,name_id,historical_place_name,(discarded),-,-,discarded,-,暂存 nm_* 流水号
+historical_place_names.csv,place_id,historical_place_name,place_id,bigint,Y,map(hp_*→place_id),-,
+historical_place_names.csv,name,historical_place_name,name_text,text,Y,direct,-,原样，不做 Unicode 归一化
+historical_place_names.csv,name_lang,historical_place_name,name_lang,text,N,sanitize,BCP-47 或 und,字面量 'None' 4 行 → NULL + 台账
+historical_place_names.csv,name_script,historical_place_name,name_script,text,N,direct,ISO 15924,"空 2,297 行保持空串，不填 Zyyy"
+historical_place_names.csv,name_type,historical_place_name,name_type,text,Y,direct,primary|alternate|transliteration|historical|colloquial,实测 3 值
+historical_place_names.csv,transliteration_scheme,historical_place_name,transliteration_scheme,text,N,direct,-,pinyin / wade_giles_probable
+historical_place_names.csv,valid_from_year_astro,historical_place_name,valid_from_year_astro,integer,N,direct,-,名称用于该实体的时间窗，不是地名存在时间
+historical_place_names.csv,valid_to_year_astro,historical_place_name,valid_to_year_astro,integer,N,direct,-,
+historical_place_names.csv,time_bound_type,historical_place_name,time_bound_type,text,Y,direct,7 值域,实测 6 值
+historical_place_names.csv,time_rule_code,historical_place_name,(split),-,-,-,-,本轮 names 的 rule 全是 year_after_which 词元，整串进 source_time_columns（见下一行新增行）。目标表**不设** source_beg_rule/source_end_rule 两列 ⇒ 本 split 不清出 smallint 列
+historical_place_names.csv,(derived),historical_place_name,source_time_columns,text,Y,rule,-,"【新增】V0.2.1 §5.7 行 1627 要求 name 表新增 source_time_columns。收纳 V2.1 会丢弃的 name 侧 2,074 行 mask（V2.1 只有 location 一列能存，name 侧 time_rule_code 只能落 (dropped)）。语义同 location 侧：该行来源文件声明了哪些时间列（列级掩码），逐字保留。⛔ C13 不适用于本表（无 source_beg_rule/source_end_rule）"
+historical_place_names.csv,source_record_id,historical_place_name,source_record_id,bigint,Y,map(sr_*→source_record_id),-,
+historical_place_names.csv,notes,historical_place_name,notes,text,N,direct,-,
+historical_place_names.csv,(derived),historical_place_name,association_certainty,text,N,raw_payload.association_certainty,certain|less-certain|uncertain,Pleiades 直接映射；CHGIS/MCGD/WHG 无此字段 ⇒ NULL
+historical_place_names.csv,(derived),historical_place_name,time_note,text,N,literal NULL,-,
+historical_place_names.csv,(derived),historical_place_name,record_status,text,Y,literal 'staging' + rejected_by=NULL,staging|published|rejected,⭐ 子表 **3 值**（含 published）。C25 由本行与 rejected_by 行共同满足：本批 literal 'staging' ⇒ rejected_by 必为 NULL，C25 / C26 构造上自动满足，无需运行期判定。暂存 13 列中无 record_status、无 rejected_by ⇒ derived。
+historical_place_names.csv,(derived),historical_place_name,locked,boolean,Y,literal false,-,
+historical_place_names.csv,(derived),historical_place_name,manual_edited_fields,text[],Y,literal '{}',-,
+historical_place_names.csv,(derived),historical_place_name,created_by,text,Y,literal 'import',import|manual,
+historical_place_names.csv,(derived),historical_place_name,created_at,timestamptz,Y,batch.started_at,-,
+historical_place_names.csv,(derived),historical_place_name,updated_at,timestamptz,Y,= created_at,-,P1-2 核实：本表**确有** updated_at（V2 §5.7 行 387，V2 明列 created_at / updated_at）⇒ 真实映射，非幽灵行
+historical_place_names.csv,(derived),historical_place_name,name_id,bigint,Y,identity,-,
+historical_place_names.csv,(derived),historical_place_name,rejected_by,text,N,literal NULL,auto|manual,⭐ V2.1.1 新增（C25 / C26）。本批暂存 0 条 rejected ⇒ 初值 literal NULL，C25 / C26 构造上自动满足。⛔ rejected_by = 'manual' 永不自动恢复（场景 C：源重新出现时保持 rejected，另落 1 条 manual_edit_conflict 提示人工复核）。
+candidate_matches.csv,candidate_id,candidate_match,(discarded),-,-,discarded,-,暂存 cm_* 流水号
+candidate_matches.csv,relation_type,candidate_match,relation_type,text,Y,rename 2 值,same_coord_diff_entity|homonym_diff_place|same_entity_same_seat|location_migration_candidate|pleiades_connection|true_duplicate_suspected|cross_layer_disagreement,location_migration_candidate 保留（V2 写的 location_migration 作废）；same_entity_same_seat 保留；pleiades_connection 新增
+candidate_matches.csv,place_id_a,candidate_match,place_id_a,bigint,Y,map(hp_*→place_id),-,
+candidate_matches.csv,source_record_id_a,candidate_match,source_record_id_a,bigint,N,map(sr_*→source_record_id),-,交叉校验用，不是解析器
+candidate_matches.csv,name_a,candidate_match,(derived),-,-,derived→evidence.name_a,-,进 evidence JSONB
+candidate_matches.csv,lon_a,candidate_match,(derived),-,-,derived→evidence.lon_a,-,进 evidence JSONB
+candidate_matches.csv,lat_a,candidate_match,(derived),-,-,derived→evidence.lat_a,-,进 evidence JSONB
+candidate_matches.csv,place_id_b,candidate_match,place_id_b,bigint,Y,map(hp_*→place_id),-,
+candidate_matches.csv,source_record_id_b,candidate_match,source_record_id_b,bigint,N,map(sr_*→source_record_id),-,
+candidate_matches.csv,name_b,candidate_match,(derived),-,-,derived→evidence.name_b,-,进 evidence JSONB
+candidate_matches.csv,lon_b,candidate_match,(derived),-,-,derived→evidence.lon_b,-,进 evidence JSONB
+candidate_matches.csv,lat_b,candidate_match,(derived),-,-,derived→evidence.lat_b,-,进 evidence JSONB
+candidate_matches.csv,distance_m,candidate_match,distance_m,double precision,N,empty→NULL,-,0.0 是有效值，不能当 NULL
+candidate_matches.csv,same_name,candidate_match,(derived),-,-,derived→evidence.same_name,-,进 evidence JSONB
+candidate_matches.csv,evidence,candidate_match,evidence,jsonb,N,merge,-,"暂存 evidence 是文本串；入库转 {'source_text':..., 'name_a':...} 结构"
+candidate_matches.csv,confidence,candidate_match,confidence,text,Y,direct,high|medium|low|source_asserted,4 值；source_asserted 仅 pleiades_connection
+candidate_matches.csv,status,candidate_match,status,text,Y,rule,candidate|needs_manual_review|confirmed|rejected|superseded,pleiades_connection 390 行由 candidate 改写为 confirmed
+candidate_matches.csv,reviewer,candidate_match,reviewer,text,N,rule,-,pleiades_connection ⇒ 'system:source_attested'
+candidate_matches.csv,reviewed_at,candidate_match,reviewed_at,timestamptz,N,rule,-,pleiades_connection ⇒ source_record.ingested_at
+candidate_matches.csv,(derived),candidate_match,direction,text,Y,rule,none|a_to_b|b_to_a,仅 location_migration_candidate 允许非 none；实测暂存无方向信息 ⇒ 一律 none
+candidate_matches.csv,(derived),candidate_match,review_note,text,N,literal NULL,-,
+candidate_matches.csv,(derived),candidate_match,created_at,timestamptz,Y,batch.started_at,-,
+candidate_matches.csv,(derived),candidate_match,updated_at,timestamptz,Y,= created_at,-,P1-2 核实：本表**确有** updated_at（V2 §5.8 行 419，V2 明列 created_at / updated_at）⇒ 真实映射，非幽灵行
+candidate_matches.csv,(derived),candidate_match,candidate_id,bigint,Y,identity,-,
+data_quality_issues.csv,issue_id,data_quality_issue,(discarded),-,-,discarded,-,暂存 ds_* 流水号（实际前缀见文件）
+data_quality_issues.csv,source_id,data_quality_issue,(discarded),-,-,discarded,-,由 dataset_id 推出
+data_quality_issues.csv,source_dataset,data_quality_issue,(dropped),-,-,dropped,-,含非法值；改为 dataset_id；【留痕：已删除列/删枚举值说明，非现行映射】
+data_quality_issues.csv,source_record_id,data_quality_issue,source_record_id,bigint,N,map(sr_*→source_record_id),-,
+data_quality_issues.csv,issue_type,data_quality_issue,issue_type,text,Y,direct,19 值域,实测 13 种，全部在域内
+data_quality_issues.csv,severity,data_quality_issue,severity,text,Y,direct,blocking|warning|info,
+data_quality_issues.csv,field_name,data_quality_issue,field_name,text,Y,empty→'',-,NOT NULL + 空串，让部分唯一索引生效
+data_quality_issues.csv,observed_value,data_quality_issue,observed_value,text,N,direct,-,
+data_quality_issues.csv,expected_rule,data_quality_issue,expected_rule,text,N,direct,-,
+data_quality_issues.csv,action_taken,data_quality_issue,action_taken,text,Y,direct,6 值域,实测 3 种
+data_quality_issues.csv,notes,data_quality_issue,(derived),-,-,derived→resolution_note,-,并入 resolution_note 初值
+data_quality_issues.csv,(derived),data_quality_issue,dataset_id,text,N,rule,-,"⭐ A-4 修正（V0.2.1 §5.9 行 1629 权威）：dataset_id **可空**（原定 NOT NULL，已改）。暂存 data_quality_issues 共 12,631 行 × 11 列（暂存原始口径），无 raw_file、无 dataset_id、**无 place_id**；source_record_id 有 6 行空。☆ B-4 派生链（两条，按序取第一条可用者）：① 有 source_record_id ⇒ dataset_id := source_record.dataset_id；② 无 source_record_id ⇒ dataset_id := map(source_dataset)（source_dataset 是图层键；其列本身已判 dropped，但值可作映射键）：chgis_pref→chgis_v6_prefecture_points、chgis_cnty→chgis_v6_county_points、mcgd_zenodo_22094815_head960→同名、pleiades_gis_4_1_slice→同名；⚠️ whg_api_sample 一对多（对应 3 个 whg dataset：gn/tgn/hgis），不能由 source_dataset 一对一派生，必须靠 source_record_id 走①。实测那 6 行 = 2 条 chgis_pref（nonstandard_field_name，层元数据问题：字段名与姊妹层不一致）+ 4 条 pleiades_gis_4_1_slice（truncated_slice_tail，HTTP Range 切片尾截断），**全部可经②派生**（→ chgis_v6_prefecture_points ×2、pleiades_gis_4_1_slice ×4），C11 不违反。⛔ 原表述「这 6 行由 C11 要求带 place_id、是地点级台账」**错误，已更正**：它们既无 place_id 也无 source_record_id，一行都不是地点级。⛔ 不得静默填兜底默认值——那会污染 dataset_id 的 NULL 语义（数据集级不可归因）。与 CORE §5.9 / §5.9.1 一致；附录 B V-6 已改为 B-4 关闭（残留仅 whg_api_sample 多对一未验证）"
+data_quality_issues.csv,(derived),data_quality_issue,place_id,bigint,N,rule,-,跨层矛盾、derived_value_mismatch 等地点级问题才填。⭐ 与 dataset_id 可空（A-4）联动，但**不要误读**：那 6 行 source_record_id 为空的台账**不带本列**（它们是层元数据问题 / 切片尾截断，非地点级），它们靠 dataset_id 的派生链②归因（见上一行），不是靠本列。C11 的要求是 dataset_id 与 place_id **至少一个非空**
+data_quality_issues.csv,(derived),data_quality_issue,batch_id,bigint,Y,batch,-,本批批次号（CORE §5.9 保留该列）。**不进指纹**（含了每导一批新增 197 行，台账自我膨胀）。R1 口径：与 first/last_batch_id 并存，语义不同。
+data_quality_issues.csv,(derived),data_quality_issue,resolved,boolean,Y,literal false,-,
+data_quality_issues.csv,(derived),data_quality_issue,resolved_at,timestamptz,N,literal NULL,-,
+data_quality_issues.csv,(derived),data_quality_issue,resolver,text,N,literal NULL,-,
+data_quality_issues.csv,(derived),data_quality_issue,resolution_note,text,N,direct from notes,-,
+data_quality_issues.csv,(derived),data_quality_issue,created_at,timestamptz,Y,batch.started_at,-,
+data_quality_issues.csv,(derived),data_quality_issue,issue_id,bigint,Y,identity,-,
+data_quality_issues.csv,(derived),data_quality_issue,issue_fingerprint,text,Y,generated(md5 jsonb_build_array),-,"⭐ V2.1.1 新增。**PostgreSQL 生成列，非导入器写入**：GENERATED ALWAYS AS md5(jsonb_build_array(source_record_id, dataset_id, place_id, issue_type, field_name, observed_value)::text) STORED。⛔ ALG-1：算法是 **md5**，不得改 sha256（197 条历史指纹会全部对不上）；与 content_hash 的 sha256 **并存是有意设计**，不得互换、不得统一。六段（含 place_id）⇒ 197 个不同指纹 / 0 冲突；去掉 place_id ⇒ 45 个 / 24 冲突组 / 176 行。**不做 coalesce**：NULL 与 '' 必须可区分。observed_value 只放暂存列原始字符串单值，空值渲染字面量 NULL，重算值进 notes。UNIQUE(issue_fingerprint)（C10）替换 V2.1 的两条部分索引。"
+data_quality_issues.csv,(derived),data_quality_issue,first_batch_id,bigint,Y,batch,-,⭐ V2.1.1 新增（C24）。首次发现该问题的批次；重复发现时**不变**。台账语义 A（唯一身份）。
+data_quality_issues.csv,(derived),data_quality_issue,last_batch_id,bigint,N,batch,-,⭐ V2.1.1 新增（C24）。最近一次发现的批次；重复发现时置为本批。C24：first_batch_id IS NULL OR last_batch_id IS NOT NULL。
+data_quality_issues.csv,(derived),data_quality_issue,occurrence_count,integer,Y,literal 1 / 重复发现 +=1,-,⭐ V2.1.1 新增，NOT NULL DEFAULT 1（C23：occurrence_count >= 1）。重复发现时 **UPDATE 不 INSERT**：last_batch_id = 本批、occurrence_count += 1、first_batch_id 不变。指纹**不含 batch_id**（含了每导一批新增 197 行，台账自我膨胀）。内容不同的多次冲突各占一行。
+(none),(generated),import_batch,batch_id,bigint,Y,identity,-,
+(none),(generated),import_batch,dataset_id,text,Y,param,-,本次导入的数据集
+(none),(generated),import_batch,dataset_version,text,N,param,-,
+(none),(generated),import_batch,derivation_version,text,Y,literal 'v2.1.1',-,派生规则版本，规则改动必须升版并全量重导
+(none),(generated),import_batch,status,text,Y,state machine,-,running→succeeded|partial|failed|quarantined_only|rolled_back
+(none),(generated),import_batch,input_file,text,Y,param,-,
+(none),(generated),import_batch,input_sha256,text,Y,sha256_file,-,
+(none),(generated),import_batch,input_row_count,integer,Y,count,-,
+(none),(generated),import_batch,inserted_source_record_ids,bigint[],N,accumulate,-,
+(none),(generated),import_batch,updated_source_record_ids,bigint[],N,accumulate,-,
+(none),(generated),import_batch,quarantined_count,integer,Y,accumulate,-,本批隔离的记录数（is_active=false），**既不是 inserted 也不是 failed**。⭐ 期望值断言（新增）：本批 = **3**（sr_0004941 / sr_0004942 / sr_0027175，入库口径 N02 / N18）。R1 口径：N_quar 与 inserted / failed 相互独立，不得相减混算。
+(none),(generated),import_batch,skipped_count,integer,N,accumulate,-,
+(none),(generated),import_batch,failed_count,integer,N,accumulate,-,写入失败行数。R1 口径：**不含** N_quar（隔离），也**不含** blocked_count。
+(none),(generated),import_batch,rollback_of_batch_id,bigint,N,param,-,回滚操作本身也是一批
+(none),(generated),import_batch,started_at,timestamptz,Y,now,-,
+(none),(generated),import_batch,finished_at,timestamptz,N,now,-,
+(none),(generated),import_batch,operator,text,N,param,-,
+(none),(generated),import_batch,notes,text,N,param,-,
+(none),(generated),import_batch,blocked_count,integer,N,count,-,⭐ 补登记：V0.2.2 §2.4.2（行 438）/ §2.4.3（行 509）权威列 = 记录级跳过（locked / 字段保护 / last_batch_id 不符）。V2.1 CORE §5.3 与 V2.1 映射表**均漏记**，V2.1.1 CORE §5.3 已补。⛔ 与 failed_count 互斥：两者都**不含** N_quar。
+(none),(generated),data_source,source_id,text,Y,literal/param,-,chgis / pleiades / mcgd / whg
+(none),(generated),data_source,display_name,text,Y,literal/param,-,
+(none),(generated),data_source,homepage_url,text,N,literal/param,-,对齐 V2 §5.1（经 V2.1.1 CORE §5.1 → V2.1 §5.1 → V2 §5.1）：列名是 **homepage_url**；V2.1 映射写成 homepage 属笔误，本版更正。
+(none),(generated),data_source,(dropped),-,-,dropped,-,⭐ Q1 处置：该目标列按 CORE §5.1 删除（default_license_id / default_redistributable）；本行仅作删除留痕，不是现行目标字段。
+(none),(generated),data_source,display_priority,smallint,N,literal/param,-,展示层排序，默认关闭（默认 0 = 全部等权 = 不启用）。类型为 **smallint**（V2 §5.1 原文 NOT NULL DEFAULT 0；V2.1.1 CORE §5.1 已逐列列明该列）。出处 V2 §5.1（CORE_DATA_MODEL_V2.md:156–170）。⛔ 类型不得写成 integer
+(none),(generated),data_source,notes,text,N,literal/param,-,
+(none),(generated),data_source,created_at,timestamptz,Y,literal/param,-,
+(none),(generated),data_source,(dropped),-,-,dropped,-,【留痕：幽灵行，非现行映射】V2 §5.1 与 V2.1 §5.1 的 data_source **均无 updated_at 列**（只有 created_at）。本行是 V2.1 映射表遗留的幽灵行，V2.1.1 判 dropped。⛔ 不得据此给 data_source 加 updated_at

@@ -1,0 +1,145 @@
+:root {
+  --ink: #17202b;
+  --ink-2: #46566a;
+  --ink-3: #7c8a9a;
+  --line: #dfe5ec;
+  --bg: #f6f7f9;
+  --card: rgba(255, 255, 255, 0.94);
+  --accent: #8c5a2b;
+  --accent-soft: #f3e7d9;
+  --warn-bg: #fff4e0;
+  --warn-line: #e8b569;
+  --warn-ink: #8a5b14;
+  --radius: 12px;
+  --shadow: 0 8px 28px rgba(15, 26, 42, 0.14);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #app {
+  height: 100%;
+  margin: 0;
+  color: var(--ink);
+  background: var(--bg);
+  overflow: hidden;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 6px 10px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+button:hover { background: #f2f5f9; }
+button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+input[type='text'], input[type='number'] {
+  font: inherit;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  width: 100%;
+}
+input:focus { outline: 2px solid rgba(140, 90, 43, 0.28); outline-offset: 0; border-color: var(--accent); }
+
+.panel {
+  background: var(--card);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.dim { color: var(--ink-3); }
+.tiny { font-size: 11px; }
+
+.scroll { overflow-y: auto; scrollbar-width: thin; }
+.scroll::-webkit-scrollbar { width: 8px; }
+.scroll::-webkit-scrollbar-thumb { background: #c9d2dc; border-radius: 4px; }
+
+/* 地图控件微调 */
+.maplibregl-ctrl-attrib { font-size: 11px; }
+.maplibregl-ctrl-group button { border-radius: 0; }
+/* ===================== M2 管理界面共用表单样式 ===================== */
+.m2-field { display: flex; flex-direction: column; gap: 3px; margin-bottom: 9px; }
+.m2-field > label { font-size: 11.5px; color: var(--ink-3); }
+.m2-field > label .req { color: #b3261e; }
+.m2-field input[type='text'],
+.m2-field input[type='number'],
+.m2-field select,
+.m2-field textarea {
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--ink);
+  width: 100%;
+}
+.m2-field textarea { resize: vertical; min-height: 54px; line-height: 1.5; }
+.m2-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+.m2-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 8px; }
+.m2-sub {
+  margin: 14px 0 8px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.m2-sub .spacer { flex: 1; }
+.m2-btn {
+  font: inherit;
+  font-size: 12px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--ink);
+}
+.m2-btn:hover { background: #f2f5f9; }
+.m2-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.m2-btn.primary:hover { background: #7a4d23; }
+.m2-btn.danger { color: #b3261e; border-color: #f0c2bd; }
+.m2-btn.danger:hover { background: #fdf0ee; }
+.m2-btn.sm { padding: 2px 7px; font-size: 11px; }
+.m2-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid #f1f4f7;
+  font-size: 12.5px;
+}
+.m2-row .grow { flex: 1; min-width: 0; }
+.m2-row .acts { display: flex; gap: 4px; }
+.m2-empty { font-size: 12px; color: var(--ink-3); padding: 8px 0; }
+.m2-alert {
+  font-size: 12px;
+  line-height: 1.55;
+  padding: 7px 10px;
+  border-radius: 6px;
+  margin: 8px 0;
+  background: #fdf0ee;
+  border-left: 3px solid #e8a39b;
+  color: #8c1d16;
+}
+.m2-hint { font-size: 11px; color: var(--ink-3); line-height: 1.5; }

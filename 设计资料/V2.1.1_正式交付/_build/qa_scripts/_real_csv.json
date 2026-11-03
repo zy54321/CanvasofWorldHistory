@@ -1,0 +1,144 @@
+{
+ "real50": {
+  "candidate_matches.csv": {
+   "n": 53137,
+   "hdr": [
+    "candidate_id",
+    "relation_type",
+    "place_id_a",
+    "source_record_id_a",
+    "name_a",
+    "lon_a",
+    "lat_a",
+    "place_id_b",
+    "source_record_id_b",
+    "name_b",
+    "lon_b",
+    "lat_b",
+    "distance_m",
+    "same_name",
+    "evidence",
+    "confidence",
+    "status",
+    "reviewer",
+    "reviewed_at"
+   ]
+  },
+  "data_datasets.csv": {
+   "n": 7,
+   "hdr": [
+    "dataset_id",
+    "source_id",
+    "dataset_name",
+    "homepage",
+    "license_id",
+    "license_url",
+    "redistributable",
+    "attribution_text",
+    "acquisition_method",
+    "evidence",
+    "notes"
+   ]
+  },
+  "data_quality_issues.csv": {
+   "n": 12631,
+   "hdr": [
+    "issue_id",
+    "source_id",
+    "source_dataset",
+    "source_record_id",
+    "issue_type",
+    "severity",
+    "field_name",
+    "observed_value",
+    "expected_rule",
+    "action_taken",
+    "notes"
+   ]
+  },
+  "historical_place_locations.csv": {
+   "n": 18103,
+   "hdr": [
+    "location_id",
+    "place_id",
+    "geom_type",
+    "lon",
+    "lat",
+    "geom_wkt",
+    "representative_lon",
+    "representative_lat",
+    "original_x",
+    "original_y",
+    "original_crs",
+    "crs_confidence",
+    "axis_order_verified",
+    "location_precision",
+    "uncertainty_m",
+    "valid_from_year_astro",
+    "valid_to_year_astro",
+    "time_bound_type",
+    "time_rule_code",
+    "quality_flag",
+    "source_record_id",
+    "notes"
+   ]
+  },
+  "historical_place_names.csv": {
+   "n": 47503,
+   "hdr": [
+    "name_id",
+    "place_id",
+    "name",
+    "name_lang",
+    "name_script",
+    "name_type",
+    "transliteration_scheme",
+    "valid_from_year_astro",
+    "valid_to_year_astro",
+    "time_bound_type",
+    "time_rule_code",
+    "source_record_id",
+    "notes"
+   ]
+  },
+  "historical_places.csv": {
+   "n": 19039,
+   "hdr": [
+    "place_id",
+    "canonical_name",
+    "canonical_name_lang",
+    "place_type",
+    "source_id",
+    "source_dataset",
+    "primary_external_id",
+    "record_status",
+    "locked",
+    "created_at",
+    "valid_from_year_astro",
+    "valid_to_year_astro",
+    "time_bound_type",
+    "time_derivation",
+    "notes"
+   ]
+  },
+  "source_records.csv": {
+   "n": 29391,
+   "hdr": [
+    "source_record_id",
+    "source_id",
+    "source_dataset",
+    "dataset_id",
+    "external_id",
+    "external_id_type",
+    "raw_file",
+    "raw_record_index",
+    "raw_payload_json",
+    "license_status",
+    "redistributable",
+    "attribution_text",
+    "ingested_at",
+    "pipeline_version"
+   ]
+  }
+ }
+}

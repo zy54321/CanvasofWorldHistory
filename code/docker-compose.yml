@@ -1,0 +1,88 @@
+# 《世界历史时空画布》V1.0
+# 阶段一：工程基础设施 —— 数据库容器（PostgreSQL + PostGIS）
+#
+# 运行：docker compose up -d
+# 验证：docker compose ps / docker compose exec db psql -U $POSTGRES_USER -d $POSTGRES_DB
+#
+# 说明：
+#   1. 镜像版本固定，禁止使用 latest。
+#   2. 端口只绑定宿主机 127.0.0.1，不对局域网/公网暴露。
+#   3. 数据持久化在 Docker named volume `canvas-history-pgdata`，删容器不丢数据。
+#   4. 真实凭证只放在 .env（已被 .gitignore 忽略），本文件不含任何明文密码。
+#   5. 后端 api / 前端 web 服务在阶段四、五接入本文件，见文末「预留段」。
+
+name: canvas-history
+
+services:
+  db:
+    image: postgis/postgis:17-3.6
+    container_name: canvas-history-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required, copy .env.example to .env}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required, copy .env.example to .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required, copy .env.example to .env}
+      TZ: ${TZ:-Asia/Shanghai}
+      PGTZ: ${TZ:-Asia/Shanghai}
+    ports:
+      # 仅本机可连：127.0.0.1:<宿主端口> -> 容器 5432
+      - "127.0.0.1:${DB_HOST_PORT:-55432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # 七张暂存 CSV 的只读挂载点（阶段三导入用，容器内不可写，保护原始数据）
+      - ./data/staging:/staging:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -h 127.0.0.1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    shm_size: "256mb"
+    networks:
+      - backend
+
+volumes:
+  pgdata:
+    name: canvas-history-pgdata
+
+networks:
+  backend:
+    name: canvas-history-net
+
+# ---------------------------------------------------------------------------
+# 预留段（阶段四 / 阶段五接入，本轮不启用）
+#
+# 接入时新增两个服务，并复用同一 network 与 .env：
+#
+#   api:
+#     build: ./backend                      # Spring Boot 3 + Flyway，启动时自动执行 Migration
+#     container_name: canvas-history-api
+#     restart: unless-stopped
+#     environment:
+#       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
+#       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+#       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+#       SPRING_FLYWAY_ENABLED: "true"
+#     ports:
+#       - "127.0.0.1:${API_HOST_PORT:-8088}:8080"
+#     depends_on:
+#       db:
+#         condition: service_healthy
+#     networks: [backend]
+#
+#   web:
+#     build: ./frontend                     # Vue 3 + TS + MapLibre，构建产物由 nginx 托管
+#     container_name: canvas-history-web
+#     restart: unless-stopped
+#     environment:
+#       # 浏览器可见的 MapTiler 受限 API key（只能是 API key，禁止 Service token）
+#       VITE_MAPTILER_API_KEY: ${VITE_MAPTILER_API_KEY}
+#     ports:
+#       - "127.0.0.1:${WEB_HOST_PORT:-5180}:80"
+#     depends_on:
+#       - api
+#     networks: [backend]
+#
+# 端口规划（本机已占用情况已核查：5432/5433/5173 被其他项目占用）：
+#   db  55432 / api 8088 / web 5180
+# ---------------------------------------------------------------------------

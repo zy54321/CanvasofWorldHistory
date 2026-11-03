@@ -1,0 +1,31 @@
+server:
+  port: ${API_PORT:8088}
+  address: 127.0.0.1
+  compression:
+    enabled: true
+
+spring:
+  application:
+    name: canvas-history-api
+  datasource:
+    # M1 阶段该连接是 read-only:true（只做查询）。M2-2A 引入人物/事件 CRUD，必须可写，
+    # 故关闭连接级只读；地点相关接口（/places/**）在代码层面仍然只发 SELECT。
+    url: ${DB_URL:jdbc:postgresql://127.0.0.1:55432/canvas_history}
+    username: ${DB_USER:canvas_app}
+    password: ${DB_PASSWORD}
+    hikari:
+      pool-name: canvas-rw
+      maximum-pool-size: 6
+      minimum-idle: 1
+      read-only: false
+      connection-timeout: 5000
+  # 迁移的唯一入口是 ops/flyway.sh；后端启动不得成为 DDL 入口
+  flyway:
+    enabled: false
+  jackson:
+    default-property-inclusion: non_null
+
+logging:
+  level:
+    root: INFO
+    com.canvasofworldhistory: INFO
