@@ -10,6 +10,11 @@ import type {
   PersonHit,
   PersonNameRow,
   PersonPlaceRow,
+  EventFeatureCollection,
+  EventPolityRow,
+  MatrixResponse,
+  PolityHit,
+  PolityRegion,
   PlaceDetail,
   PlaceFeatureCollection,
   PlaceOptions,
@@ -177,4 +182,65 @@ export const eventApi = {
   updatePlaceLink: (id: number, linkId: number, body: unknown) =>
     send<EventPlaceRow>('PUT', `/api/v1/events/${id}/places/${linkId}`, body),
   unlinkPlace: (id: number, linkId: number) => send<unknown>('DELETE', `/api/v1/events/${id}/places/${linkId}`),
+}
+
+// ==========================================================================
+// M3：时间—地图联动
+// 时间一律天文学纪年整数；区间端点包含式。
+// ==========================================================================
+
+/** 地图事件标记：时间窗口 ∩ 视野，返回 GeoJSON FeatureCollection。 */
+export function fetchEventMap(
+  bbox: [number, number, number, number],
+  from: number,
+  to: number,
+  limit = 1200,
+  signal?: AbortSignal,
+): Promise<EventFeatureCollection> {
+  const q = new URLSearchParams({
+    bbox: bbox.map((n) => n.toFixed(5)).join(','),
+    from: String(from),
+    to: String(to),
+    limit: String(limit),
+  })
+  return getJson<EventFeatureCollection>(`${BASE}/events/map?${q.toString()}`, signal)
+}
+
+/** 历史时空矩阵：地区 → 政权 → 时间段 → 事件。 */
+export function fetchMatrix(
+  from: number,
+  step: number,
+  count = 12,
+  offset = 0,
+  signal?: AbortSignal,
+): Promise<MatrixResponse> {
+  const q = new URLSearchParams({
+    from: String(from),
+    step: String(step),
+    count: String(count),
+    offset: String(offset),
+  })
+  return getJson<MatrixResponse>(`${BASE}/events/matrix?${q.toString()}`, signal)
+}
+
+/** 事件详情（含政权关联）。 */
+export function fetchEvent(id: number, signal?: AbortSignal): Promise<EventDetail> {
+  return getJson<EventDetail>(`${BASE}/events/${id}`, signal)
+}
+
+export const polityApi = {
+  regions: (signal?: AbortSignal) => getJson<PolityRegion[]>(`${BASE}/polities/regions`, signal),
+  list: (keyword: string, region = '', size = 20, signal?: AbortSignal) => {
+    const q = new URLSearchParams({ size: String(size) })
+    if (keyword.trim()) q.set('keyword', keyword.trim())
+    if (region) q.set('region', region)
+    return getJson<Paged<PolityHit>>(`${BASE}/polities?${q.toString()}`, signal)
+  },
+  create: (body: unknown) => send<PolityHit>('POST', `${BASE}/polities`, body),
+  byEvent: (eventId: number, signal?: AbortSignal) =>
+    getJson<EventPolityRow[]>(`${BASE}/events/${eventId}/polities`, signal),
+  link: (eventId: number, body: unknown) =>
+    send<EventPolityRow>('POST', `${BASE}/events/${eventId}/polities`, body),
+  unlink: (eventId: number, linkId: number) =>
+    send<unknown>('DELETE', `${BASE}/events/${eventId}/polities/${linkId}`),
 }

@@ -72,6 +72,7 @@ public final class EventDtos {
             boolean locked,
             List<EventPersonRow> persons,
             List<EventPlaceRow> places,
+            List<PolityDtos.EventPolityRow> polities,
             boolean truncated) {
     }
 }

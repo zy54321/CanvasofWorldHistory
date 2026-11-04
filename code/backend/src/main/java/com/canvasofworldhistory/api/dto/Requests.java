@@ -85,6 +85,25 @@ public final class Requests {
             String note) {
     }
 
+    /** 历史政权创建（M3）。regionCode 必须是后端给出的 10 个展示地区之一。 */
+    public record PolityUpsert(
+            String name,
+            String nameLang,
+            String regionCode,
+            Integer startYearAstro,
+            Integer endYearAstro,
+            String description,
+            String notes,
+            String recordStatus) {
+    }
+
+    /** 事件—政权关联（M3）。role 为自由文本，不做枚举约束。 */
+    public record EventPolityLink(
+            Long polityId,
+            String role,
+            String note) {
+    }
+
     /** 简单确认响应。 */
     public record Deleted(long id, int affected) {
     }

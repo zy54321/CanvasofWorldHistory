@@ -2,6 +2,7 @@ package com.canvasofworldhistory.api.service;
 
 import com.canvasofworldhistory.api.dto.Dtos;
 import com.canvasofworldhistory.api.dto.EventDtos;
+import com.canvasofworldhistory.api.dto.PolityDtos;
 import com.canvasofworldhistory.api.dto.Requests;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -28,9 +29,11 @@ public class EventService {
     private static final String RECORD_STATUS = "('staging','published','rejected')";
 
     private final NamedParameterJdbcTemplate jdbc;
+    private final PolityService polities;
 
-    public EventService(NamedParameterJdbcTemplate jdbc) {
+    public EventService(NamedParameterJdbcTemplate jdbc, PolityService polities) {
         this.jdbc = jdbc;
+        this.polities = polities;
     }
 
     // ================================================================ 列表 / 搜索
@@ -93,6 +96,7 @@ public class EventService {
                 """, new MapSqlParameterSource("id", eventId), (rs, i) -> {
             List<EventDtos.EventPersonRow> persons = persons(eventId, MAX_CHILD_ROWS + 1);
             List<EventDtos.EventPlaceRow> places = places(eventId, MAX_CHILD_ROWS + 1);
+            List<PolityDtos.EventPolityRow> linkedPolities = polities.byEventUnchecked(eventId);
             boolean truncated = persons.size() > MAX_CHILD_ROWS || places.size() > MAX_CHILD_ROWS;
             return new EventDtos.EventDetail(
                     rs.getLong("event_id"),
@@ -111,6 +115,7 @@ public class EventService {
                     rs.getBoolean("locked"),
                     persons.size() > MAX_CHILD_ROWS ? persons.subList(0, MAX_CHILD_ROWS) : persons,
                     places.size() > MAX_CHILD_ROWS ? places.subList(0, MAX_CHILD_ROWS) : places,
+                    linkedPolities,
                     truncated);
         });
         return rows.stream().findFirst();

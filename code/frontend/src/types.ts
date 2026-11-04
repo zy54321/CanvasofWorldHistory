@@ -286,6 +286,7 @@ export interface EventDetail {
   locked: boolean
   persons: EventPersonRow[]
   places: EventPlaceRow[]
+  polities: EventPolityRow[]
   truncated: boolean
 }
 
@@ -313,4 +314,128 @@ export interface PlaceOptions {
   timeBoundTypes: string[]
   locationPrecisions: string[]
   crsConfidences: string[]
+}
+
+// ==========================================================================
+// M3 时间—地图联动
+// ==========================================================================
+
+/** 地图事件标记（一个「事件 × 地点」一个要素） */
+export interface EventMarkerProps {
+  eventId: number
+  title: string
+  startYearAstro: number | null
+  endYearAstro: number | null
+  timePrecision: string
+  eventType: string
+  placeId: number
+  placeName: string
+  locationRole: string | null
+  /** MapLibre 聚合专用字段 */
+  cluster?: boolean
+  cluster_id?: number
+  point_count?: number
+}
+
+export interface EventFeature {
+  type: 'Feature'
+  geometry: { type: 'Point'; coordinates: [number, number] }
+  properties: EventMarkerProps
+}
+
+export interface EventMapMeta {
+  fromYearAstro: number
+  toYearAstro: number
+  returned: number
+  totalInWindow: number
+  limit: number
+  truncated: boolean
+  unknownTimeEvents: number
+  note: string
+}
+
+export interface EventFeatureCollection {
+  type: 'FeatureCollection'
+  features: EventFeature[]
+  meta: EventMapMeta
+}
+
+export interface MatrixColumn {
+  index: number
+  startYearAstro: number
+  endYearAstro: number
+  label: string
+}
+
+export interface MatrixEvent {
+  eventId: number
+  title: string
+  startYearAstro: number | null
+  endYearAstro: number | null
+  timePrecision: string
+  eventType: string
+}
+
+export interface MatrixCell {
+  columnIndex: number
+  events: MatrixEvent[]
+}
+
+export interface MatrixPolity {
+  polityId: number
+  name: string
+  startYearAstro: number | null
+  endYearAstro: number | null
+  eventCount: number
+  cells: MatrixCell[]
+}
+
+export interface MatrixRegion {
+  code: string
+  label: string
+  sortOrder: number
+  polityCount: number
+  eventCount: number
+  polities: MatrixPolity[]
+}
+
+export interface MatrixResponse {
+  fromYearAstro: number
+  step: number
+  offset: number
+  count: number
+  columns: MatrixColumn[]
+  regions: MatrixRegion[]
+  eventsInWindow: number
+  unlinkedEventsInWindow: number
+  truncated: boolean
+  note: string
+}
+
+/** 政权（展示用最小模型） */
+export interface PolityHit {
+  polityId: number
+  name: string
+  regionCode: string
+  regionLabel: string
+  startYearAstro: number | null
+  endYearAstro: number | null
+  description: string | null
+  eventCount: number
+}
+
+export interface PolityRegion {
+  code: string
+  label: string
+  sortOrder: number
+}
+
+export interface EventPolityRow {
+  linkId: number
+  polityId: number
+  polityName: string
+  regionCode: string
+  regionLabel: string
+  role: string | null
+  note: string | null
 }

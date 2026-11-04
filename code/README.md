@@ -79,6 +79,26 @@ cd frontend && npm install && npx vite --host 127.0.0.1      # WEB  http://127.0
 - **改 `.env` 后必须重启 vite**；联调时可用 `API_HOST_PORT=8089 npx vite --port 5181` 把前端指向测试库。
 - 接口清单与实测日志见 `ops/reports/M2_FINAL_REPORT.md`、`ops/reports/m2_final/`。
 
+## 2.7 M3 时间—地图联动
+
+```text
+GET  /api/v1/events/map?bbox=w,s,e,n&from=<astro>&to=<astro>&limit=   事件标记（GeoJSON）
+GET  /api/v1/events/matrix?from=&step=1|10|100&count=&offset=         时空矩阵（地区→政权→时段→事件）
+GET  /api/v1/polities?keyword=&region=                                政权列表（矩阵行来源）
+GET  /api/v1/polities/regions                                         10 个展示地区（含中文标签）
+POST /api/v1/polities                                                 新建政权（受写保护限制）
+GET/POST /api/v1/events/{id}/polities                                 事件—政权关联
+DEL      /api/v1/events/{id}/polities/{linkId}                        解除关联
+```
+
+- 前端两种模式：**地图观察**（默认，全屏地图 + 底部时间轴）与**历史时空矩阵**（点「时间观察」或「展开」）。
+- 时间一律天文学纪年整数，换算只在 `frontend/src/time.ts` 一处；区间端点包含式，界面不出现「公元 0 年」。
+- 时间轴三档跨度 1 / 10 / 100 年，左右按钮与拖动都以跨度为步长；地图只查「当前窗口 ∩ 当前视野」。
+- 矩阵的表头与内容在**同一个横向滚动容器**里（不是两个容器互相同步），左侧政权列 `sticky` 固定；
+  横向滚到底自动追加下一批列（后端列索引为绝对列号）。
+- 政权是**展示分组**用的最小对象（名称 + 展示地区 + 可选存在区间），不做疆域、不做继承；
+  事件是否进入矩阵取决于**有没有人工建立的政权关联**，不会按名称或坐标自动推断。
+
 ## 3. 日常命令
 
 ```bash

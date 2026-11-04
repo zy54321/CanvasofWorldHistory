@@ -2,8 +2,11 @@ package com.canvasofworldhistory.api.web;
 
 import com.canvasofworldhistory.api.dto.Dtos;
 import com.canvasofworldhistory.api.dto.EventDtos;
+import com.canvasofworldhistory.api.dto.PolityDtos;
 import com.canvasofworldhistory.api.dto.Requests;
 import com.canvasofworldhistory.api.service.EventService;
+import com.canvasofworldhistory.api.service.PolityService;
+import com.canvasofworldhistory.api.service.TimeMapService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 事件 API（M2-2A）。
@@ -28,9 +32,13 @@ import java.util.List;
 public class EventController {
 
     private final EventService service;
+    private final TimeMapService timeMap;
+    private final PolityService polities;
 
-    public EventController(EventService service) {
+    public EventController(EventService service, TimeMapService timeMap, PolityService polities) {
         this.service = service;
+        this.timeMap = timeMap;
+        this.polities = polities;
     }
 
     /** 列表 / 关键词搜索（标题与摘要）。keyword 为空则返回全部。 */
@@ -40,6 +48,68 @@ public class EventController {
             @RequestParam(name = "page", defaultValue = "1") int page,
             @RequestParam(name = "size", defaultValue = "20") int size) {
         return service.search(keyword, page, size);
+    }
+
+    /**
+     * 地图事件标记（M3）：时间窗口 ∩ 视野，一个（事件 × 地点）一条，GeoJSON。
+     * bbox 顺序为 west,south,east,north；from / to 为天文学纪年整数且端点包含。
+     */
+    @GetMapping(value = "/map", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Map<String, Object> map(
+            @RequestParam("bbox") String bbox,
+            @RequestParam("from") int from,
+            @RequestParam("to") int to,
+            @RequestParam(name = "limit", required = false) Integer limit) {
+        TimeMapService.requireWindow(from, to);
+        String[] parts = bbox.split(",");
+        if (parts.length != 4) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "bbox 需要 4 个数字：west,south,east,north");
+        }
+        double w, s, e, n;
+        try {
+            w = Double.parseDouble(parts[0].trim());
+            s = Double.parseDouble(parts[1].trim());
+            e = Double.parseDouble(parts[2].trim());
+            n = Double.parseDouble(parts[3].trim());
+        } catch (NumberFormatException ex) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "bbox 含非数字：" + bbox);
+        }
+        return timeMap.mapFeatures(w, s, e, n, from, to, limit);
+    }
+
+    /**
+     * 历史时空矩阵（M3）：地区 → 政权 → 时间段 → 事件。
+     * step 只允许 1 / 10 / 100；offset 为跳过的列数（横向滚动加载更多）。
+     */
+    @GetMapping(value = "/matrix", produces = MediaType.APPLICATION_JSON_VALUE)
+    public PolityDtos.MatrixResponse matrix(
+            @RequestParam("from") int from,
+            @RequestParam(name = "step", defaultValue = "10") int step,
+            @RequestParam(name = "count", defaultValue = "12") int count,
+            @RequestParam(name = "offset", defaultValue = "0") int offset,
+            @RequestParam(name = "region", required = false) String region) {
+        return timeMap.matrix(from, step, count, offset, region);
+    }
+
+    /** 事件的政权关联（M3）。 */
+    @GetMapping(value = "/{id}/polities", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<PolityDtos.EventPolityRow> eventPolities(@PathVariable("id") long id) {
+        return polities.byEvent(id);
+    }
+
+    @PostMapping(value = "/{id}/polities", consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<PolityDtos.EventPolityRow> linkPolity(
+            @PathVariable("id") long id, @RequestBody Requests.EventPolityLink req) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(polities.link(id, req));
+    }
+
+    @DeleteMapping(value = "/{id}/polities/{linkId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Requests.Deleted> unlinkPolity(
+            @PathVariable("id") long id, @PathVariable("linkId") long linkId) {
+        return ResponseEntity.ok(new Requests.Deleted(linkId, polities.unlink(id, linkId)));
     }
 
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)

@@ -1,13 +1,16 @@
 <script setup lang="ts">
 /**
- * 事件编辑器：主表 + 关联人物 + 关联地点。
+ * 事件编辑器：主表 + 关联政权 + 关联人物 + 关联地点。
  * 时间允许完全未知；也允许只知起点的开放区间。
+ *
+ * 政权关联（M3）只做「搜索选择 + 添加 + 解除 + 必要时新建政权」，
+ * 建政权的入口放在这里而不是另建一套政权管理平台。
  */
 import { computed, ref, watch } from 'vue'
 import AstroYear from './AstroYear.vue'
 import ObjectPicker, { type PickedItem } from './ObjectPicker.vue'
-import { eventApi } from '../../api'
-import type { EventDetail, EventPersonRow, EventPlaceRow } from '../../types'
+import { eventApi, polityApi } from '../../api'
+import type { EventDetail, EventPersonRow, EventPlaceRow, EventPolityRow, PolityRegion } from '../../types'
 import { PRECISIONS, formatRange } from '../../time'
 
 const props = defineProps<{ entityId: number | null }>()
@@ -40,6 +43,112 @@ const form = ref({
 
 const persons = computed<EventPersonRow[]>(() => detail.value?.persons ?? [])
 const places = computed<EventPlaceRow[]>(() => detail.value?.places ?? [])
+const polities = computed<EventPolityRow[]>(() => detail.value?.polities ?? [])
+
+// 关联政权（M3）
+const poOpen = ref(false)
+const pickerPolity = ref(false)
+const poForm = ref({
+  polityId: null as number | null,
+  polityName: '',
+  role: '',
+  note: '',
+})
+const newPoOpen = ref(false)
+const regions = ref<PolityRegion[]>([])
+const newPo = ref({
+  name: '',
+  regionCode: 'east_asia',
+  start: null as number | null,
+  end: null as number | null,
+})
+
+async function ensureRegions() {
+  if (regions.value.length) return
+  try {
+    regions.value = await polityApi.regions()
+    if (!regions.value.some((r) => r.code === newPo.value.regionCode) && regions.value.length) {
+      newPo.value.regionCode = regions.value[0].code
+    }
+  } catch (e) {
+    err.value = `政权地区列表加载失败：${(e as Error).message}`
+  }
+}
+
+function openPo() {
+  err.value = null
+  poOpen.value = true
+  poForm.value = { polityId: null, polityName: '', role: '', note: '' }
+  void ensureRegions()
+}
+
+function onPickPolity(it: PickedItem) {
+  poForm.value.polityId = it.id
+  poForm.value.polityName = it.name
+  pickerPolity.value = false
+}
+
+async function savePo() {
+  if (props.entityId === null) return
+  err.value = null
+  if (poForm.value.polityId === null) {
+    err.value = '请先选择要关联的历史政权'
+    return
+  }
+  try {
+    await polityApi.link(props.entityId, {
+      polityId: poForm.value.polityId,
+      role: poForm.value.role || null,
+      note: poForm.value.note || null,
+    })
+    poOpen.value = false
+    await load(props.entityId)
+    emit('changed')
+  } catch (e) {
+    err.value = (e as Error).message
+  }
+}
+
+async function removePo(r: EventPolityRow) {
+  if (props.entityId === null) return
+  if (!window.confirm(`确认解除与政权「${r.polityName}」的关联？（不会删除政权或事件本体）`)) return
+  try {
+    await polityApi.unlink(props.entityId, r.linkId)
+    await load(props.entityId)
+    emit('changed')
+  } catch (e) {
+    err.value = (e as Error).message
+  }
+}
+
+async function createPolity() {
+  err.value = null
+  if (!newPo.value.name.trim()) {
+    err.value = '请填写政权名称'
+    return
+  }
+  if ((newPo.value.start === null) !== (newPo.value.end === null)) {
+    err.value = '存在起始年与结束年需同时填写或同时留空'
+    return
+  }
+  try {
+    const p = await polityApi.create({
+      name: newPo.value.name.trim(),
+      regionCode: newPo.value.regionCode,
+      startYearAstro: newPo.value.start,
+      endYearAstro: newPo.value.end,
+    })
+    poForm.value.polityId = p.polityId
+    poForm.value.polityName = p.name
+    newPoOpen.value = false
+    // 新建即选中：直接把关联表单打开，省掉「再搜一次」的步骤
+    poOpen.value = true
+    newPo.value = { name: '', regionCode: newPo.value.regionCode, start: null, end: null }
+    msg.value = `已新建政权「${p.name}」，可直接保存关联`
+  } catch (e) {
+    err.value = (e as Error).message
+  }
+}
 
 // 关联人物
 const pOpen = ref(false)
@@ -375,6 +484,88 @@ async function removeL(r: EventPlaceRow) {
         <button v-if="entityId !== null" class="m2-btn danger" @click="removeEvent">删除事件</button>
       </div>
 
+      <!-- 关联政权（M3，决定事件在时空矩阵里出现在哪一行） -->
+      <div v-if="entityId !== null" class="m2-sub">
+        历史政权 <span class="tiny dim">{{ polities.length }} 个</span>
+        <span class="spacer" />
+        <button class="m2-btn sm" @click="openPo()">+ 关联政权</button>
+        <button class="m2-btn sm" @click="newPoOpen = !newPoOpen; ensureRegions()">
+          {{ newPoOpen ? '取消新建' : '新建政权' }}
+        </button>
+      </div>
+      <div v-if="entityId !== null">
+        <p v-if="polities.length === 0 && !poOpen" class="m2-empty">
+          还没有关联政权 —— 该事件仍会保留在地图与检索中，但不会出现在时空矩阵
+        </p>
+        <div v-for="r in polities" :key="r.linkId" class="m2-row">
+          <span class="grow">
+            <strong>{{ r.polityName }}</strong>
+            <span class="tiny dim">
+              · {{ r.regionLabel }}
+              <template v-if="r.role"> · {{ r.role }}</template>
+            </span>
+          </span>
+          <span class="acts">
+            <button class="m2-btn sm danger" @click="removePo(r)">解除</button>
+          </span>
+        </div>
+
+        <div v-if="poOpen" class="subform">
+          <div class="m2-field">
+            <label>选择历史政权 <span class="req">*</span></label>
+            <div class="pickrow">
+              <input :value="poForm.polityName" type="text" readonly placeholder="点击搜索并选择政权" />
+              <button class="m2-btn" @click="pickerPolity = true">搜索政权</button>
+            </div>
+          </div>
+          <div class="m2-field">
+            <label>政权在事件中的角色（可空，自由文本）</label>
+            <input v-model="poForm.role" type="text" placeholder="aggressor / defender / participant" />
+          </div>
+          <div class="m2-field">
+            <label>说明</label>
+            <input v-model="poForm.note" type="text" />
+          </div>
+          <div class="actions">
+            <button class="m2-btn primary" @click="savePo">保存关联</button>
+            <button class="m2-btn" @click="poOpen = false">取消</button>
+          </div>
+        </div>
+
+        <!-- 新建政权：只有名称与展示地区必填；存在区间可空 -->
+        <div v-if="newPoOpen" class="subform">
+          <p class="m2-hint">
+            政权只作「展示分组」：填名称与展示地区即可，不做疆域与继承关系。
+          </p>
+          <div class="m2-grid2">
+            <div class="m2-field">
+              <label>政权名称 <span class="req">*</span></label>
+              <input v-model="newPo.name" type="text" placeholder="例如：波斯帝国" />
+            </div>
+            <div class="m2-field">
+              <label>展示地区 <span class="req">*</span></label>
+              <select v-model="newPo.regionCode">
+                <option v-for="rg in regions" :key="rg.code" :value="rg.code">{{ rg.label }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="m2-grid2">
+            <div class="m2-field">
+              <label>存在起始年（可空）</label>
+              <AstroYear v-model="newPo.start" />
+            </div>
+            <div class="m2-field">
+              <label>存在结束年（可空）</label>
+              <AstroYear v-model="newPo.end" />
+            </div>
+          </div>
+          <div class="actions">
+            <button class="m2-btn primary" @click="createPolity">新建并选用</button>
+            <button class="m2-btn" @click="newPoOpen = false">取消</button>
+          </div>
+        </div>
+      </div>
+
       <!-- 关联人物 -->
       <div v-if="entityId !== null" class="m2-sub">
         相关人物 <span class="tiny dim">{{ persons.length }} 人</span>
@@ -507,6 +698,14 @@ async function removeL(r: EventPlaceRow) {
         title="选择地点"
         @close="pickerPlace = false"
         @pick="onPickPlace2"
+      />
+      <ObjectPicker
+        :open="pickerPolity"
+        kind="polity"
+        title="选择历史政权"
+        :exclude-ids="polities.map((x) => x.polityId)"
+        @close="pickerPolity = false"
+        @pick="onPickPolity"
       />
     </template>
   </div>

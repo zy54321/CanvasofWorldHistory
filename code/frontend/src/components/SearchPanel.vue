@@ -129,8 +129,8 @@ onBeforeUnmount(() => ctrl?.abort())
 <template>
   <section class="search panel">
     <header>
-      <h1>世界历史时空画布</h1>
-      <p class="tiny dim">历史地名检索 · 时空定位</p>
+      <h1>地点检索</h1>
+      <p class="tiny dim">按名称、别名或年代查找</p>
     </header>
 
     <div class="controls">

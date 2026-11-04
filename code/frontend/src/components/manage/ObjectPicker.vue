@@ -4,7 +4,7 @@
  * 关联关系一律走这个选择器，不允许手填 ID。
  */
 import { onBeforeUnmount, ref, watch } from 'vue'
-import { eventApi, personApi, placeAdmin } from '../../api'
+import { eventApi, personApi, placeAdmin, polityApi } from '../../api'
 
 export interface PickedItem {
   id: number
@@ -14,7 +14,7 @@ export interface PickedItem {
 
 const props = defineProps<{
   open: boolean
-  kind: 'place' | 'person' | 'event'
+  kind: 'place' | 'person' | 'event' | 'polity'
   title: string
   /** 已关联的对象 id，用于标灰避免重复选 */
   excludeIds?: number[]
@@ -55,12 +55,21 @@ async function load() {
         sub: [x.birthYearAstro !== null || x.deathYearAstro !== null ? '生卒已录' : '生卒未知',
               `${x.nameCount} 名`].join(' · '),
       }))
-    } else {
+    } else if (props.kind === 'event') {
       const r = await eventApi.list(keyword.value, 1, 20, ctrl.signal)
       items.value = r.items.map((x) => ({
         id: x.eventId,
         name: x.title,
         sub: [x.eventType, x.timePrecision === 'unknown' ? '时间未知' : '有时间'].join(' · '),
+      }))
+    } else {
+      // 历史政权：展示地区 + 已关联事件数，便于区分同名政权
+      const r = await polityApi.list(keyword.value, '', 30, ctrl.signal)
+      items.value = r.items.map((x) => ({
+        id: x.polityId,
+        name: x.name,
+        sub: [x.regionLabel, x.startYearAstro !== null ? '有存在区间' : '存在区间未知',
+              `${x.eventCount} 事件`].join(' · '),
       }))
     }
   } catch (e) {
@@ -102,7 +111,13 @@ function pick(it: PickedItem) {
           v-model="keyword"
           type="text"
           :placeholder="
-            kind === 'place' ? '搜索地点名称或别名（留空列出全部）' : kind === 'person' ? '搜索人物姓名或别名' : '搜索事件标题'
+            kind === 'place'
+              ? '搜索地点名称或别名（留空列出全部）'
+              : kind === 'person'
+                ? '搜索人物姓名或别名'
+                : kind === 'polity'
+                  ? '搜索历史政权名称'
+                  : '搜索事件标题'
           "
           @keyup.enter="load"
         />
@@ -113,7 +128,7 @@ function pick(it: PickedItem) {
         <p v-if="loading" class="tiny dim pad">查询中…</p>
         <p v-else-if="error" class="tiny err pad">{{ error }}</p>
         <p v-else-if="items.length === 0" class="tiny dim pad">
-          没有匹配结果。{{ kind === 'place' ? '可先在「地点」页签新建。' : '' }}
+          没有匹配结果。{{ kind === 'place' ? '可先在「地点」页签新建。' : kind === 'polity' ? '可在事件编辑区下方直接新建政权。' : '' }}
         </p>
         <button
           v-for="it in items"
