@@ -196,7 +196,12 @@ onBeforeUnmount(() => ctrl?.abort())
           <span class="dim"> · {{ yearRange(item) }}</span>
         </div>
         <div class="line3 tiny dim">
-          <span v-if="item.lon !== null && item.lat !== null" class="mono">
+          <!-- M4-4c：接口用 non_null 序列化，无代表坐标的地点**不带**这两个字段，
+               取到的是 undefined 而不是 null。原来的 `!== null` 判断放过了 undefined，
+               下面再调 .toFixed() 就会抛 "Cannot read properties of undefined"，
+               整个搜索结果列表随之渲染失败（Pleiades 4.1 有 7,200 个这样的地点）。
+               改成 `!= null` 同时挡住 null 与 undefined，走下面的“无代表坐标”分支。 -->
+          <span v-if="item.lon != null && item.lat != null" class="mono">
             {{ item.lon.toFixed(3) }}, {{ item.lat.toFixed(3) }}
           </span>
           <span v-else>无代表坐标</span>

@@ -46,7 +46,11 @@ onMounted(async () => {
 function onPick(item: PlaceSummary) {
   selectedEventId.value = null
   selectedPlaceId.value = item.placeId
-  if (item.lon !== null && item.lat !== null) {
+  // M4-4c：接口 non_null 序列化，无代表坐标的地点不带 lon/lat（取到 undefined）。
+  // 原来的 `!== null` 会放过 undefined，于是 flyToPlace(undefined, undefined)
+  // 让 MapLibre 抛 "Invalid LngLat object: (NaN, NaN)"。
+  // 用 `!= null` 同时挡住 null 与 undefined：没有坐标就不飞，详情照常打开。
+  if (item.lon != null && item.lat != null) {
     mapRef.value?.flyToPlace(item.lon, item.lat)
   }
 }

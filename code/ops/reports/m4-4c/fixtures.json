@@ -1,0 +1,246 @@
+{
+  "db": "canvas_history_m4_4b",
+  "rome_bbox": [
+    12.3,
+    41.7,
+    12.6,
+    42.0
+  ],
+  "selection_rules": {
+    "rome_bbox": "固定 12.30,41.70,12.60,42.00",
+    "geometry_samples": "v4.1 数据集中 geom 与 bbox 相交、按 place_id 升序取前 3 个 Polygon / 3 个 LineString",
+    "multi_location": "v4.1 中位置数≥3 且同时含 precise 与 rough、按位置数降序取前 2",
+    "timeline": "v4.1 中只有 1 条名称、该名称有完整纪年、且不在 derived_value_mismatch 集合内、有可用几何；按 md5(place_id) 排序取前 10（单名保证年份过滤无歧义）"
+  },
+  "geometry_samples": [
+    {
+      "kind": "Polygon",
+      "place_id": 135892,
+      "name": "Italia",
+      "geom_type": "Polygon",
+      "rep_lon": 12.5,
+      "rep_lat": 42.5,
+      "precision": "rough"
+    },
+    {
+      "kind": "Polygon",
+      "place_id": 150063,
+      "name": "Sabini",
+      "geom_type": "Polygon",
+      "rep_lon": 12.75,
+      "rep_lat": 42.25,
+      "precision": "rough"
+    },
+    {
+      "kind": "Polygon",
+      "place_id": 150163,
+      "name": "Untitled",
+      "geom_type": "Polygon",
+      "rep_lon": 12.25,
+      "rep_lat": 42.25,
+      "precision": "rough"
+    },
+    {
+      "kind": "LineString",
+      "place_id": 150314,
+      "name": "Albunea (river)",
+      "geom_type": "LineString",
+      "rep_lon": 12.549055651,
+      "rep_lat": 41.710686188,
+      "precision": "precise"
+    },
+    {
+      "kind": "LineString",
+      "place_id": 150351,
+      "name": "Casal Rotondo",
+      "geom_type": "LineString",
+      "rep_lon": 12.55592703,
+      "rep_lat": 41.821130762,
+      "precision": "precise"
+    },
+    {
+      "kind": "LineString",
+      "place_id": 150369,
+      "name": "La Cecchina",
+      "geom_type": "LineString",
+      "rep_lon": 12.558688925,
+      "rep_lat": 41.943176014,
+      "precision": "precise"
+    }
+  ],
+  "rome_geom_counts": {
+    "LineString": 206,
+    "Point": 357,
+    "Polygon": 45
+  },
+  "athens": {
+    "place_id": 157338,
+    "canonical_name": "Athenae",
+    "name_text": "Athens",
+    "name_lang": "en",
+    "location_count": 1
+  },
+  "pompeii": {
+    "place_id": 150913,
+    "canonical_name": "Pompeii",
+    "location_count": 1
+  },
+  "multi_location": [
+    {
+      "place_id": 150130,
+      "name": "Velini (lake)",
+      "location_count": 4,
+      "precise": 3,
+      "rough": 1,
+      "geom_types": "Point/Polygon"
+    },
+    {
+      "place_id": 153964,
+      "name": "Delkon (river)",
+      "location_count": 4,
+      "precise": 3,
+      "rough": 1,
+      "geom_types": "LineString/Polygon"
+    }
+  ],
+  "no_geometry": [
+    {
+      "place_id": 136043,
+      "canonical_name": "Magnata",
+      "name_text": "Magnata"
+    },
+    {
+      "place_id": 136046,
+      "canonical_name": "Ouellaboroi/Velabri",
+      "name_text": "Velabri"
+    },
+    {
+      "place_id": 136048,
+      "canonical_name": "Ousdiai",
+      "name_text": "Ousdiai"
+    }
+  ],
+  "timeline_samples": [
+    {
+      "place_id": 153006,
+      "canonical_name": "Diabolis",
+      "name_text": "Diabolis",
+      "valid_from": -29,
+      "valid_to": 640,
+      "time_bound_type": "tpq_taq",
+      "inside_year": -29,
+      "outside_year": 641,
+      "single_name": true,
+      "ui_from_label": "前 30"
+    },
+    {
+      "place_id": 160033,
+      "canonical_name": "Phaselis",
+      "name_text": "Φάσηλις",
+      "valid_from": -549,
+      "valid_to": 640,
+      "time_bound_type": "tpq_taq",
+      "inside_year": -549,
+      "outside_year": 641,
+      "single_name": true,
+      "ui_from_label": "前 550"
+    },
+    {
+      "place_id": 158808,
+      "canonical_name": "*Etsyena",
+      "name_text": "Etsyena",
+      "valid_from": -29,
+      "valid_to": 300,
+      "time_bound_type": "tpq_taq",
+      "inside_year": -29,
+      "outside_year": 301,
+      "single_name": true,
+      "ui_from_label": "前 30"
+    },
+    {
+      "place_id": 172861,
+      "canonical_name": "Bash Tapa",
+      "name_text": "باش تبة",
+      "valid_from": 1700,
+      "valid_to": 2100,
+      "time_bound_type": "tpq_taq",
+      "inside_year": 1700,
+      "outside_year": 2101,
+      "single_name": true,
+      "ui_from_label": "1700"
+    },
+    {
+      "place_id": 174534,
+      "canonical_name": "Necropoli di San Placido",
+      "name_text": "Necropoli di San Placido",
+      "valid_from": 1700,
+      "valid_to": 2100,
+      "time_bound_type": "tpq_taq",
+      "inside_year": 1700,
+      "outside_year": 2101,
+      "single_name": true,
+      "ui_from_label": "1700"
+    },
+    {
+      "place_id": 160064,
+      "canonical_name": "Sanaos (lake)",
+      "name_text": "Sanaos L.",
+      "valid_from": -329,
+      "valid_to": 640,
+      "time_bound_type": "tpq_taq",
+      "inside_year": -329,
+      "outside_year": 641,
+      "single_name": true,
+      "ui_from_label": "前 330"
+    },
+    {
+      "place_id": 153743,
+      "canonical_name": "Stageira",
+      "name_text": "Stageira",
+      "valid_from": -549,
+      "valid_to": -329,
+      "time_bound_type": "tpq_taq",
+      "inside_year": -549,
+      "outside_year": -328,
+      "single_name": true,
+      "ui_from_label": "前 550"
+    },
+    {
+      "place_id": 158363,
+      "canonical_name": "Kybersos? (river)",
+      "name_text": "Kybersos",
+      "valid_from": -329,
+      "valid_to": -29,
+      "time_bound_type": "tpq_taq",
+      "inside_year": -329,
+      "outside_year": -28,
+      "single_name": true,
+      "ui_from_label": "前 330"
+    },
+    {
+      "place_id": 154176,
+      "canonical_name": "Blachernai",
+      "name_text": "Blachernai",
+      "valid_from": -29,
+      "valid_to": 640,
+      "time_bound_type": "tpq_taq",
+      "inside_year": -29,
+      "outside_year": 641,
+      "single_name": true,
+      "ui_from_label": "前 30"
+    },
+    {
+      "place_id": 171181,
+      "canonical_name": "Arcadian Gate",
+      "name_text": "Arcadian Gate",
+      "valid_from": 1700,
+      "valid_to": 2100,
+      "time_bound_type": "tpq_taq",
+      "inside_year": 1700,
+      "outside_year": 2101,
+      "single_name": true,
+      "ui_from_label": "1700"
+    }
+  ],
+  "timeline_pool_size": 31188
+}
