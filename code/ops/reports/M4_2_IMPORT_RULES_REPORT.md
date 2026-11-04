@@ -277,7 +277,7 @@ V9b 诚实标注：本轮没有构造 `content_hash` 变化的第三轮输入，
 | M4-2 报告提交 | **`c6c4fcd4f3bc9a2b58b7f046d250b1a2d8034a21`** `docs(m4): M4-2 report — licence gate removal, optional provenance, new import baseline` |
 | M4-2 报告措辞修订 | **`46e07dd5e7145506fab064d18904d8fdb3eb539f`** `docs(m4): clarify which licence references remain and why` |
 | **M4-2 收尾提交**（验收后修正） | **`0f4359e451377d6ef42e5ef89695971dba30e595`** `fix(m4-2): drop fixed ledger constants from the verifier, add V9b update-path test` |
-| 本报告最后一次修订 | 紧随收尾提交的 `docs(m4-2)` 提交（仅回填提交号与收尾章节，不含逻辑改动） |
+| 本报告最后一次修订 | 紧随收尾提交的 `docs(m4-2)` 提交；如需精确定位用 `git log -1 -- code/ops/reports/M4_2_IMPORT_RULES_REPORT.md`（该提交只改文档，不含逻辑） |
 | 远程 | 无，未推送 |
 | 工作区 | 提交后干净 |
 
