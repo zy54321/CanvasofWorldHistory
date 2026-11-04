@@ -194,11 +194,11 @@ place_blocked（地点级人工保护）3（期望 3）；source_blocked（源�
 | M4-2 无来源地点上图 E2E | **9 / 9** | 真实浏览器 |
 | M3 接口 / 写保护 / 浏览器 E2E | **51 / 51**、**4 / 4**、**56 / 56** | — |
 | M2-A / M2 完整 / M2 管理界面 | **43 / 43**、**36 / 36**、**14 / 14** | — |
-| M0/M1 浏览器 E2E | **13–14 / 15**（M0-02 未通过，见下） | 12:38 同代码状态下曾 15 / 15 |
+| M0/M1 浏览器 E2E | **15 / 15** | 修复 M0-02 采样窗口后连续 4 轮全通过，见 §11 |
 
-### M0/M1 · M0-02 的如实说明
+### M0/M1 · M0-02 的如实说明（已结案，见 §11）
 
-本轮多次复跑 M0-02「四种样式可用」均在 13–14/15，失败项固定为样式切换采样：
+**提交 `2233cb5` 那一轮**，多次复跑 M0-02「四种样式可用」均在 13–14/15，失败项固定为样式切换采样：
 
 ```
 FAIL M0-02 样式名互异 2 种： /  /  / Outdoor；raster 0/0/0/0；每步点层 0/0/0/400
@@ -217,9 +217,12 @@ Outdoor    用时  557ms  name="Outdoor"           raster=0 places=400
 **判定：不是功能回退，是采样窗口在同机负载较高时不够**（样式 JSON 异步加载期间
 `getStyle().name` 为空、自定义 source 被清空，这正是失败的形态）。
 
-本轮**未改动前端与地图代码**（`git show 2233cb5 --stat` 可证），也未修改该测试
-（不在本轮授权范围）。建议（待 Owner 批准）：把 M0-02 的固定 `wait(1500)` 改为
-「轮询 `style.name === 目标` 或超时 8 s」，与本次探测一致。
+当时**未改动前端与地图代码**（`git show 2233cb5 --stat` 可证），也**未修改该测试**
+（不在那一轮授权范围），只提出建议：把固定 `wait(1500)` 改为轮询 + 8s 上限。
+
+**该建议已由 Owner 批准并在本次封存前收尾中落地（提交 `3bcb6bf`），结果见 §11：**
+固定等待 → 200ms 轮询 / 8s 上限，判据扩为「样式名 + `isStyleLoaded` + `loaded` + 地点图层恢复」，
+单项 1/1、完整回归连续 4 轮 15/15。
 
 ---
 
@@ -247,6 +250,21 @@ candidate_match 53,131 / data_quality_issue 12,831 / import_batch 7 / data_datas
 | `2233cb5` | `2233cb56ad5df9850a3ff0f82974c50c6c91fa97` | **本轮代码**：P1 独立复算 + `--only`、P2 第三轮状态、P3 地点匹配、P4 隔离库、P5 标签、P8 清理 |
 | `c8bb465` | `c8bb46563477f5c9dedb4f505e6bf25646af5562` | **本轮报告**：新增本文件 + 统一 M4-2 报告口径 + 采样探测证据 |
 | `6394d2d` | `6394d2dce8e879db1fa7d8205647826cd73742bf` | 清理误入库的回归截图（只动证据目录，不含逻辑） |
+| `f3a2ad7` | `f3a2ad7a0ebeecb404f2c0fd5f69e01b786b1005` | 本文件回填 `c8bb465` / `6394d2d` 两个完整 SHA（仅 `M4_2_FINAL_CLOSURE_REPORT.md`，2 增 1 删，无逻辑改动） |
+| `3bcb6bf` | `3bcb6bf94d0f52030c9fe518ea3c5eff668df837` | **封存前收尾**：M0-02 固定等待改轮询（+ 证据 `ops/m4-2/m0_02_after_fix.txt`），仅 `tests/e2e/accept-m0m1.cjs` |
+| 本文件最终修订 | 见 `git log -1 -- code/ops/reports/M4_2_FINAL_CLOSURE_REPORT.md` | 只改文档：补 §9 提交表、§10 第 2 项结案、新增 §11（M0-02 收尾） |
+
+### 9.1 工作区状态（必须分开看）
+
+| 项 | 状态 |
+|---|---|
+| 已跟踪文件 | **干净**（`git status --short` 无 `M` / `A` / `D` 条目） |
+| 未跟踪 `汇报/` | **存在**，3 个文件 73 KB：`汇报/2026-11-04/142814/` 下的复核报告、源码包 ZIP、SHA256SUMS |
+| 其他未跟踪项 | 无 |
+
+> `汇报/` 是上轮「源码打包与复核报告」的交付目录，按 Owner 要求**保留不清理**，且按惯例不入库
+> （交付物随日期归档，不属于源码）。因此"工作区干净"指的是**已跟踪文件干净**，
+> 不等于 `git status` 完全没有输出。
 
 历史提交未被修改或重写；分支 `m4-2-import-rules` 线性推进，无远程推送。
 
@@ -257,11 +275,84 @@ candidate_match 53,131 / data_quality_issue 12,831 / import_batch 7 / data_datas
 | # | 事项 | 影响 | 建议 |
 |---|---|---|---|
 | 1 | `manual_edit_conflict` 无法从暂存独立复算 | 该类型仍以「运行期 + 库内实际」为准 | 若要彻底独立，需在导入前把保护位状态导出成可复算的输入快照，属模型变更 |
-| 2 | M0-02 采样窗口偏紧（见 §7） | 负载高时会假失败 | 改为轮询等待样式名，需 Owner 批准修改该测试 |
+| 2 | ~~M0-02 采样窗口偏紧（见 §7）~~ | 已修复 | **已结案**：固定 `wait(1500)` 改 8s 轮询，判据含样式名 + `isStyleLoaded` + `loaded` + 地点图层恢复；见 §11 |
 | 3 | 正式库仍是 V5 + 旧台账 12,831 | 5180 上矩阵为降级态、台账少 2 行 | 发布窗口内授权 `flyway migrate` 到 V8 并重跑导入 |
 | 4 | 写接口仍无鉴权 | 本机工具可接受 | 对外部署前必须补（M2 起遗留） |
 | 5 | `source_records.attribution_text` 保留 | 属引用串，非准入条件 | 若需「零 attribution 字段」可再删一列，需同步重跑导入 |
 | 6 | `issue_type` 值域为 20 值（设计文档 19 值） | 文档口径差一值 | 已在 `CORE_DATA_MODEL_V2.1.1.md` 旁注；后续新增类型应合并为一次修订 |
+
+---
+
+## 十一、封存前收尾：M0-02 样式切换测试（提交 `3bcb6bf`）
+
+### 11.1 问题定性（先量，再改）
+
+旧实现是「点样式 → `await wait(1500)` → 读状态」。用独立探针在同一台机器、同一 URL
+（`http://127.0.0.1:5180/`，真实 MapTiler key）按 200ms 采样，测到真正就绪的耗时：
+
+| 样式 | 首次探针 | 后续观测区间 |
+|---|---:|---|
+| Streets（95 层） | 3,373 ms | 1,327 – 6,527 ms |
+| Satellite（22 层，1 个 raster） | 1,312 ms | 1,035 – 1,677 ms |
+| Hybrid（`Satellite Hybrid`，1 个 raster） | 862 ms | 743 – 1,978 ms |
+| Outdoor（119 层，含 contours/terrain） | 5,830 ms | 890 – 5,848 ms |
+
+固定 1.5s 对 Streets 与 Outdoor 明显不够——这不是产品缺陷，是**测试窗口太窄**。
+`setStyle` 之后要依次等 style.json → sprite/glyphs → 各源首屏瓦片，耗时随网络与
+swiftshader 渲染负载波动，量到 6.5s 也出现过。
+
+### 11.2 新判据（四项同时成立）
+
+`tests/e2e/accept-m0m1.cjs` 中新增 `waitStyleReady(label)`：200ms 轮询一次，**上限 8 秒**。
+
+| # | 判据 | 取值 | 为什么必须 |
+|---|---|---|---|
+| 1 | 样式名匹配目标 | `getStyle().name` | 基本身份确认 |
+| 2 | `isStyleLoaded()` | true | 样式本身已加载完 |
+| 3 | `loaded()` | true | 源与瓦片已停，避免"名字到了但图没出来" |
+| 4 | 地点图层已恢复 | `places` 源存在 + `places-dot` 存在 + `visibility ≠ none` + 要素数 > 0 | `setStyle` 会清掉自定义图层，由 `style.load` 的 `ensureLayers` 重建；只看样式名会漏掉"图层没恢复"的坏状态 |
+
+判定细节：
+
+- **Hybrid 命名陷阱**：官方 name 是 `Satellite Hybrid`。若 Satellite 只判 `/satellite/`，
+  切到 Hybrid 时会把**尚未切换的上一个样式**误判成已就绪 → 现实现让 Satellite 排除 `hybrid`。
+- **断言加强**：Satellite / Hybrid 必须真有栅格层（`raster > 0`），不是"名字对了就算过"。
+- **超时诊断**：8s 未就绪时打印当前样式名、图层数、raster 数、`places` 源/图层/可见性/要素数、
+  `isStyleLoaded`、`loaded`，以及逐条失败原因（例：`样式名「null」未匹配 Streets；isStyleLoaded=false；
+  loaded=false（瓦片仍在加载）；places 源缺失`），并把该样式标为未就绪，`M0-02` 判 FAIL。
+- **单项复跑**：新增 `E2E_ONLY=M0-02`——只过滤**统计口径**（不计入 results / 退出码），
+  整脚本仍逐步执行，保证该项与他项处于相同前置状态。不指定时行为完全不变。
+
+### 11.3 真实执行结果
+
+| 项 | 命令 | 结果 |
+|---|---|---|
+| M0-02 单项 | `E2E_ONLY=M0-02 node tests/e2e/accept-m0m1.cjs <out>` | **1 / 1 PASS**（统计口径过滤，其余 14 项执行未计入且 0 失败） |
+| M0/M1 完整回归 | 同脚本，无过滤 | **连续 4 轮 15 / 15 PASS** |
+
+四轮 `M0-02` 实测耗时（ms）：
+
+```
+Streets   6527 / 2962 / 1854 / 1327
+Satellite 1466 / 1499 / 1035 / 1676
+Hybrid    1096 / 1978 /  743 / 1696
+Outdoor   3883 / 2359 / 1140 / 1132
+```
+
+每轮 `places` 均为 400 点，`raster` 恒为 `0/1/1/0`（Streets/Outdoor 无栅格层，Satellite/Hybrid 各 1 层）。
+证据：`code/ops/m4-2/m0_02_after_fix.txt`。
+
+### 11.4 剩余风险（如实记录）
+
+Streets 峰值 6,527ms，距 8s 上限只有约 1.5s 余量。本机负载再高时**仍可能超时**，
+届时会按 11.2 输出完整现场状态并判 FAIL——不会静默放过，也不会伪造通过。
+若 Owner 后续要求更宽窗口，只需调 `STYLE_TIMEOUT` 一个常量（判据不变）。
+
+### 11.5 本轮未改动的东西
+
+- 地图组件、图层配置、数据查询、导入器、验证器、数据库结构：**一行未动**。
+- `M1-01` 段落里另有一处 `wait(1500)`（搜索后等结果），属 M1 用例，不在本轮范围，保留原样。
+- 截图（`ops/reports/m4-2/final/`，14 MB）不入库，可随时重新生成。
 
 ---
 
@@ -277,5 +368,8 @@ candidate_match 53,131 / data_quality_issue 12,831 / import_batch 7 / data_datas
 | `code/ops/m4-2/v9b_update_path_test.py` | 第三轮状态幂等 + 地点匹配重写 |
 | `code/ops/m4-2/{verify_import,protection,v9b,fault_injection,db_safety,m0_style_probe}.txt` | 本轮执行证据 |
 | `code/ops/reports/M4_2_IMPORT_RULES_REPORT.md` | §8 / §13 / §14.1 口径统一，新增 §15 |
+| `code/tests/e2e/accept-m0m1.cjs` | **封存前收尾**：M0-02 固定等待改 8s 轮询；`E2E_ONLY` 统计口径过滤 |
+| `code/ops/m4-2/m0_02_after_fix.txt` | **封存前收尾**：M0-02 单项 1/1 + 完整回归 15/15 原始输出 |
+| `code/ops/reports/M4_2_FINAL_CLOSURE_REPORT.md` | 本文件（§9 提交表、§9.1 工作区状态、§10 结案、§11 收尾） |
 
 **M4-2 — FINAL CLOSURE / READY FOR OWNER ACCEPTANCE**
