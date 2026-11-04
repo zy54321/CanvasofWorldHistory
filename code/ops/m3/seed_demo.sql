@@ -15,6 +15,9 @@ DELETE FROM event_place
 DELETE FROM event WHERE title LIKE '演示：%';
 DELETE FROM historical_polity WHERE name IN
     ('波斯帝国', '新巴比伦', '希腊城邦', '马其顿王国', '罗马共和国', '孔雀王朝', '秦', '汉');
+-- 演示地点本身用负 id 保留（事件详情可能引用），但位置行要重建：
+-- 早期版本的位置插入没有唯一约束兜底，重复执行会一行变多行（同一地点 4 条位置）。
+DELETE FROM historical_place_location WHERE place_id BETWEEN -107 AND -101;
 
 -- ---------------------------------------------------------------- 演示地点（负 id，不消耗序列）
 INSERT INTO data_source (source_id, display_name) VALUES ('chgis', '演示数据源')
@@ -24,6 +27,29 @@ INSERT INTO data_dataset (dataset_id, source_id, display_name, record_scopes, pl
 VALUES ('m3_demo_ds', 'chgis', 'M3 演示数据集', ARRAY['place'], 'per_record', 'per_record',
         'none', 'source_declared', now(), now())
     ON CONFLICT (dataset_id) DO NOTHING;
+
+-- 演示地点也要可追溯：M1 的地点图层只展示「能追溯到来源记录」的位置，
+-- 没有来源记录的演示位置不会出现在地图上。这里补一条演示用的批次 + 位置来源记录。
+INSERT INTO import_batch (dataset_id, dataset_version, derivation_version, status,
+                          input_file, input_row_count, quarantined_count, blocked_count,
+                          started_at, finished_at, operator, notes)
+SELECT 'm3_demo_ds', 'demo-1', 'demo-seed', 'succeeded', 'demo.json', 7, 0, 0,
+       now(), now(), 'demo-seed', '仅测试库：M3 演示数据的追溯占位，不是真实导入批次'
+ WHERE NOT EXISTS (SELECT 1 FROM import_batch
+                    WHERE dataset_id = 'm3_demo_ds' AND derivation_version = 'demo-seed');
+
+INSERT INTO source_record (dataset_id, record_scope, external_id, parent_external_id, duplicate_ordinal,
+                           raw_file, raw_record_index, raw_payload, content_hash,
+                           first_batch_id, is_active, ingested_at)
+SELECT 'm3_demo_ds', 'location',
+       'demo-loc-' || p.place_id::text, 'demo-place-' || p.place_id::text, 0,
+       'demo.json', 0, jsonb_build_object('placeId', p.place_id), sha256('m3-demo'::bytea),
+       (SELECT min(batch_id) FROM import_batch
+         WHERE dataset_id = 'm3_demo_ds' AND derivation_version = 'demo-seed'),
+       true, now()
+  FROM historical_place p
+ WHERE p.place_id BETWEEN -107 AND -101
+    ON CONFLICT DO NOTHING;
 
 INSERT INTO historical_place (place_id, dataset_id, grain_key, canonical_name, place_type,
                               place_type_source, created_by, record_status, created_at, updated_at)
@@ -47,6 +73,15 @@ VALUES (-101, ST_SetSRID(ST_MakePoint(23.97, 38.15), 4326), 'Point', 23.97, 38.1
        (-106, ST_SetSRID(ST_MakePoint(85.13, 25.60), 4326), 'Point', 85.13, 25.60, 'confirmed', true, 'approximate', 'staging', 'manual', now(), now()),
        (-107, ST_SetSRID(ST_MakePoint(29.92, 31.20), 4326), 'Point', 29.92, 31.20, 'confirmed', true, 'approximate', 'staging', 'manual', now(), now())
     ON CONFLICT DO NOTHING;
+
+-- 把演示位置接到上面的演示来源记录上（只有接了来源，M1 地点图层才会显示它们）
+UPDATE historical_place_location l
+   SET source_record_id = sr.source_record_id
+  FROM source_record sr
+ WHERE sr.dataset_id = 'm3_demo_ds'
+   AND sr.external_id = 'demo-loc-' || l.place_id::text
+   AND l.place_id BETWEEN -107 AND -101
+   AND l.source_record_id IS NULL;
 
 -- ---------------------------------------------------------------- 演示政权（展示地区为人工指定）
 INSERT INTO historical_polity (name, region_code, start_year_astro, end_year_astro, description, record_status)

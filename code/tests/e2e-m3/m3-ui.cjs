@@ -40,6 +40,38 @@ const label = (page) => page.$eval('.tl .cur-label', (e) => e.textContent.trim()
 const eventCount = (page) =>
   page.evaluate(() => (window.__map.getSource('events')?._data?.features || []).length)
 
+/** 图层可见性 / 要素数 / 渲染命中数（直接读 MapLibre 状态，不靠截图猜） */
+const layerState = (page) =>
+  page.evaluate(() => {
+    const m = window.__map
+    const vis = (l) => (m.getLayer(l) ? m.getLayoutProperty(l, 'visibility') || 'visible' : 'missing')
+    const cnt = (s) => {
+      try {
+        return m.getSource(s) ? m.querySourceFeatures(s).length : -1
+      } catch {
+        return -1
+      }
+    }
+    return {
+      placeVis: vis('places-dot'),
+      haloVis: vis('places-halo'),
+      eventVis: vis('events-point'),
+      clusterVis: vis('events-cluster'),
+      placeCount: cnt('places'),
+      eventCount: cnt('events'),
+      placeRendered: m.queryRenderedFeatures({ layers: ['places-dot'] }).length,
+      eventRendered: m.queryRenderedFeatures({ layers: ['events-point'] }).length,
+      placeColor: m.getPaintProperty('places-dot', 'circle-color'),
+      eventColor: m.getPaintProperty('events-point', 'circle-color'),
+      placeStroke: m.getPaintProperty('places-dot', 'circle-stroke-width'),
+      eventStroke: m.getPaintProperty('events-point', 'circle-stroke-width'),
+      switches: [...document.querySelectorAll('.layer-switch button')].map((b) => ({
+        text: b.textContent.trim(),
+        on: b.classList.contains('active'),
+      })),
+    }
+  })
+
 /** 「公元前 490 年 – 前 481 年」→ [startYearAstro, endYearAstro] */
 function parseWindow(text) {
   const part = (s) => {
@@ -109,6 +141,21 @@ async function noPageScroll(page) {
   })
   rec('U04', '时间轴下方没有任何内容块', below.length === 0, '0 个内容块', JSON.stringify(below))
 
+  // ---------------- 一之二、M1 地点图层恢复（本轮修复） ----------------
+  const L0 = await layerState(page)
+  rec('U50', '地点图层默认开启（M1 古代地名标记恢复）',
+    L0.placeVis === 'visible' && L0.haloVis === 'visible' && L0.placeCount > 0,
+    'visible + 有要素', `vis=${L0.placeVis} count=${L0.placeCount}`)
+  rec('U51', '地点标记已真正渲染到画布上', L0.placeRendered > 0, '>0', L0.placeRendered)
+  rec('U52', '事件图层同时默认开启', L0.eventVis === 'visible' && L0.clusterVis === 'visible',
+    '两个事件图层都 visible', `${L0.eventVis}/${L0.clusterVis}`)
+  rec('U53', '两个图层开关都处于开启态',
+    L0.switches.length === 2 && L0.switches.every((s) => s.on),
+    '事件+地点 均 active', JSON.stringify(L0.switches))
+  rec('U54', '地点与事件视觉样式可区分（浅底棕环 vs 实心红点）',
+    L0.placeColor !== L0.eventColor, '填充色不同',
+    `${L0.placeColor} / ${L0.eventColor}`)
+
   // ---------------- 二、时间联动与跨度 ----------------
   await page.evaluate(() => document.querySelectorAll('.tl .nav')[1].click())
   await wait(2200)
@@ -131,6 +178,10 @@ async function noPageScroll(page) {
   const a2 = parseWindow(await label(page))
   rec('U08', '跨度 1 年：按钮步长 = 1 年', a2[0] - a1[0] === 1, '起点 +1', `${a1[0]} → ${a2[0]}`)
 
+  const L1 = await layerState(page)
+  rec('U56', '切到 1 年跨度后地点图层仍开启', L1.placeVis === 'visible' && L1.placeCount > 0,
+    'visible + 有要素', `vis=${L1.placeVis} count=${L1.placeCount}`)
+
   // 100 年跨度
   await clickText(page, '.tl .spans button', '100 年')
   await wait(1000)
@@ -141,6 +192,49 @@ async function noPageScroll(page) {
   rec('U09', '跨度 100 年：按钮步长 = 100 年', b2[0] - b1[0] === 100, '起点 +100', `${b1[0]} → ${b2[0]}`)
   rec('U10', '跨度 100 年的窗口宽度 = 100 年', b2[1] - b2[0] === 99, '终点=起点+99',
     `${b2[0]}..${b2[1]}`)
+
+  const L100 = await layerState(page)
+  rec('U55', '切到 100 年跨度后地点图层仍开启且有标记',
+    L100.placeVis === 'visible' && L100.placeCount > 0,
+    'visible + 有要素', `vis=${L100.placeVis} count=${L100.placeCount}`)
+
+  // 图层开关：关地点不影响事件；重开地点立即恢复
+  await page.evaluate(() => {
+    const b = [...document.querySelectorAll('.layer-switch button')].find((x) => x.textContent.includes('地点'))
+    b && b.click()
+  })
+  await wait(1200)
+  const Loff = await layerState(page)
+  rec('U57', '手动关闭地点图层：地点隐藏、事件图层不受影响',
+    Loff.placeVis === 'none' && Loff.eventVis === 'visible',
+    'place=none event=visible', `${Loff.placeVis}/${Loff.eventVis}`)
+  const evBefore = await eventCount(page)
+
+  await page.evaluate(() => {
+    const b = [...document.querySelectorAll('.layer-switch button')].find((x) => x.textContent.includes('地点'))
+    b && b.click()
+  })
+  await wait(1500)
+  const Lon = await layerState(page)
+  rec('U58', '重新打开地点图层：标记恢复且事件数不变',
+    Lon.placeVis === 'visible' && Lon.placeCount > 0 && (await eventCount(page)) === evBefore,
+    'place=visible + 事件数不变', `vis=${Lon.placeVis} count=${Lon.placeCount} events=${evBefore}`)
+
+  // 缩放 / 平移后地点标记仍正常
+  await page.evaluate(() => window.__map.easeTo({ center: [30, 30], zoom: 3.2, duration: 700 }))
+  await wait(1800)
+  const Lzoom = await layerState(page)
+  rec('U59', '缩放后地点标记仍正常渲染', Lzoom.placeVis === 'visible' && Lzoom.placeCount > 0,
+    'visible + 有要素', `vis=${Lzoom.placeVis} count=${Lzoom.placeCount}`)
+  await page.evaluate(() => window.__map.panBy([260, 160], { duration: 500 }))
+  await wait(1800)
+  const Lpan = await layerState(page)
+  rec('U60', '平移后地点标记仍正常（不会因视野变化消失）',
+    Lpan.placeVis === 'visible' && Lpan.placeCount >= 0,
+    'visible', `vis=${Lpan.placeVis} count=${Lpan.placeCount}`)
+  // 复位相机，后续截图保持在初始视角
+  await page.evaluate(() => window.__map.jumpTo({ center: [20, 20], zoom: 1.4 }))
+  await wait(900)
 
   // 时间轴拖动：向右拖 → 回到更早
   const track = await page.$('.tl .track')
@@ -230,8 +324,88 @@ async function noPageScroll(page) {
   rec('U21', '没有大标题 / 说明区块', !mx.bigTitle, '无 h1/h2', mx.bigTitle)
   rec('U22', '时间刻度固定在顶部', Math.abs(mx.headTop - mx.top) <= 2, `≈${mx.top}`, mx.headTop)
 
-  // 展开欧洲
+  // ---------------- 四之二、地区折叠 = 手风琴单选 ----------------
+  const accState = () =>
+    page.evaluate(() => {
+      const rows = [...document.querySelectorAll('.mx-rrow')]
+      const open = rows
+        .filter((r) => r.querySelector('.caret')?.textContent.trim() === '▾')
+        .map((r) => r.querySelector('.rlabel')?.textContent.trim())
+      return {
+        open,
+        polities: [...document.querySelectorAll('.mx-prow .pn')].map((e) => e.textContent.trim()),
+        emptyHints: document.querySelectorAll('.mx-empty').length,
+      }
+    })
+  const clickRegion = async (name) => {
+    await page.evaluate((n) => {
+      const r = [...document.querySelectorAll('.mx-rrow')].find((x) => x.textContent.includes(n))
+      r && r.click()
+    }, name)
+    await wait(700)
+  }
+
+  const acc0 = await accState()
+  rec('U61', '进入矩阵默认全部地区收起', acc0.open.length === 0, '0 个展开', JSON.stringify(acc0.open))
+
+  await clickRegion('东亚')
+  const acc1 = await accState()
+  rec('U62', '点击东亚后仅东亚展开（无政权时给出空行提示）',
+    acc1.open.length === 1 && acc1.open[0] === '东亚' && acc1.emptyHints >= 1,
+    '仅 东亚 + 空提示', JSON.stringify(acc1))
+
+  await clickRegion('欧洲')
+  const acc2 = await accState()
+  rec('U63', '再点欧洲：东亚自动收起，仅欧洲展开并显示希腊城邦',
+    acc2.open.length === 1 && acc2.open[0] === '欧洲' && acc2.polities.includes('希腊城邦'),
+    '仅 欧洲 + 希腊城邦', JSON.stringify(acc2.open) + ' ' + JSON.stringify(acc2.polities))
+
+  await clickRegion('中东')
+  const acc3 = await accState()
+  rec('U64', '再点中东：欧洲自动收起，仅中东展开',
+    acc3.open.length === 1 && acc3.open[0] === '中东', '仅 中东', JSON.stringify(acc3.open))
+
+  await clickRegion('中东')
+  const acc4 = await accState()
+  rec('U65', '再次点击中东：当前地区收起，回到全部收起',
+    acc4.open.length === 0 && acc4.polities.length === 0, '0 展开 / 0 政权行', JSON.stringify(acc4))
+
+  // 横向滚动后展开状态仍然正确，且刻度与单元格不错位
   await page.evaluate(() => {
+    const s = document.querySelector('.mx-scroll')
+    s.scrollLeft = 420
+    s.dispatchEvent(new Event('scroll'))
+  })
+  await wait(700)
+  await clickRegion('欧洲')
+  const acc5 = await page.evaluate(() => {
+    const h = document.querySelector('.mx-hcol').getBoundingClientRect()
+    const cell = document.querySelector('.mx-cell').getBoundingClientRect()
+    const rows = [...document.querySelectorAll('.mx-rrow')]
+    const open = rows.filter((r) => r.querySelector('.caret')?.textContent.trim() === '▾')
+      .map((r) => r.querySelector('.rlabel')?.textContent.trim())
+    return {
+      open,
+      diff: Math.round(h.left) - Math.round(cell.left),
+      polities: [...document.querySelectorAll('.mx-prow .pn')].map((e) => e.textContent.trim()),
+    }
+  })
+  rec('U66', '横向滚动后展开状态仍正确（只有欧洲展开）',
+    acc5.open.length === 1 && acc5.open[0] === '欧洲' && acc5.polities.includes('希腊城邦'),
+    '仅 欧洲 + 希腊城邦', JSON.stringify(acc5.open))
+  rec('U67', '展开/收起不导致时间刻度错位（表头与单元格位移差恒定）',
+    Math.abs(acc5.diff) <= 2, '<=2px', acc5.diff)
+  await page.evaluate(() => {
+    const s = document.querySelector('.mx-scroll')
+    s.scrollLeft = 0
+    s.dispatchEvent(new Event('scroll'))
+  })
+  await wait(500)
+  await page.screenshot({ path: `${OUT}/10b_matrix_accordion.png` })
+
+  // 展开欧洲（手风琴用例结束时若已展开则不再点，避免又收起）
+  await page.evaluate(() => {
+    if (document.querySelector('.mx-prow')) return
     const r = [...document.querySelectorAll('.mx-rrow')].find((x) => x.textContent.includes('欧洲'))
     r && r.click()
   })
@@ -406,6 +580,44 @@ async function noPageScroll(page) {
     '全部满足', JSON.stringify(layout))
   rec('U37', '三种分辨率：矩阵铺满剩余可视高度', layout.every((x) => x.mxFits), '全部贴合',
     JSON.stringify(layout.map((x) => `${x.size}:${x.mxFits}`)))
+
+  // ---------------- 八之二、矩阵空态说明 ----------------
+  // 用矩阵自己挑一个没有事件的世纪（100 年/列，向右第 11 列 ≈ 公元 500 年），
+  // 收起再展开让空态由一次真实请求产生。此时必须给出可读说明，
+  // 而不是空白矩阵、也不是报错 —— 这是本轮问题三的验收点。
+  await clickText(page, '.tl .spans button', '100 年')
+  await wait(900)
+  await clickText(page, 'button', '时间观察')
+  await wait(2400)
+  await page.evaluate(() => {
+    const cols = [...document.querySelectorAll('.mx-hcol')]
+    const target = cols[10] || cols[cols.length - 1]
+    target && target.click()
+  })
+  await wait(900)
+  await clickText(page, 'button', '收起')
+  await wait(1000)
+  await clickText(page, 'button', '时间观察')
+  await wait(2600)
+  const emptyBanner = await page.evaluate(() => {
+    const el = [...document.querySelectorAll('.mx-degraded')].find((x) =>
+      (x.textContent || '').includes('没有任何已关联政权的事件'),
+    )
+    return {
+      text: el ? el.textContent.replace(/\s+/g, ' ').trim() : null,
+      rows: document.querySelectorAll('.mx-prow').length,
+      head: [...document.querySelectorAll('.mx-hcol')].slice(0, 2).map((x) => x.textContent.trim()),
+    }
+  })
+  const emptyWindow = await label(page)
+  rec('U68', '时段无已关联政权事件时给出明确空态说明（不是空白/不是报错）',
+    !!emptyBanner.text && emptyBanner.text.includes('没有任何已关联政权的事件')
+      && emptyBanner.rows === 0,
+    '说明含关键词 且 0 行',
+    `${emptyWindow} / 首列 ${JSON.stringify(emptyBanner.head)} → ${(emptyBanner.text || '(无)').slice(0, 60)}`)
+  await page.screenshot({ path: `${OUT}/14_matrix_empty_state.png` })
+  await clickText(page, 'button', '收起')
+  await wait(800)
 
   // ---------------- 九、控制台 ----------------
   const realErrors = errors.filter((e) => !/favicon/i.test(e) && !/ERR_ABORTED/.test(e))

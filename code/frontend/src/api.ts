@@ -237,6 +237,9 @@ export const polityApi = {
     return getJson<Paged<PolityHit>>(`${BASE}/polities?${q.toString()}`, signal)
   },
   create: (body: unknown) => send<PolityHit>('POST', `${BASE}/polities`, body),
+  /** 只改状态：staging / published 进矩阵，rejected 不进矩阵（事件与关联都保留） */
+  updateStatus: (polityId: number, recordStatus: string) =>
+    send<PolityHit>('PATCH', `${BASE}/polities/${polityId}/status`, { recordStatus }),
   byEvent: (eventId: number, signal?: AbortSignal) =>
     getJson<EventPolityRow[]>(`${BASE}/events/${eventId}/polities`, signal),
   link: (eventId: number, body: unknown) =>

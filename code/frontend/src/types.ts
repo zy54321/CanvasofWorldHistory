@@ -418,11 +418,15 @@ export interface PolityHit {
   name: string
   regionCode: string
   regionLabel: string
+  /** V7：两端各自可选，可能只有一端 */
   startYearAstro: number | null
   endYearAstro: number | null
   description: string | null
+  recordStatus: PolityStatus
   eventCount: number
 }
+
+export type PolityStatus = 'staging' | 'published' | 'rejected'
 
 export interface PolityRegion {
   code: string
@@ -436,6 +440,7 @@ export interface EventPolityRow {
   polityName: string
   regionCode: string
   regionLabel: string
+  recordStatus: PolityStatus
   role: string | null
   note: string | null
 }

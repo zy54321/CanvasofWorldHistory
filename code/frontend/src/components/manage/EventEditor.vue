@@ -10,7 +10,14 @@ import { computed, ref, watch } from 'vue'
 import AstroYear from './AstroYear.vue'
 import ObjectPicker, { type PickedItem } from './ObjectPicker.vue'
 import { eventApi, polityApi } from '../../api'
-import type { EventDetail, EventPersonRow, EventPlaceRow, EventPolityRow, PolityRegion } from '../../types'
+import type {
+  EventDetail,
+  EventPersonRow,
+  EventPlaceRow,
+  EventPolityRow,
+  PolityRegion,
+  PolityStatus,
+} from '../../types'
 import { PRECISIONS, formatRange } from '../../time'
 
 const props = defineProps<{ entityId: number | null }>()
@@ -61,7 +68,31 @@ const newPo = ref({
   regionCode: 'east_asia',
   start: null as number | null,
   end: null as number | null,
+  recordStatus: 'staging' as PolityStatus,
 })
+
+/** 状态文案：只做识别，不做审核流 */
+const POLITY_STATUS: { value: PolityStatus; label: string; hint: string }[] = [
+  { value: 'staging', label: '暂存', hint: '进矩阵（本系统所有录入默认状态）' },
+  { value: 'published', label: '已发布', hint: '进矩阵' },
+  { value: 'rejected', label: '已否决', hint: '不进矩阵；事件与关联都保留' },
+]
+
+function statusLabel(s: PolityStatus): string {
+  return POLITY_STATUS.find((x) => x.value === s)?.label ?? s
+}
+
+/** 改状态：只影响矩阵是否显示该政权行，不删事件、不删关联 */
+async function changePoStatus(r: EventPolityRow, value: string) {
+  err.value = null
+  try {
+    await polityApi.updateStatus(r.polityId, value)
+    await load(props.entityId as number)
+    emit('changed')
+  } catch (e) {
+    err.value = (e as Error).message
+  }
+}
 
 async function ensureRegions() {
   if (regions.value.length) return
@@ -127,8 +158,13 @@ async function createPolity() {
     err.value = '请填写政权名称'
     return
   }
-  if ((newPo.value.start === null) !== (newPo.value.end === null)) {
-    err.value = '存在起始年与结束年需同时填写或同时留空'
+  // V7：只填起始年或只填结束年都合法；两端都填时才要求顺序正确
+  if (
+    newPo.value.start !== null &&
+    newPo.value.end !== null &&
+    newPo.value.start > newPo.value.end
+  ) {
+    err.value = '存在起始年不得晚于结束年'
     return
   }
   try {
@@ -137,13 +173,20 @@ async function createPolity() {
       regionCode: newPo.value.regionCode,
       startYearAstro: newPo.value.start,
       endYearAstro: newPo.value.end,
+      recordStatus: newPo.value.recordStatus,
     })
     poForm.value.polityId = p.polityId
     poForm.value.polityName = p.name
     newPoOpen.value = false
     // 新建即选中：直接把关联表单打开，省掉「再搜一次」的步骤
     poOpen.value = true
-    newPo.value = { name: '', regionCode: newPo.value.regionCode, start: null, end: null }
+    newPo.value = {
+      name: '',
+      regionCode: newPo.value.regionCode,
+      start: null,
+      end: null,
+      recordStatus: 'staging',
+    }
     msg.value = `已新建政权「${p.name}」，可直接保存关联`
   } catch (e) {
     err.value = (e as Error).message
@@ -504,8 +547,20 @@ async function removeL(r: EventPlaceRow) {
               · {{ r.regionLabel }}
               <template v-if="r.role"> · {{ r.role }}</template>
             </span>
+            <span class="po-status" :class="r.recordStatus" :title="POLITY_STATUS.find((x) => x.value === r.recordStatus)?.hint">
+              {{ statusLabel(r.recordStatus) }}
+            </span>
+            <span v-if="r.recordStatus === 'rejected'" class="tiny warn-ink">本政权不进入矩阵</span>
           </span>
           <span class="acts">
+            <select
+              class="po-state-sel"
+              :value="r.recordStatus"
+              title="政权状态：暂存/已发布进矩阵，已否决不进矩阵"
+              @change="changePoStatus(r, ($event.target as HTMLSelectElement).value)"
+            >
+              <option v-for="s in POLITY_STATUS" :key="s.value" :value="s.value">{{ s.label }}</option>
+            </select>
             <button class="m2-btn sm danger" @click="removePo(r)">解除</button>
           </span>
         </div>
@@ -558,6 +613,15 @@ async function removeL(r: EventPlaceRow) {
               <label>存在结束年（可空）</label>
               <AstroYear v-model="newPo.end" />
             </div>
+          </div>
+          <p class="m2-hint">起始年、结束年可以只填一个，也可以都留空；两端都填时必须起始不晚于结束。</p>
+          <div class="m2-field">
+            <label>状态</label>
+            <select v-model="newPo.recordStatus">
+              <option v-for="s in POLITY_STATUS" :key="s.value" :value="s.value">
+                {{ s.label }} —— {{ s.hint }}
+              </option>
+            </select>
           </div>
           <div class="actions">
             <button class="m2-btn primary" @click="createPolity">新建并选用</button>
@@ -724,4 +788,22 @@ async function removeL(r: EventPlaceRow) {
 }
 .pickrow { display: flex; gap: 6px; }
 .pickrow input { flex: 1; }
+
+/* 政权状态：暂存/已发布/已否决（只做识别与切换，不做审核流） */
+.po-status {
+  margin-left: 6px;
+  font-size: 10px;
+  line-height: 1.4;
+  padding: 0 5px;
+  border-radius: 3px;
+  border: 1px solid var(--line);
+  background: #f4f6f8;
+  color: var(--ink-3);
+  vertical-align: 1px;
+}
+.po-status.staging { background: #f4f6f8; color: #4a5b6d; }
+.po-status.published { background: #eaf3ea; color: #2f6b3a; border-color: #cfe3d2; }
+.po-status.rejected { background: #fdf0ee; color: #8c1d16; border-color: #f0cfc9; }
+.po-state-sel { font-size: 11px; padding: 2px 4px; height: 24px; }
+.warn-ink { color: var(--warn-ink); }
 </style>

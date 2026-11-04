@@ -104,6 +104,15 @@ public final class Requests {
             String note) {
     }
 
+    /**
+     * 政权状态变更（M3 封存轮）。
+     *
+     * <p>只是把 staging / published / rejected 三个值落库，不引入审核流、不记录审批人。
+     * rejected 的政权不进入时空矩阵（事件本身与地图标记不受影响）。
+     */
+    public record PolityStatus(String recordStatus) {
+    }
+
     /** 简单确认响应。 */
     public record Deleted(long id, int affected) {
     }

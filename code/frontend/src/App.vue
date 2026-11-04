@@ -24,8 +24,10 @@ const apiDown = ref(false)
 const manageOpen = ref(false)
 const matrixOpen = ref(false)
 
+// 两个图层默认都开：M1 的历史地点（古代地名）是地图的基本内容，
+// M3 的事件标记叠加在它上面；互不关闭、互不覆盖。
 const showEvents = ref(true)
-const showPlaces = ref(false)
+const showPlaces = ref(true)
 
 // ---- 时间状态：天文学纪年整数；默认公元前 500 年、10 年跨度（前500–前491）
 const timeFrom = ref(-499)
@@ -187,11 +189,19 @@ function onManageLocate(lon: number, lat: number) {
     <!-- 图层开关 -->
     <div class="layer-switch panel tiny">
       <span class="dim">图层</span>
-      <button :class="{ active: showEvents }" title="历史事件标记（当前时间段）" @click="showEvents = !showEvents">
-        事件
+      <button
+        :class="{ active: showEvents }"
+        title="历史事件标记（当前时间段）"
+        @click="showEvents = !showEvents"
+      >
+        <span class="dot ev" />事件
       </button>
-      <button :class="{ active: showPlaces }" title="历史地点（M1 图层）" @click="showPlaces = !showPlaces">
-        地点
+      <button
+        :class="{ active: showPlaces }"
+        title="历史地点（M1 图层：古代地名与历史地点）"
+        @click="showPlaces = !showPlaces"
+      >
+        <span class="dot pl" />地点
       </button>
     </div>
 
@@ -292,7 +302,10 @@ function onManageLocate(lon: number, lat: number) {
   gap: 4px;
   padding: 4px 8px;
 }
-.layer-switch button { font-size: 11.5px; padding: 3px 8px; }
+.layer-switch button { font-size: 11.5px; padding: 3px 8px; display: inline-flex; align-items: center; gap: 4px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dot.ev { background: #b3261e; }
+.dot.pl { background: #f6ead8; border: 1.4px solid #8c5a2b; }
 
 .timeline-dock {
   position: absolute;

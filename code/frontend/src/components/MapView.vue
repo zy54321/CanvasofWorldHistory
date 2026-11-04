@@ -54,7 +54,7 @@ function emptyFC(): GeoJSON.FeatureCollection {
 }
 
 function ensureLayers(m: MlMap) {
-  // ---------------- 地点（M1）
+  // ---------------- 地点（M1）：浅底 + 棕色环，与实心红色事件标记明显区分
   if (!m.getSource(PLACES)) {
     m.addSource(PLACES, {
       type: 'geojson',
@@ -67,9 +67,9 @@ function ensureLayers(m: MlMap) {
       type: 'circle',
       source: PLACES,
       paint: {
-        'circle-radius': ['interpolate', ['linear'], ['zoom'], 0, 3, 4, 6, 8, 10],
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 0, 4, 4, 7, 8, 11],
         'circle-color': '#8c5a2b',
-        'circle-opacity': 0.16,
+        'circle-opacity': 0.12,
       },
     })
   }
@@ -79,10 +79,11 @@ function ensureLayers(m: MlMap) {
       type: 'circle',
       source: PLACES,
       paint: {
-        'circle-radius': ['interpolate', ['linear'], ['zoom'], 0, 1.6, 4, 3.2, 8, 5.5],
-        'circle-color': '#8c5a2b',
-        'circle-stroke-color': '#ffffff',
-        'circle-stroke-width': 0.8,
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 0, 2.2, 4, 4, 8, 6.5],
+        // 浅色填充 + 棕色描边 = 「地名点」；事件是实心红点，缩小时也不会混淆
+        'circle-color': '#f7eddd',
+        'circle-stroke-color': '#8c5a2b',
+        'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 0, 1.1, 6, 1.8],
       },
     })
   }

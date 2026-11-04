@@ -5,6 +5,7 @@
  * 覆盖：打开事件 → 看到政权区 → 搜索选择已有政权 → 保存关联 → 解除关联 → 新建政权并选用。
  */
 const puppeteer = require('puppeteer-core')
+const { execSync } = require('child_process')
 
 const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe'
 const URL = process.argv[2] || 'http://127.0.0.1:5181/'
@@ -213,6 +214,22 @@ const clickText = (page, sel, text) =>
 
   await page.screenshot({ path: `${OUT}/20_polity_link.png` })
   rec('P12', '无 JS 错误', errors.length === 0, '0', errors.slice(0, 2).join(' | ') || '0')
+
+  // 清理：删除本轮新建的「验证政权UI-*」（关联行随 CASCADE 消失），
+  // 保证脚本可重复执行，不会把测试政权堆进矩阵。
+  let cleanup = 'unknown'
+  try {
+    const out = execSync(
+      'docker exec canvas-history-db psql -U canvas_app -d canvas_history_m2check -tAc ' +
+        "\"DELETE FROM historical_polity WHERE name LIKE '验证政权UI-%' RETURNING polity_id\"",
+      { encoding: 'utf8' },
+    )
+    cleanup = String(out).trim().split('\n').filter(Boolean).length
+  } catch (e) {
+    cleanup = 'FAIL ' + String(e.message).slice(0, 60)
+  }
+  rec('P13', '清理本轮 UI 测试政权（可重复执行）', cleanup !== 'unknown' && !String(cleanup).startsWith('FAIL'),
+    '删除成功', `removed=${cleanup}`)
 
   const ok = R.filter(Boolean).length
   console.log(`\n=== 合计 ${R.length} 项，PASS ${ok}，FAIL ${R.length - ok} ===`)

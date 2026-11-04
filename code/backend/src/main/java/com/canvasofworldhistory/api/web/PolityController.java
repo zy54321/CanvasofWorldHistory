@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -50,5 +52,17 @@ public class PolityController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PolityDtos.PolityHit> create(@RequestBody Requests.PolityUpsert req) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(req));
+    }
+
+    /**
+     * 政权状态变更（staging / published / rejected）。
+     *
+     * <p>只有状态一个字段：不做审核流、不记录审批人。rejected 之后该政权不再进入矩阵，
+     * 但事件本体、事件—政权关联、地图标记都保留，随时可以改回来。
+     */
+    @PatchMapping(value = "/{id}/status",
+            consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public PolityDtos.PolityHit updateStatus(@PathVariable long id, @RequestBody Requests.PolityStatus req) {
+        return service.updateStatus(id, req == null ? null : req.recordStatus());
     }
 }

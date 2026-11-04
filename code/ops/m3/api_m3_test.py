@@ -275,12 +275,16 @@ def t_polity():
     st, b = call('POST', '/api/v1/polities', {'name': '非法地区政权', 'regionCode': 'mars'})
     check('P06', '非法展示地区 → 400', st == 400, '400', st)
 
-    st, b = call('POST', '/api/v1/polities', {'name': '半区间政权', 'regionCode': 'europe', 'startYearAstro': -10})
-    check('P07', '存在区间只填一端 → 400', st == 400, '400', st)
+    # V7：只填一端不再是错误（此前 V6 强制成对，这里曾是 400）
+    st, b = call('POST', '/api/v1/polities',
+                 {'name': '验证政权-单端区间', 'regionCode': 'europe', 'startYearAstro': -10})
+    check('P07', 'V7：只填起始年 → 201 且结束年为 null',
+          st == 201 and b.get('endYearAstro') is None and b.get('startYearAstro') == -10,
+          '201 / start=-10 end=null', '%s %s' % (st, (b or {}).get('endYearAstro')))
 
     st, b = call('POST', '/api/v1/polities',
-                 {'name': '倒挂区间政权', 'regionCode': 'europe', 'startYearAstro': 100, 'endYearAstro': -100})
-    check('P08', '起止倒挂 → 400', st == 400, '400', st)
+                 {'name': '验证政权-倒挂区间', 'regionCode': 'europe', 'startYearAstro': 100, 'endYearAstro': -100})
+    check('P08', '起止倒挂 → 400（两端都填时才比较顺序）', st == 400, '400', st)
 
     return pid
 
@@ -329,6 +333,11 @@ def t_guard(formal):
     check('G01', '正式库创建政权被拒 403', st == 403 and (b or {}).get('error') == 'WRITE_FORBIDDEN',
           '403 WRITE_FORBIDDEN', '%s %s' % (st, (b or {}).get('error')))
 
+    st, b = call('PATCH', '/api/v1/polities/9/status', {'recordStatus': 'rejected'}, base=formal)
+    check('G01b', '正式库 PATCH 改政权状态同样被拒 403',
+          st == 403 and (b or {}).get('error') == 'WRITE_FORBIDDEN',
+          '403 WRITE_FORBIDDEN', '%s %s' % (st, (b or {}).get('error')))
+
     st, b = call('GET', '/api/v1/events/matrix?from=-499&step=10&count=3', base=formal)
     check('G02', '正式库矩阵返回空结果并说明未执行 V6（不 500）',
           st == 200 and 'V6' in (b or {}).get('note', ''), '200 + V6 说明',
@@ -347,12 +356,18 @@ def main():
         t_guard(BASE)
         return summarize('G 写保护')
 
-    t_time()
-    t_map()
-    t_matrix()
-    pid = t_polity()
-    if pid:
-        t_link(pid)
+    try:
+        t_time()
+        t_map()
+        t_matrix()
+        pid = t_polity()
+        if pid:
+            t_link(pid)
+    finally:
+        # 每轮都清掉本轮新建的「验证政权-<时间戳>」，保证脚本可无限次重复执行，
+        # 不会把历史测试政权堆进矩阵（演示数据与 M2 固件不受影响）。
+        removed = sql("DELETE FROM historical_polity WHERE name LIKE '验证政权-%' RETURNING 1")
+        print('\n[cleanup] 已删除本轮测试政权 %d 个' % len([x for x in removed.splitlines() if x.strip()]))
     return summarize('M3 接口')
 
 

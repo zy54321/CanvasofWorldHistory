@@ -48,7 +48,8 @@ public class PolityService {
         }
     }
 
-    private static final List<String> RECORD_STATUS = List.of("staging", "published", "rejected");
+    /** 状态枚举：requireEnum 的允许值写法与其余服务一致（SQL 列表形式，不能传逗号串）。 */
+    private static final String RECORD_STATUS_SQL = "('staging','published','rejected')";
     private static final int MAX_PAGE_SIZE = 100;
 
     private final NamedParameterJdbcTemplate jdbc;
@@ -105,7 +106,7 @@ public class PolityService {
 
         List<PolityDtos.PolityHit> items = jdbc.query("""
                 SELECT po.polity_id, po.name, po.region_code, po.start_year_astro, po.end_year_astro,
-                       po.description,
+                       po.description, po.record_status,
                        (SELECT count(*) FROM event_polity ep WHERE ep.polity_id = po.polity_id) AS event_count
                   FROM historical_polity po
                 """ + where + """
@@ -119,9 +120,34 @@ public class PolityService {
                 (Integer) rs.getObject("start_year_astro"),
                 (Integer) rs.getObject("end_year_astro"),
                 rs.getString("description"),
+                rs.getString("record_status"),
                 rs.getInt("event_count")));
 
         return Dtos.Page.of(items, p, s, n);
+    }
+
+    /** 单条读取（状态变更后回填用）。 */
+    public PolityDtos.PolityHit get(long polityId) {
+        return jdbc.query("""
+                        SELECT po.polity_id, po.name, po.region_code, po.start_year_astro, po.end_year_astro,
+                               po.description, po.record_status,
+                               (SELECT count(*) FROM event_polity ep WHERE ep.polity_id = po.polity_id) AS event_count
+                          FROM historical_polity po
+                         WHERE po.polity_id = :id
+                        """,
+                new MapSqlParameterSource("id", polityId),
+                (rs, i) -> new PolityDtos.PolityHit(
+                        rs.getLong("polity_id"),
+                        rs.getString("name"),
+                        rs.getString("region_code"),
+                        label(rs.getString("region_code")),
+                        (Integer) rs.getObject("start_year_astro"),
+                        (Integer) rs.getObject("end_year_astro"),
+                        rs.getString("description"),
+                        rs.getString("record_status"),
+                        rs.getInt("event_count")))
+                .stream().findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "政权不存在：" + polityId));
     }
 
     // ================================================================ 创建
@@ -133,17 +159,14 @@ public class PolityService {
 
         Integer start = req.startYearAstro();
         Integer end = req.endYearAstro();
-        if ((start == null) != (end == null)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "存在起始年与结束年必须同时填写或同时留空");
-        }
-        if (start != null && start > end) {
+        // V7：两端各自可选——只知起点或只知终点都是合法录入；都填时才校验顺序。
+        if (start != null && end != null && start > end) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "startYearAstro 不得晚于 endYearAstro（天文纪年整数比较）");
         }
         String status = req.recordStatus() == null
                 ? "staging"
-                : PersonService.requireEnum(req.recordStatus(), String.join(",", RECORD_STATUS), "recordStatus");
+                : PersonService.requireEnum(req.recordStatus(), RECORD_STATUS_SQL, "recordStatus");
 
         MapSqlParameterSource prm = new MapSqlParameterSource()
                 .addValue("name", name)
@@ -168,26 +191,37 @@ public class PolityService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "政权创建失败：未取得主键");
         }
         return new PolityDtos.PolityHit(id.longValue(), name, region, label(region),
-                start, end, PersonService.blankToNull(req.description()), 0);
+                start, end, PersonService.blankToNull(req.description()), status, 0);
+    }
+
+    // ================================================================ 状态
+    /**
+     * 变更政权状态（staging / published / rejected）。
+     *
+     * <p>规则：staging 与 published 都正常进入矩阵；rejected 只影响矩阵行，
+     * 不删事件、不删关联、不影响地图与检索。这里不记录审核人，也不做审核流。
+     */
+    @Transactional
+    public PolityDtos.PolityHit updateStatus(long polityId, String recordStatus) {
+        if (recordStatus == null || recordStatus.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "recordStatus 必填");
+        }
+        String status = PersonService.requireEnum(recordStatus.trim(),
+                RECORD_STATUS_SQL, "recordStatus");
+        int n = jdbc.update("""
+                UPDATE historical_polity SET record_status = :s, updated_at = now()
+                 WHERE polity_id = :id
+                """, new MapSqlParameterSource().addValue("s", status).addValue("id", polityId));
+        if (n == 0) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "政权不存在：" + polityId);
+        }
+        return get(polityId);
     }
 
     // ================================================================ 事件关联
     public List<PolityDtos.EventPolityRow> byEvent(long eventId) {
         requireEvent(eventId);
-        return jdbc.query("""
-                SELECT ep.event_polity_id, ep.polity_id, po.name, po.region_code, ep.role, ep.note
-                  FROM event_polity ep
-                  JOIN historical_polity po ON po.polity_id = ep.polity_id
-                 WHERE ep.event_id = :eid
-                 ORDER BY po.region_code, po.name
-                """, new MapSqlParameterSource("eid", eventId), (rs, i) -> new PolityDtos.EventPolityRow(
-                rs.getLong("event_polity_id"),
-                rs.getLong("polity_id"),
-                rs.getString("name"),
-                rs.getString("region_code"),
-                label(rs.getString("region_code")),
-                rs.getString("role"),
-                rs.getString("note")));
+        return byEventUnchecked(eventId);
     }
 
     @Transactional
@@ -197,13 +231,14 @@ public class PolityService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "polityId 必填");
         }
         Map<String, Object> po = jdbc.query("""
-                        SELECT name, region_code FROM historical_polity WHERE polity_id = :pid
+                        SELECT name, region_code, record_status FROM historical_polity WHERE polity_id = :pid
                         """,
                 new MapSqlParameterSource("pid", req.polityId()),
                 (rs, i) -> {
                     Map<String, Object> m = new LinkedHashMap<>();
                     m.put("name", rs.getString("name"));
                     m.put("region", rs.getString("region_code"));
+                    m.put("status", rs.getString("record_status"));
                     return m;
                 })
                 .stream().findFirst()
@@ -225,7 +260,8 @@ public class PolityService {
         String region = String.valueOf(po.get("region"));
         return new PolityDtos.EventPolityRow(
                 id == null ? 0 : id.longValue(), req.polityId(), String.valueOf(po.get("name")),
-                region, label(region), PersonService.blankToNull(req.role()),
+                region, label(region), String.valueOf(po.get("status")),
+                PersonService.blankToNull(req.role()),
                 PersonService.blankToNull(req.note()));
     }
 
@@ -248,7 +284,8 @@ public class PolityService {
     /** 供事件详情内联使用（不重复做存在性检查）。 */
     List<PolityDtos.EventPolityRow> byEventUnchecked(long eventId) {
         return jdbc.query("""
-                SELECT ep.event_polity_id, ep.polity_id, po.name, po.region_code, ep.role, ep.note
+                SELECT ep.event_polity_id, ep.polity_id, po.name, po.region_code, po.record_status,
+                       ep.role, ep.note
                   FROM event_polity ep
                   JOIN historical_polity po ON po.polity_id = ep.polity_id
                  WHERE ep.event_id = :eid
@@ -259,6 +296,7 @@ public class PolityService {
                 rs.getString("name"),
                 rs.getString("region_code"),
                 label(rs.getString("region_code")),
+                rs.getString("record_status"),
                 rs.getString("role"),
                 rs.getString("note")));
     }

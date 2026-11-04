@@ -31,13 +31,15 @@ const LEFT_W = 190
 const anchor = ref(props.from)
 const columns = ref<MatrixColumn[]>([])
 const regions = ref<MatrixRegion[]>([])
-const expanded = ref<Set<string>>(new Set())
+/** 手风琴：同一时刻最多一个地区展开；'' 表示全部收起 */
+const expandedCode = ref<string>('')
 const selected = ref<number>(0)
 const loading = ref(false)
 const loadingMore = ref(false)
 const error = ref<string | null>(null)
 const note = ref('')
 const unlinked = ref(0)
+const eventsInWindow = ref(0)
 const truncated = ref(false)
 const scrollEl = ref<HTMLDivElement | null>(null)
 let ctrl: AbortController | null = null
@@ -56,6 +58,10 @@ const hasMore = computed(() => columns.value.length > 0 && columns.value.length 
 const label = computed(() => formatRange(anchor.value, anchor.value + props.step - 1))
 /** 后端说明里带 V6 时代表该库还没有政权表（降级），需要给出显式提示，不能只是空白矩阵 */
 const degraded = computed(() => note.value.includes('V6'))
+/** 整屏没有任何政权行时，说明「空」是数据本身如此，而不是加载失败 */
+const noPolityRows = computed(
+  () => regions.value.length > 0 && regions.value.every((r) => r.polityCount === 0),
+)
 
 /** 首屏：从 anchor 重新加载 */
 async function reload() {
@@ -65,6 +71,7 @@ async function reload() {
   error.value = null
   columns.value = []
   regions.value = []
+  expandedCode.value = ''
   try {
     const r = await fetchMatrix(anchor.value, props.step, pageSize(), 0, ctrl.signal)
     applyPage(r, true)
@@ -97,6 +104,7 @@ async function loadMore() {
 interface ServerResp {
   columns: MatrixColumn[]
   regions: MatrixRegion[]
+  eventsInWindow: number
   unlinkedEventsInWindow: number
   truncated: boolean
   note: string
@@ -106,6 +114,7 @@ function applyPage(r: ServerResp, first: boolean) {
   note.value = r.note
   truncated.value = r.truncated
   unlinked.value = first ? r.unlinkedEventsInWindow : unlinked.value
+  eventsInWindow.value = first ? r.eventsInWindow ?? 0 : eventsInWindow.value
   columns.value = first ? [...r.columns] : [...columns.value, ...r.columns]
 
   if (first) {
@@ -140,11 +149,12 @@ function cellEvents(row: MatrixPolity, col: number): MatrixEvent[] {
   return row.cells.find((c) => c.columnIndex === col)?.events ?? []
 }
 
+/**
+ * 手风琴展开：点开后自动收起其它地区；再次点当前地区则收起。
+ * 只改视图状态，不重新请求矩阵——时间刻度、滚动位置都不受影响。
+ */
 function toggle(code: string) {
-  const next = new Set(expanded.value)
-  if (next.has(code)) next.delete(code)
-  else next.add(code)
-  expanded.value = next
+  expandedCode.value = expandedCode.value === code ? '' : code
 }
 
 function pickColumn(c: MatrixColumn) {
@@ -218,19 +228,24 @@ defineExpose({ reload })
         <p v-if="degraded" class="mx-degraded">
           {{ note }}
         </p>
+        <p v-else-if="noPolityRows && !loading" class="mx-degraded">
+          {{ label }}（{{ step }} 年/列）内共 {{ eventsInWindow }} 条事件<template v-if="unlinked > 0">，其中
+          {{ unlinked }} 条未关联政权</template>；没有任何已关联政权的事件进入矩阵。
+          可切换更大的时间跨度、向前后翻动时间轴，或在内容管理里给事件补充政权关联。
+        </p>
 
-        <!-- 地区折叠列表（默认收起） -->
+        <!-- 地区折叠列表（手风琴：最多展开一个） -->
         <div v-for="r in regions" :key="r.code" class="mx-region">
-          <button class="mx-rrow" @click="toggle(r.code)">
+          <button class="mx-rrow" :class="{ open: expandedCode === r.code }" @click="toggle(r.code)">
             <span class="mx-rname" :style="{ width: LEFT_W + 'px' }">
-              <span class="caret">{{ expanded.has(r.code) ? '▾' : '▸' }}</span>
+              <span class="caret">{{ expandedCode === r.code ? '▾' : '▸' }}</span>
               <span class="rlabel">{{ r.label }}</span>
               <span class="tiny dim rc">{{ r.polityCount }} 政权 · {{ r.eventCount }} 事件</span>
             </span>
             <span class="mx-rfill" :style="{ width: colsW + 'px' }" />
           </button>
 
-          <template v-if="expanded.has(r.code)">
+          <template v-if="expandedCode === r.code">
             <p v-if="r.polities.length === 0" class="mx-empty" :style="{ paddingLeft: LEFT_W + 12 + 'px' }">
               该时段此地区没有已关联历史政权的事件
             </p>
@@ -377,6 +392,7 @@ defineExpose({ reload })
   min-height: 34px;
 }
 .mx-rrow:hover { background: #eef2f6; }
+.mx-rrow.open { background: #eaf0f6; }
 .mx-rname {
   position: sticky;
   left: 0;

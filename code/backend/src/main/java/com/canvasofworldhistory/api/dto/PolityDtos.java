@@ -21,7 +21,12 @@ public final class PolityDtos {
     public record Region(String code, String label, int sortOrder) {
     }
 
-    /** 政权列表行。 */
+    /**
+     * 政权列表行。
+     *
+     * <p>存在区间两端**各自可选**（V7）：只填起始年或只填结束年都是合法状态，
+     * 因此这里两个字段都可能为 null，前端不得假定成对出现。
+     */
     @JsonInclude(JsonInclude.Include.ALWAYS)
     public record PolityHit(
             long polityId,
@@ -31,10 +36,11 @@ public final class PolityDtos {
             Integer startYearAstro,
             Integer endYearAstro,
             String description,
+            String recordStatus,
             int eventCount) {
     }
 
-    /** 事件详情里的政权关联行。 */
+    /** 事件详情里的政权关联行（带状态，管理界面据此区分是否进入矩阵）。 */
     @JsonInclude(JsonInclude.Include.ALWAYS)
     public record EventPolityRow(
             long linkId,
@@ -42,6 +48,7 @@ public final class PolityDtos {
             String polityName,
             String regionCode,
             String regionLabel,
+            String recordStatus,
             String role,
             String note) {
     }
