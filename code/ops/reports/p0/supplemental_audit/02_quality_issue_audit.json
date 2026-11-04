@@ -1,0 +1,55 @@
+{
+  "baseline": {
+    "db": "canvas_history",
+    "rows": 12831,
+    "fingerprints": 12831
+  },
+  "after": {
+    "db": "canvas_history_p0_rehearsal",
+    "rows": 20824,
+    "fingerprints": 20824
+  },
+  "baseline_present": 12831,
+  "baseline_missing": 0,
+  "baseline_field_changed": 0,
+  "occurrence_count_changed": 12634,
+  "last_batch_id_changed": 12634,
+  "new_rows": 7993,
+  "new_by_batch": {
+    "25": 7991,
+    "28": 2
+  },
+  "new_by_type": {
+    "missing_coordinate": 7200,
+    "accuracy_unknown_sentinel": 728,
+    "duplicate_external_id": 31,
+    "connection_endpoint_missing": 28,
+    "geometry_invalid_repaired": 4,
+    "attribution_missing": 2
+  },
+  "new_by_dataset": {
+    "pleiades_gis_4_1": 7991,
+    "whg_hgis_de_las_indias_sample": 2
+  },
+  "duplicate_suspects": 0,
+  "derived_value_mismatch": {
+    "baseline": 197,
+    "after": 197,
+    "new": 0,
+    "by_dataset": {
+      "pleiades_gis_4_1_slice": 197
+    },
+    "by_field": {
+      "valid_to_year_astro": 74,
+      "valid_from_year_astro": 123
+    }
+  },
+  "action_taken_mapped": 732,
+  "action_taken_verbs": {
+    "null_written": 728,
+    "repaired": 4
+  },
+  "action_taken_all_preserved_and_flagged": true,
+  "changed_detail": [],
+  "missing_detail": []
+}

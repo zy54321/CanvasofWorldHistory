@@ -653,7 +653,32 @@ class Importer:
                  "source_records.raw_file，未改写。", started, started))
         self.cur.execute("SELECT (SELECT count(*) FROM data_source), (SELECT count(*) FROM data_dataset)")
         a, b = self.cur.fetchone()
-        print(f"  data_source {a} 行（期望 4） / data_dataset {b} 行（期望 7）")
+        # P0：这里原来写死"期望 4 / 期望 7"，是 M4-2 时代的常量——那时只有
+        # chgis(2)+mcgd+切片+whg(3)=7 个数据集、4 个来源。M4-4a 加了
+        # pleiades_gis_4_1（第 8 个数据集）、V5 又种入了 manual_entry（第 9 个）
+        # 和 manual 来源（第 5 个），常量就再也对不上了，日志毎次都印一个假的
+        # "期望"。改成按注册表推导 + 校验不变量，不再写死数字。
+        self.cur.execute("SELECT dataset_id FROM data_dataset")
+        cur_datasets = {r[0] for r in self.cur.fetchall()}
+        self.cur.execute("SELECT source_id FROM data_source")
+        cur_sources = {r[0] for r in self.cur.fetchall()}
+        want_datasets = set(DATASETS)
+        want_sources = {d["source_id"] for d in DATASETS.values()}
+        # 迁移种入、不由暂存登记的固定项，显式列出，避免又变成"魔法常量"
+        seeded_datasets = {"manual_entry"}
+        seeded_sources = {"manual"}
+        missing_ds = want_datasets - cur_datasets
+        extra_ds = cur_datasets - want_datasets - seeded_datasets
+        missing_src = want_sources - cur_sources
+        extra_src = cur_sources - want_sources - seeded_sources
+        print(f"  data_source {a} 行 / data_dataset {b} 行"
+              f"（暂存登记 {len(want_datasets)} 个数据集 + 迁移种入 {sorted(seeded_datasets)}；"
+              f"暂存涉及 {len(want_sources)} 个来源 + 迁移种入 {sorted(seeded_sources)}）")
+        if missing_ds or extra_ds or missing_src or extra_src:
+            raise DerivationError(
+                "data_source / data_dataset 与暂存注册表不一致 ⇒ 整批中止："
+                f"缺数据集 {sorted(missing_ds)}；多出数据集 {sorted(extra_ds)}；"
+                f"缺来源 {sorted(missing_src)}；多出来源 {sorted(extra_src)}")
 
     def create_batches(self, started) -> None:
         print("\n### 3.2 import_batch（每数据集 1 批，status=running）")
