@@ -43,7 +43,10 @@
 | 12 | `backend/.../PlaceQueryService.java` 等 | API 字段 `sourceLicenseNote` → `sourceNote`（它取的是 `data_source.notes` 普通备注，不涉许可） | 前后端同步改 |
 
 删完再扫：`grep -ri "licen"` 在**现行系统代码**里只剩三类，均属正常——
-① `settings` 无；② 设计文档的历史留痕（已标注被取代）；③ 第三方原始资料（`raw_payload` 里 WHG/CHGIS 原始 JSON 自带字段）。
+① `verify_import.py` 里「license* 残留必须为 0」的**反向守护**，以及说明「旧类型已改名」的注释；
+② 设计文档与运维文档的历史留痕（已标注被 M4-2 取代）；
+③ 第三方原始资料：`raw_payload` 里 WHG / CHGIS 原始 JSON 自带的 `license__spdx_id` 等字段，属原始记录，
+不清洗、不改写。
 `node_modules`、`ops/.deps` 为第三方依赖，不在清理范围。
 
 ## 二、许可相关字段处理结果
