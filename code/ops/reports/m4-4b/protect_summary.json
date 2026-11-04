@@ -1,0 +1,140 @@
+{
+  "db": "canvas_history_m4_4b_protect",
+  "run_at": "2026-11-04T11:09:17+00:00",
+  "derivation_version": "v2.1.1",
+  "dry_run": false,
+  "inject_fault": null,
+  "exit_code": 0,
+  "committed": true,
+  "counts_before": {
+    "source_record": 157220,
+    "historical_place": 57967,
+    "historical_place_name": 84554,
+    "historical_place_location": 53792,
+    "candidate_match": 66311,
+    "data_quality_issue": 21447,
+    "import_batch": 30,
+    "data_dataset": 9,
+    "data_source": 5
+  },
+  "counts_after": {
+    "source_record": 157220,
+    "historical_place": 57967,
+    "historical_place_name": 84554,
+    "historical_place_location": 53792,
+    "candidate_match": 66311,
+    "data_quality_issue": 21450,
+    "import_batch": 38,
+    "data_dataset": 9,
+    "data_source": 5
+  },
+  "assert_ok": true,
+  "staging_rows": {
+    "data_datasets": 8,
+    "source_records": 157220,
+    "historical_places": 57967,
+    "historical_place_names": 84558,
+    "historical_place_locations": 53794,
+    "candidate_matches": 66711,
+    "data_quality_issues": 20591
+  },
+  "excluded_csv": "ops/reports/m4-4b/excluded_rows_protect.csv",
+  "quarantine_ids": [
+    "sr_0004941",
+    "sr_0004942",
+    "sr_0027175",
+    "sr_0144350",
+    "sr_0146660",
+    "sr_0150269",
+    "sr_0155559"
+  ],
+  "source_stat": {
+    "inserted": 0,
+    "updated": 0,
+    "touched": 157213,
+    "held": 7,
+    "superseded": 0
+  },
+  "candidate_stat": {
+    "staging": 66711,
+    "inserted": 0,
+    "self_ref": 2,
+    "c09": 398
+  },
+  "ledger_stat": {
+    "staging": 20591,
+    "dup": 36,
+    "mismatch": 820,
+    "places": 629,
+    "manual": 3
+  },
+  "time_changed": [
+    [
+      "name",
+      "nm_0045996",
+      "bounded",
+      "snapshot",
+      "1500",
+      "1500"
+    ],
+    [
+      "name",
+      "nm_0046197",
+      "bounded",
+      "snapshot",
+      "1500",
+      "1500"
+    ],
+    [
+      "name",
+      "nm_0073763",
+      "bounded",
+      "snapshot",
+      "1500",
+      "1500"
+    ],
+    [
+      "name",
+      "nm_0078154",
+      "bounded",
+      "snapshot",
+      "1500",
+      "1500"
+    ],
+    [
+      "name",
+      "nm_0081046",
+      "bounded",
+      "snapshot",
+      "1500",
+      "1500"
+    ],
+    [
+      "name",
+      "nm_0084114",
+      "bounded",
+      "snapshot",
+      "1500",
+      "1500"
+    ],
+    [
+      "name",
+      "nm_0084115",
+      "bounded",
+      "snapshot",
+      "1500",
+      "1500"
+    ]
+  ],
+  "table_delta_inserted": {
+    "source_record": 0,
+    "historical_place": 0,
+    "historical_place_name": 0,
+    "historical_place_location": 0,
+    "candidate_match": 0,
+    "data_quality_issue": 3,
+    "import_batch": 8,
+    "data_dataset": 0,
+    "data_source": 0
+  }
+}

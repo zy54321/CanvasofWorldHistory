@@ -165,6 +165,21 @@ GEOM_TYPES = {"Point", "Polygon", "MultiPolygon", "LineString"}
 #: ``location_precision`` 的合法值。
 LOCATION_PRECISIONS = {"precise", "approximate", "rough", "unknown"}
 
+#: ``data_quality_issue.action_taken`` 的库内值域（V2 ck_data_quality_issue_action_taken，6 值）。
+ACTION_TAKEN_ALLOWED = {"preserved_and_flagged", "needs_manual_review", "rejected",
+                        "fixed_manually", "ignored", "discarded"}
+
+#: 暂存里出现、库里没有的两个动词（M4-4a 归一化产物的措辞）。
+#: 落库时映射到语义最接近的合法值，并把**原动词写进 resolution_note**，保证信息不丢：
+#:   repaired      —— 几何确实被修好了，但库里没有"自动修复"这个动词；
+#:                    raw WKT 原样保留在 raw_payload，故按 preserved_and_flagged 记。
+#:   null_written  —— 哨兵值 -1 被写成 NULL，源值同样保留在 raw_payload。
+#: 不在这里放宽库约束（禁止加 V10），也不改已验收的暂存文件。
+ACTION_TAKEN_MAP = {
+    "repaired": "preserved_and_flagged",
+    "null_written": "preserved_and_flagged",
+}
+
 
 def normalize_location_precision(value: str) -> str:
     """把暂存精度词映射到 §5.6 的四值域。
@@ -532,13 +547,36 @@ class Importer:
         #   导入器**不按 issue_type 丢弃任何行**，也不含任何许可判定分支——
         #   台账逐行入库，行数恒等于「暂存行 + 导入器合成行」。
         self.dq_v2 = []
+        action_fix: Counter = Counter()
         for r in self.dq_rows:
             sid = (r["source_record_id"] or "").strip() or None
             ds = self.rec_by_sid[sid]["ds"] if sid else LAYER_MAP.get(r["source_dataset"])
             if ds is None:
                 raise DerivationError(f"台账 {r['issue_id']} 无法派生 dataset_id（source_dataset={r['source_dataset']}）")
-            self.dq_v2.append((r, ds, sid))
+            row = dict(r)
+            action = (row["action_taken"] or "").strip()
+            if action not in ACTION_TAKEN_ALLOWED:
+                # 库内 6 值域是 V2 定死的；暂存里出现别的动词时：
+                #   已知两个（repaired / null_written）→ 映射并留原值；
+                #   其它一律整批中止，绝不"猜一个近似值"。
+                mapped = ACTION_TAKEN_MAP.get(action)
+                if mapped is None:
+                    raise DerivationError(
+                        f"台账 {r['issue_id']} action_taken 越界：'{action}'，"
+                        f"库内只允许 {sorted(ACTION_TAKEN_ALLOWED)} ⇒ 整批中止")
+                action_fix[f"{action}→{mapped}"] += 1
+                row["action_taken"] = mapped
+                row["notes"] = ((row.get("notes") or "").rstrip("；")
+                                + f"；action_taken 原值={action}（库内 6 值域无此动词，"
+                                  f"落库按 {mapped} 记，原动词在此保留）")
+            self.dq_v2.append((row, ds, sid))
         print(f"  台账：暂存 {len(self.dq_rows):,} 行 → 全部入库 {len(self.dq_v2):,} 行（零丢弃、零许可过滤）")
+        if action_fix:
+            print(f"  action_taken 动词映射（库内值域 6 值）：{dict(action_fix)}")
+            self.warnings.append(
+                f"action_taken 有 {sum(action_fix.values())} 行用了库外动词，已按 "
+                f"{ACTION_TAKEN_MAP} 映射并保留原值于 resolution_note")
+        self.action_fix = dict(action_fix)
 
     # ------------------------------------------------------------ 2. 写库
     TABLES = ("source_record", "historical_place", "historical_place_name",
@@ -911,8 +949,7 @@ class Importer:
                       SET geom=ST_SetSRID(ST_MakePoint(representative_lon, representative_lat),4326),
                           geom_type='Point'
                     WHERE geom IS NULL AND representative_lon IS NOT NULL
-                      AND representative_lat IS NOT NULL AND source_record_id IS NOT NULL
-                      AND geom_type='Point'""")
+                      AND representative_lat IS NOT NULL AND source_record_id IS NOT NULL""")
         if shape_rows:
             # 顺序固定「点 → 线 → 面」由暂存行序保证；这里只负责把 WKT 交给 PostGIS。
             # 几何有效性在流水线里已用 GEOS MakeValid 修好（台账 geometry_invalid_repaired），
@@ -1328,8 +1365,13 @@ class Importer:
     def finish_batches(self) -> None:
         print("\n### 3.10 批次收尾（六列计数按 G1 各集合独立取数）")
         for ds, bid in self.batch_ids.items():
-            self.cur.execute("SELECT count(*) FILTER (WHERE NOT is_active), array_agg(source_record_id) "
-                             "FROM source_record WHERE first_batch_id=%s", (bid,))
+            # quarantined_count 只数**重复隔离**：M4-4a 起 is_active=false 还可能是
+            # "同 grain_key 已由既有快照承载"（superseded_by_newer_snapshot），
+            # 那是重叠地点的正常处置，不是隔离；混进这一列会让 G1 多算 2,552。
+            self.cur.execute(
+                "SELECT count(*) FILTER (WHERE NOT is_active AND inactive_reason='duplicate_quarantine'),"
+                " array_agg(source_record_id) "
+                "FROM source_record WHERE first_batch_id=%s", (bid,))
             quar, ids = self.cur.fetchone()
             self.cur.execute(
                 """UPDATE import_batch SET status='succeeded', finished_at=now(),

@@ -16,8 +16,29 @@ SELECT geom_type, count(*) AS rows
  GROUP BY 1
  ORDER BY 2 DESC;
 
--- 1.2 台账类型数：V9 执行前应为 20
-SELECT count(DISTINCT issue_type) AS distinct_issue_types FROM data_quality_issue;
+-- 1.2 台账值域 vs 实际用到的类型 —— 两件事必须分开看
+--     （a）CHECK 允许多少值：V9 执行前应恰为 20（从约束定义里数，不数数据）
+--     （b）库里实际出现过多少种：由数据决定，**不要求**等于 20；
+--         没出现过的合法类型不算缺失，只是这批数据没碰到。
+SELECT length(pg_get_constraintdef(oid))
+       - length(replace(pg_get_constraintdef(oid), ''',''', '')) + 1 AS allowed_values_in_check
+  FROM pg_constraint
+ WHERE conname = 'ck_data_quality_issue_issue_type';
+
+SELECT count(DISTINCT issue_type) AS observed_types,
+       string_agg(DISTINCT issue_type, ', ' ORDER BY issue_type) AS observed_list
+  FROM data_quality_issue;
+
+-- 1.2b 实际出现的类型必须全部落在允许值域内（越界即为数据问题，不是值域问题）
+SELECT count(*) AS out_of_vocabulary
+  FROM data_quality_issue
+ WHERE issue_type NOT IN ('beg_gt_end', 'beg_eq_end', 'missing_coordinate',
+        'coordinate_out_of_range', 'coordinate_outside_china_bbox', 'year_out_of_range',
+        'duplicate_external_id', 'duplicate_sysid', 'unknown_crs', 'unknown_time_bound_type',
+        'nonstandard_field_name', 'empty_name', 'parent_place_not_in_sample',
+        'truncated_slice_tail', 'cross_layer_coordinate_conflict', 'manual_edit_conflict',
+        'import_row_error', 'derived_value_mismatch', 'rollback_conflict',
+        'attribution_missing');
 
 -- 1.3 三个待改约束的当前定义（应分别不含 LineString / 新 3 值 / 新失效原因）
 SELECT conname, pg_get_constraintdef(oid) AS definition

@@ -1,0 +1,694 @@
+{
+  "db": "canvas_history_m4_4b",
+  "ok": true,
+  "checks": 79,
+  "failures": 0,
+  "totals": {
+    "source_record": 157220,
+    "historical_place": 57967,
+    "historical_place_name": 84554,
+    "historical_place_location": 53792,
+    "candidate_match": 66311,
+    "data_quality_issue": 21447,
+    "data_dataset": 9
+  },
+  "issue_types": {
+    "accuracy_unknown_sentinel": 728,
+    "attribution_missing": 2,
+    "beg_eq_end": 341,
+    "beg_gt_end": 28,
+    "connection_endpoint_missing": 28,
+    "coordinate_out_of_range": 1,
+    "coordinate_outside_china_bbox": 6,
+    "derived_value_mismatch": 820,
+    "duplicate_external_id": 36,
+    "duplicate_sysid": 2,
+    "geometry_invalid_repaired": 4,
+    "missing_coordinate": 7537,
+    "nonstandard_field_name": 2,
+    "parent_place_not_in_sample": 4810,
+    "truncated_slice_tail": 4,
+    "unknown_crs": 646,
+    "unknown_time_bound_type": 6448,
+    "year_out_of_range": 4
+  },
+  "importer_synthesized": {
+    "duplicate_external_id": 36,
+    "derived_value_mismatch": 820,
+    "manual_edit_conflict": 0
+  },
+  "batches": [
+    [
+      72,
+      "chgis_v6_prefecture_points",
+      "succeeded",
+      5226,
+      0,
+      5224,
+      2,
+      0,
+      0
+    ],
+    [
+      73,
+      "chgis_v6_county_points",
+      "succeeded",
+      10522,
+      0,
+      10522,
+      0,
+      0,
+      0
+    ],
+    [
+      74,
+      "mcgd_zenodo_22094815_head960",
+      "succeeded",
+      960,
+      0,
+      960,
+      0,
+      0,
+      0
+    ],
+    [
+      75,
+      "pleiades_gis_4_1_slice",
+      "succeeded",
+      12445,
+      0,
+      12444,
+      1,
+      0,
+      0
+    ],
+    [
+      76,
+      "pleiades_gis_4_1",
+      "succeeded",
+      127829,
+      4,
+      0,
+      0,
+      127829,
+      0
+    ],
+    [
+      77,
+      "whg_geoname_s_gn_sample",
+      "succeeded",
+      209,
+      0,
+      209,
+      0,
+      0,
+      0
+    ],
+    [
+      78,
+      "whg_getty_tgn_sample",
+      "succeeded",
+      21,
+      0,
+      21,
+      0,
+      0,
+      0
+    ],
+    [
+      79,
+      "whg_hgis_de_las_indias_sample",
+      "succeeded",
+      8,
+      0,
+      8,
+      0,
+      0,
+      0
+    ],
+    [
+      80,
+      "chgis_v6_prefecture_points",
+      "succeeded",
+      5226,
+      0,
+      5224,
+      2,
+      0,
+      0
+    ],
+    [
+      81,
+      "chgis_v6_county_points",
+      "succeeded",
+      10522,
+      0,
+      10522,
+      0,
+      0,
+      0
+    ],
+    [
+      82,
+      "mcgd_zenodo_22094815_head960",
+      "succeeded",
+      960,
+      0,
+      960,
+      0,
+      0,
+      0
+    ],
+    [
+      83,
+      "pleiades_gis_4_1_slice",
+      "succeeded",
+      12445,
+      0,
+      12444,
+      1,
+      0,
+      0
+    ],
+    [
+      84,
+      "pleiades_gis_4_1",
+      "succeeded",
+      127829,
+      0,
+      127825,
+      4,
+      0,
+      0
+    ],
+    [
+      85,
+      "whg_geoname_s_gn_sample",
+      "succeeded",
+      209,
+      0,
+      209,
+      0,
+      0,
+      0
+    ],
+    [
+      86,
+      "whg_getty_tgn_sample",
+      "succeeded",
+      21,
+      0,
+      21,
+      0,
+      0,
+      0
+    ],
+    [
+      87,
+      "whg_hgis_de_las_indias_sample",
+      "succeeded",
+      8,
+      0,
+      8,
+      0,
+      0,
+      0
+    ]
+  ],
+  "items": [
+    {
+      "section": "V1",
+      "name": "当前库",
+      "ok": true,
+      "detail": "实际=canvas_history_m4_4b 期望=canvas_history_m4_4b"
+    },
+    {
+      "section": "V1",
+      "name": "Flyway 最高版本",
+      "ok": true,
+      "detail": "实际=9 期望=9"
+    },
+    {
+      "section": "V1",
+      "name": "V9 成功",
+      "ok": true,
+      "detail": "实际=True 期望=True"
+    },
+    {
+      "section": "V1",
+      "name": "V1–V8 全部成功",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V2",
+      "name": "source_record",
+      "ok": true,
+      "detail": "实际=157220 期望=157220"
+    },
+    {
+      "section": "V2",
+      "name": "historical_place",
+      "ok": true,
+      "detail": "实际=57967 期望=57967"
+    },
+    {
+      "section": "V2",
+      "name": "historical_place_name",
+      "ok": true,
+      "detail": "实际=84554 期望=84554"
+    },
+    {
+      "section": "V2",
+      "name": "historical_place_location",
+      "ok": true,
+      "detail": "实际=53792 期望=53792"
+    },
+    {
+      "section": "V2",
+      "name": "candidate_match",
+      "ok": true,
+      "detail": "实际=66311 期望=66311"
+    },
+    {
+      "section": "V2",
+      "name": "data_dataset（8 + 新数据集；manual_entry 属 V5）",
+      "ok": true,
+      "detail": "实际=9 期望=9"
+    },
+    {
+      "section": "V3",
+      "name": "pleiades_gis_4_1 已登记",
+      "ok": true,
+      "detail": "实际=1 期望=1"
+    },
+    {
+      "section": "V3",
+      "name": "dataset.record_count",
+      "ok": true,
+      "detail": "实际=127829 期望=127829"
+    },
+    {
+      "section": "V3",
+      "name": "v4.1 源记录",
+      "ok": true,
+      "detail": "实际=127829 期望=127829"
+    },
+    {
+      "section": "V3",
+      "name": "切片源记录未变",
+      "ok": true,
+      "detail": "实际=12445 期望=12445"
+    },
+    {
+      "section": "V3",
+      "name": "v4.1 record_scope 分布",
+      "ok": true,
+      "detail": "实际={'edge': 13603, 'location': 35691, 'name': 37055, 'place': 41480} 期望={'place': 41480, 'name': 37055, 'location': 35691, 'edge': 13603}"
+    },
+    {
+      "section": "V4",
+      "name": "inactive_reason=superseded_by_newer_snapshot",
+      "ok": true,
+      "detail": "实际=2552 期望=2552"
+    },
+    {
+      "section": "V4",
+      "name": "这些行 is_active=false",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V4",
+      "name": "这些行 duplicate_ordinal=0",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V4",
+      "name": "inactive_at / inactive_in_batch_id 均非空",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V4",
+      "name": "v4.1 地点数 = 38,928（重叠未建点）",
+      "ok": true,
+      "detail": "实际=38928 期望=38928"
+    },
+    {
+      "section": "V4",
+      "name": "重叠地点的 grain_key 只由切片承载（v4.1 侧无对应 place）",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V5",
+      "name": "Point",
+      "ok": true,
+      "detail": "实际=26684 期望=26684"
+    },
+    {
+      "section": "V5",
+      "name": "Polygon",
+      "ok": true,
+      "detail": "实际=4112 期望=4112"
+    },
+    {
+      "section": "V5",
+      "name": "MultiPolygon",
+      "ok": true,
+      "detail": "实际=2 期望=2"
+    },
+    {
+      "section": "V5",
+      "name": "LineString",
+      "ok": true,
+      "detail": "实际=4893 期望=4893"
+    },
+    {
+      "section": "V5",
+      "name": "v4.1 位置合计",
+      "ok": true,
+      "detail": "实际=35691 期望=35691"
+    },
+    {
+      "section": "V5",
+      "name": "全部几何 ST_IsValid",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V5",
+      "name": "geom_type 与真实类型一致",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V5",
+      "name": "面/线缺代表点",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V5",
+      "name": "SRID 全为 4326",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V5",
+      "name": "修复台账 4 条",
+      "ok": true,
+      "detail": "实际=4 期望=4"
+    },
+    {
+      "section": "V5",
+      "name": "4 条修复行的几何全部有效",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V5",
+      "name": "4 条修复行类型为面/多面",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V5",
+      "name": "合成代表点行数",
+      "ok": true,
+      "detail": "实际=3317 期望=3317"
+    },
+    {
+      "section": "V5",
+      "name": "合成代表点坐标与 places.csv 不一致",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V5",
+      "name": "无任何位置行的 v4.1 地点",
+      "ok": true,
+      "detail": "实际=7200 期望=7200"
+    },
+    {
+      "section": "V5",
+      "name": "这 7,200 个地点的 notes 标记 has_representative_point=false",
+      "ok": true,
+      "detail": "实际=7200 期望=7200"
+    },
+    {
+      "section": "V6",
+      "name": "位置级 precise",
+      "ok": true,
+      "detail": "实际=31223 期望=31223"
+    },
+    {
+      "section": "V6",
+      "name": "位置级 rough",
+      "ok": true,
+      "detail": "实际=4468 期望=4468"
+    },
+    {
+      "section": "V6",
+      "name": "位置级只出现 precise/rough",
+      "ok": true,
+      "detail": "实际=True 期望=True"
+    },
+    {
+      "section": "V6",
+      "name": "地点级 precise（notes 记录）",
+      "ok": true,
+      "detail": "实际=27418 期望=27418"
+    },
+    {
+      "section": "V6",
+      "name": "地点级 rough（notes 记录）",
+      "ok": true,
+      "detail": "实际=11510 期望=11510"
+    },
+    {
+      "section": "V7",
+      "name": "candidate_match 总量",
+      "ok": true,
+      "detail": "实际=66311 期望=66311"
+    },
+    {
+      "section": "V7",
+      "name": "pleiades_connection 总行数",
+      "ok": true,
+      "detail": "实际=13570 期望=13570"
+    },
+    {
+      "section": "V7",
+      "name": "本轮新增（来源为 v4.1）",
+      "ok": true,
+      "detail": "实际=13180 期望=13180"
+    },
+    {
+      "section": "V7",
+      "name": "既有切片承载的连接",
+      "ok": true,
+      "detail": "实际=390 期望=390"
+    },
+    {
+      "section": "V7",
+      "name": "无自环（place_id_a = place_id_b）",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V7",
+      "name": "无重复三元组（uq_c09 之外再查一遍）",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V7",
+      "name": "confirmed 的 pleiades_connection 都有 system reviewer",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V7",
+      "name": "connections.csv 重算的唯一有序对",
+      "ok": true,
+      "detail": "实际=13553 期望=13553"
+    },
+    {
+      "section": "V7",
+      "name": "悬空端点（不生成候选）",
+      "ok": true,
+      "detail": "实际=28 期望=28"
+    },
+    {
+      "section": "V7",
+      "name": "这 13,553 对全部在库（差集）",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V7",
+      "name": "库里的连接对没有来源之外的多余项（差集）",
+      "ok": true,
+      "detail": "实际=17 期望=17"
+    },
+    {
+      "section": "V8",
+      "name": "missing_coordinate 累计行数",
+      "ok": true,
+      "detail": "实际=7537 期望=7537"
+    },
+    {
+      "section": "V8",
+      "name": "geometry_invalid_repaired 累计行数",
+      "ok": true,
+      "detail": "实际=4 期望=4"
+    },
+    {
+      "section": "V8",
+      "name": "connection_endpoint_missing 累计行数",
+      "ok": true,
+      "detail": "实际=28 期望=28"
+    },
+    {
+      "section": "V8",
+      "name": "accuracy_unknown_sentinel 累计行数",
+      "ok": true,
+      "detail": "实际=728 期望=728"
+    },
+    {
+      "section": "V8",
+      "name": "issue_fingerprint 唯一",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V8",
+      "name": "台账总量（基线 + 暂存增量 + 合成增量）",
+      "ok": true,
+      "detail": "实际=21447 期望=21447"
+    },
+    {
+      "section": "V8",
+      "name": "台账 dataset 均非空",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V8",
+      "name": "action_taken 全在 6 值域",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V8",
+      "name": "action_taken 原动词保留在 resolution_note（732 行）",
+      "ok": true,
+      "detail": "实际=732 期望=732"
+    },
+    {
+      "section": "V9",
+      "name": "名称孤儿（place_id 无对应地点）",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V9",
+      "name": "位置孤儿",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V9",
+      "name": "名称 source_record 不可解析",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V9",
+      "name": "位置 source_record 不可解析",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V9",
+      "name": "v4.1 地点的锚点源记录指向本数据集",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V9",
+      "name": "raw_payload 全部非空",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V9",
+      "name": "v4.1 源记录 raw_file 全部以已知文件命名",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V9",
+      "name": "v4.1 源记录 raw_record_index 非空",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V9",
+      "name": "content_hash 唯一性（同五段键内）",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V10",
+      "name": "新增批次数（两轮 × 8 数据集）",
+      "ok": true,
+      "detail": "实际=16 期望=16"
+    },
+    {
+      "section": "V10",
+      "name": "首轮 8 批全部 succeeded",
+      "ok": true,
+      "detail": "实际=8 期望=8"
+    },
+    {
+      "section": "V10",
+      "name": "复跑 8 批全部 succeeded",
+      "ok": true,
+      "detail": "实际=8 期望=8"
+    },
+    {
+      "section": "V10",
+      "name": "首轮新增源记录合计",
+      "ok": true,
+      "detail": "实际=127829 期望=127829"
+    },
+    {
+      "section": "V10",
+      "name": "复跑新增源记录合计（必须 0）",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V10",
+      "name": "复跑内容变更合计（必须 0）",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "V10",
+      "name": "复跑后 occurrence_count=2 的台账行",
+      "ok": true,
+      "detail": "实际=8614 期望=8614"
+    },
+    {
+      "section": "V10",
+      "name": "全部源记录 last_batch_id 指向复跑批次",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    }
+  ]
+}
