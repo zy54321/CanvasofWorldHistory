@@ -40,3 +40,4 @@ logs/
 
 # ---- 自检脚本依赖 ----
 ops/.deps/
+data/raw/

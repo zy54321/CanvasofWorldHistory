@@ -1,0 +1,710 @@
+{
+  "archive": {
+    "path": "code/data/raw/pleiades_gis_4_1/pleiades.datasets-v4.1.zip",
+    "size_bytes": 286621469,
+    "size_expected": 286621469,
+    "size_ok": true,
+    "md5": "ad339c92c6b895f0eb9a52228da498c4",
+    "md5_expected": "ad339c92c6b895f0eb9a52228da498c4",
+    "md5_ok": true,
+    "sha256": "94c5c337d27a07f1a5fa231b6513e40e6d3cf7d5ad7b8c010f8e8bfd9159cd85",
+    "zip_test": "ok",
+    "zip_entries": 87265,
+    "zip_top_level": [
+      "isawnyu-pleiades.datasets-b6a6790"
+    ]
+  },
+  "places": {
+    "rows": 41480,
+    "expected_rows": 41480,
+    "matches_expected": true,
+    "unique_ids": 41480,
+    "duplicate_ids": 0,
+    "duplicate_id_examples": [],
+    "unique_uris": 41480,
+    "duplicate_uris": 0,
+    "duplicate_uri_examples": [],
+    "empty_uris": 0,
+    "empty_titles": 0,
+    "missing_representative_point": 7509,
+    "missing_bounding_box_wkt": 7509,
+    "location_precision": {
+      "precise": 29396,
+      "rough": 12084
+    },
+    "lon_range": [
+      -19.665682,
+      111.07830004991355
+    ],
+    "lat_range": [
+      -22.302631,
+      63.200772
+    ]
+  },
+  "names": {
+    "rows": 38862,
+    "empty_titles": 0,
+    "name_types": {
+      "geographic": 36258,
+      "ethnic": 1396,
+      "associated_modern": 1028,
+      "label": 159,
+      "undefined": 14,
+      "unknown": 7
+    },
+    "language_tags_top": {
+      "la": 3809,
+      "grc": 3268,
+      "en": 2046,
+      "it": 1317,
+      "akk": 827,
+      "tr": 540,
+      "ar": 534,
+      "arb": 534,
+      "el": 467,
+      "es": 278,
+      "fr": 269,
+      "de": 227
+    },
+    "distinct_language_tags": 90,
+    "orphan_parent_missing": 0,
+    "orphan_examples": [],
+    "exact_duplicate_rows": 651,
+    "exact_duplicate_groups": 586,
+    "with_time_bounds": 35591,
+    "time_inversions_tpq_gt_taq": 0
+  },
+  "locations": {
+    "points": {
+      "file": "location_points.csv",
+      "geometry_kind": "Point",
+      "rows": 25038,
+      "parsed": 25038,
+      "empty_geometry": 0,
+      "invalid_geometry": 0,
+      "invalid_examples": [],
+      "out_of_range": 0,
+      "orphan_parent_missing": 0,
+      "geom_types": {
+        "Point": 25038
+      },
+      "location_precision": {
+        "precise": 25038
+      },
+      "accuracy_radius": {
+        "zero": 0,
+        "unknown": 1,
+        "gt0": 25037
+      },
+      "with_time_bounds": 23366,
+      "time_inversions_tpq_gt_taq": 0,
+      "duplicate_rows_same_place_and_wkt": 49
+    },
+    "polygons": {
+      "file": "location_polygons.csv",
+      "geometry_kind": "Polygon",
+      "rows": 4385,
+      "parsed": 4385,
+      "empty_geometry": 0,
+      "invalid_geometry": 5,
+      "invalid_examples": [
+        {
+          "id": "total-station-coordinates",
+          "place_id": "977420436",
+          "wkt": "POLYGON ((40.7274034386772 34.750826431606434, 40.72720644397732 34.75075163933509, 40.727",
+          "reason": "Ring Self-intersection[40.7273695233414 34.7512160576852]"
+        },
+        {
+          "id": "total-station-coordinates",
+          "place_id": "747016480",
+          "wkt": "POLYGON ((40.726752109533194 34.75106028562368, 40.72693675480507 34.751095625975104, 40.7",
+          "reason": "Ring Self-intersection[40.7272064439773 34.7507516393351]"
+        },
+        {
+          "id": "plan-location-south",
+          "place_id": "15685985",
+          "wkt": "POLYGON ((40.72897471479746 34.74375408054022, 40.728974038770666 34.7437764960531, 40.729",
+          "reason": "Ring Self-intersection[40.7306579586933 34.7439452228695]"
+        },
+        {
+          "id": "location-of-balochistan",
+          "place_id": "84624811",
+          "wkt": "POLYGON ((60 32, 70 32, 60 24, 70 24, 60 32))",
+          "reason": "Self-intersection[65 28]"
+        },
+        {
+          "id": "total-station-coordinates",
+          "place_id": "288390870",
+          "wkt": "POLYGON ((40.726752109533194 34.75106028562368, 40.726752109533194 34.75106028562368, 40.7",
+          "reason": "Ring Self-intersection[40.7269902715164 34.7511038105201]"
+        }
+      ],
+      "out_of_range": 0,
+      "orphan_parent_missing": 0,
+      "geom_types": {
+        "Polygon": 4385
+      },
+      "location_precision": {
+        "rough": 3942,
+        "precise": 443
+      },
+      "accuracy_radius": {
+        "zero": 0,
+        "unknown": 3871,
+        "gt0": 514
+      },
+      "with_time_bounds": 3849,
+      "time_inversions_tpq_gt_taq": 0,
+      "duplicate_rows_same_place_and_wkt": 0
+    },
+    "linestrings": {
+      "file": "location_linestrings.csv",
+      "geometry_kind": "LineString",
+      "rows": 5265,
+      "parsed": 5265,
+      "empty_geometry": 0,
+      "invalid_geometry": 0,
+      "invalid_examples": [],
+      "out_of_range": 0,
+      "orphan_parent_missing": 0,
+      "geom_types": {
+        "LineString": 5265
+      },
+      "location_precision": {
+        "precise": 5265
+      },
+      "accuracy_radius": {
+        "zero": 0,
+        "unknown": 0,
+        "gt0": 5265
+      },
+      "with_time_bounds": 4777,
+      "time_inversions_tpq_gt_taq": 0,
+      "duplicate_rows_same_place_and_wkt": 6
+    },
+    "total_rows": 34688,
+    "orphan_total": 0,
+    "invalid_total": 5,
+    "out_of_range_total": 0
+  },
+  "connections": {
+    "rows": 13603,
+    "connection_types": {
+      "connection": 3622,
+      "at": 2963,
+      "on": 1223,
+      "part_of_physical": 1144,
+      "near": 963,
+      "part_of_regional": 784,
+      "part_of_admin": 594,
+      "part_of_analytical": 517,
+      "flows_into": 371,
+      "in": 199,
+      "succeeds": 170,
+      "bounds": 157,
+      "route_next": 134,
+      "abuts": 123,
+      "member": 116,
+      "capital": 96,
+      "crosses": 82,
+      "same_as": 68,
+      "founded": 52,
+      "communicates": 43,
+      "west_of": 22,
+      "intersects": 22,
+      "east_of": 19,
+      "south_of": 19,
+      "material_source": 16,
+      "north_of": 15,
+      "port_of": 11,
+      "related": 10,
+      "relocated_to": 8,
+      "sympoliteia": 8,
+      "dependent": 6,
+      "southeast_of": 5,
+      "in_territory_of": 5,
+      "phase": 4,
+      "isopoliteia": 4,
+      "northeast_of": 3,
+      "mentioned": 2,
+      "ally": 1,
+      "(empty)": 1,
+      "southwest_of": 1
+    },
+    "association_certainty": {
+      "certain": 13348,
+      "less-certain": 194,
+      "uncertain": 60,
+      "(empty)": 1
+    },
+    "orphan_place_id": 1,
+    "orphan_connects_to": 28,
+    "orphan_total": 29,
+    "orphan_examples": [
+      {
+        "side": "connects_to",
+        "id": "368305523",
+        "other": "999238742"
+      },
+      {
+        "side": "connects_to",
+        "id": "487529761",
+        "other": "991362"
+      },
+      {
+        "side": "connects_to",
+        "id": "424616150",
+        "other": "998821004"
+      },
+      {
+        "side": "connects_to",
+        "id": "802922078",
+        "other": "998821004"
+      },
+      {
+        "side": "connects_to",
+        "id": "744211055",
+        "other": "998821004"
+      }
+    ],
+    "self_loops": 2,
+    "duplicate_rows_same_triple": 9,
+    "with_time_bounds": 3647,
+    "time_inversions_tpq_gt_taq": 0
+  },
+  "accuracy": {
+    "rows": 41480,
+    "location_precision": {
+      "precise": 29396,
+      "rough": 12084
+    },
+    "empty_accuracy_hull": 12085,
+    "max_accuracy_meters": {
+      "n": 41480,
+      "min": -1.0,
+      "p50": 20.0,
+      "p95": 10000.0,
+      "max": 18627.0
+    },
+    "min_accuracy_meters": {
+      "n": 41480,
+      "min": -1.0,
+      "p50": 10.0,
+      "p95": 10000.0,
+      "max": 18627.0
+    },
+    "orphan_place_id": 0
+  },
+  "place_types": {
+    "place_type_vocab": 192,
+    "rows": 51009,
+    "distinct_places": 41478,
+    "places_without_type": 2,
+    "rows_per_place": {
+      "1": 32979,
+      "2": 7665,
+      "3": 686,
+      "4": 118,
+      "5": 21,
+      "6": 4
+    },
+    "top_types": {
+      "settlement": 13130,
+      "unlocated": 6452,
+      "villa": 2351,
+      "map label location": 1772,
+      "fort, tower (deprecated)": 1613,
+      "river, drainage": 1576,
+      "people, tribe (historical cultural group)": 1434,
+      "station (road or coastal)": 1393,
+      "archaeological site": 1256,
+      "road": 1025,
+      "unlabeled": 993,
+      "catacomb, cemetery, necropolis": 864,
+      "settlement-modern": 829,
+      "island": 763,
+      "temple": 760
+    },
+    "orphan_place_id": 0
+  },
+  "time_periods": {
+    "rows": 204,
+    "lower_bound_empty": 0,
+    "upper_bound_empty": 0,
+    "slice_identical_sha256": false,
+    "sha256": "3b6e2bb631b94ca342d120cabf10d106cb9262e6570023f31bdcabdbc572e4c5"
+  },
+  "coverage": {
+    "places_total": 41480,
+    "places_with_name": 25174,
+    "places_with_any_location": 30506,
+    "places_with_point": 22285,
+    "places_with_polygon": 4366,
+    "places_with_linestring": 4915,
+    "places_without_name": 16306,
+    "places_without_location": 10974,
+    "names_per_place": {
+      "1": 18213,
+      "2": 4307,
+      "3": 1462,
+      "4": 557,
+      "5": 254,
+      "6": 101,
+      "7": 52,
+      "8": 52
+    },
+    "avg_names_per_place": 0.94,
+    "total_names": 38862
+  },
+  "vs_slice": {
+    "slice_source_records": 2643,
+    "full_places": 41480,
+    "in_both": 2552,
+    "only_in_slice": 91,
+    "only_in_slice_examples": [
+      "900824967",
+      "900824968",
+      "901742290",
+      "902590390",
+      "904400348"
+    ],
+    "new_in_full": 38928,
+    "value_unchanged": 2448,
+    "value_changed": 104,
+    "value_changed_examples": [
+      {
+        "id": "900050539",
+        "old": [
+          46.10447289831875,
+          30.96175524744187,
+          "rough"
+        ],
+        "new": [
+          null,
+          null,
+          "rough"
+        ]
+      },
+      {
+        "id": "900336440",
+        "old": [
+          12.7370895,
+          42.7334089,
+          "precise"
+        ],
+        "new": [
+          12.7370897,
+          42.7334005,
+          "precise"
+        ]
+      },
+      {
+        "id": "900977729",
+        "old": [
+          13.307898750000001,
+          42.399285850000005,
+          "precise"
+        ],
+        "new": [
+          13.30789875,
+          42.399285850000005,
+          "precise"
+        ]
+      },
+      {
+        "id": "903012",
+        "old": [
+          47.462217,
+          34.617525,
+          "precise"
+        ],
+        "new": [
+          47.439729,
+          34.584336,
+          "precise"
+        ]
+      },
+      {
+        "id": "903012852",
+        "old": [
+          8.07644,
+          34.864959,
+          "rough"
+        ],
+        "new": [
+          null,
+          null,
+          "rough"
+        ]
+      },
+      {
+        "id": "903082074",
+        "old": [
+          4.878883444417664,
+          45.52484433940456,
+          "precise"
+        ],
+        "new": [
+          4.878329,
+          45.524593,
+          "precise"
+        ]
+      },
+      {
+        "id": "903109",
+        "old": [
+          47.34311940617729,
+          33.47049597703435,
+          "precise"
+        ],
+        "new": [
+          46.5,
+          33.5,
+          "rough"
+        ]
+      },
+      {
+        "id": "904891411",
+        "old": [
+          14.4732795,
+          40.76841,
+          "rough"
+        ],
+        "new": [
+          null,
+          null,
+          "rough"
+        ]
+      },
+      {
+        "id": "907036116",
+        "old": [
+          35.3567195,
+          38.3997613,
+          "rough"
+        ],
+        "new": [
+          null,
+          null,
+          "rough"
+        ]
+      },
+      {
+        "id": "907371652",
+        "old": [
+          19.048442109221526,
+          47.69388827075635,
+          "precise"
+        ],
+        "new": [
+          19.048442109221526,
+          47.69388827075634,
+          "precise"
+        ]
+      }
+    ],
+    "slice_csv_rows_parsed": 2643,
+    "coverage_pct_of_full": 6.15
+  },
+  "cross_source": {
+    "self_slice_name_matches": {
+      "<=10km": 25,
+      "<=1km": 1515,
+      "<=50km": 5,
+      ">50km": 3
+    },
+    "same_name_pairs_excluding_pleiades_self": 3,
+    "name_match_by_dataset_and_distance": {
+      "name|mcgd_zenodo_22094815_head960|>50km": 2,
+      "name|whg_api_sample|<=10km": 1
+    },
+    "coord_nearest_by_dataset_and_distance": {
+      "coord|chgis_cnty|<=50km": 1,
+      "coord|chgis_cnty|none_within_50km": 33970,
+      "coord|chgis_pref|<=50km": 1,
+      "coord|chgis_pref|none_within_50km": 33970,
+      "coord|mcgd_zenodo_22094815_head960|<=10km": 2,
+      "coord|mcgd_zenodo_22094815_head960|<=1km": 1,
+      "coord|mcgd_zenodo_22094815_head960|<=50km": 43,
+      "coord|mcgd_zenodo_22094815_head960|none_within_50km": 33925,
+      "coord|whg_api_sample|<=10km": 525,
+      "coord|whg_api_sample|<=1km": 36,
+      "coord|whg_api_sample|<=50km": 704,
+      "coord|whg_api_sample|none_within_50km": 32706
+    },
+    "coord_within_1km_examples": [
+      {
+        "pleiades": "964504689",
+        "dataset": "whg_api_sample",
+        "km": 0.453
+      },
+      {
+        "pleiades": "958548506",
+        "dataset": "whg_api_sample",
+        "km": 0.724
+      },
+      {
+        "pleiades": "79574",
+        "dataset": "whg_api_sample",
+        "km": 0.308
+      },
+      {
+        "pleiades": "70865871",
+        "dataset": "whg_api_sample",
+        "km": 0.811
+      },
+      {
+        "pleiades": "711765706",
+        "dataset": "whg_api_sample",
+        "km": 0.191
+      },
+      {
+        "pleiades": "789002571",
+        "dataset": "whg_api_sample",
+        "km": 0.733
+      },
+      {
+        "pleiades": "697163696",
+        "dataset": "whg_api_sample",
+        "km": 0.324
+      },
+      {
+        "pleiades": "605937276",
+        "dataset": "whg_api_sample",
+        "km": 0.685
+      },
+      {
+        "pleiades": "646461227",
+        "dataset": "whg_api_sample",
+        "km": 0.214
+      },
+      {
+        "pleiades": "643547967",
+        "dataset": "whg_api_sample",
+        "km": 0.795
+      }
+    ],
+    "all_buckets": {
+      "coord|chgis_cnty|<=50km": 1,
+      "coord|chgis_cnty|none_within_50km": 33970,
+      "coord|chgis_pref|<=50km": 1,
+      "coord|chgis_pref|none_within_50km": 33970,
+      "coord|mcgd_zenodo_22094815_head960|<=10km": 2,
+      "coord|mcgd_zenodo_22094815_head960|<=1km": 1,
+      "coord|mcgd_zenodo_22094815_head960|<=50km": 43,
+      "coord|mcgd_zenodo_22094815_head960|none_within_50km": 33925,
+      "coord|whg_api_sample|<=10km": 525,
+      "coord|whg_api_sample|<=1km": 36,
+      "coord|whg_api_sample|<=50km": 704,
+      "coord|whg_api_sample|none_within_50km": 32706,
+      "name|mcgd_zenodo_22094815_head960|>50km": 2,
+      "name|whg_api_sample|<=10km": 1
+    },
+    "near_examples": [
+      {
+        "name": "roma",
+        "dataset": "whg_api_sample",
+        "km": 1.61,
+        "via": "name"
+      }
+    ],
+    "method": "名称归一化相等 + 网格(0.1°)最近邻 Haversine 距离分档；仅候选，绝不合并"
+  },
+  "files": [
+    {
+      "file": "archaeological_remains.csv",
+      "bytes": 172,
+      "sha256": "3e660d5eb697487516e0199605be5bdf41c47547fb333be6c0128266233d8f44"
+    },
+    {
+      "file": "association_certainty.csv",
+      "bytes": 471,
+      "sha256": "8365c87db1e151a06d6dfed6080eab1d95b8305001992f21ca022ddd9f49a9f3"
+    },
+    {
+      "file": "connection_types.csv",
+      "bytes": 2710,
+      "sha256": "897d76e91a48fd1cf4348df2f472c97122fbb9c81bd24761f434cc26634f06c3"
+    },
+    {
+      "file": "connections.csv",
+      "bytes": 2535616,
+      "sha256": "51e3f71c813b1132d9ef35f7dc2a0b9dea9cb9d5d95068e0b5f50e7e8925f1c3"
+    },
+    {
+      "file": "howto.txt",
+      "bytes": 117,
+      "sha256": "8666d379f366a63dac3b4fc19ce620596fb31f01edb09a90283e72e3a05c7719"
+    },
+    {
+      "file": "languages_and_scripts.csv",
+      "bytes": 8811,
+      "sha256": "9abdfdce50d3bad91faf623d023e01b9be8e1a7d79d57c9c49fa82cae4194395"
+    },
+    {
+      "file": "location_linestrings.csv",
+      "bytes": 9227776,
+      "sha256": "a7eee64abdccfb6167dc4c3146b40ed22802bcf6150888fd9b7bee722bfda9ae"
+    },
+    {
+      "file": "location_points.csv",
+      "bytes": 9408267,
+      "sha256": "20edc5ef9748354fe917a17ba949a17c7af8cc593e07522926924eada64d080d"
+    },
+    {
+      "file": "location_polygons.csv",
+      "bytes": 1373849,
+      "sha256": "4946c2e5be47797c5e80dffba66c26e40fd2be94e4677c770d1f82ddac124452"
+    },
+    {
+      "file": "name_types.csv",
+      "bytes": 834,
+      "sha256": "a90b194523803bce33e649e7b1c4459a192ae52f11a6a45b55201db49fec41ab"
+    },
+    {
+      "file": "names.csv",
+      "bytes": 8481492,
+      "sha256": "04716712d78dce2b43c9d093ba908d8397ee17496ffec8644e84a4bad1dac02d"
+    },
+    {
+      "file": "place_types.csv",
+      "bytes": 30430,
+      "sha256": "bfa08923af4ef739d5c54de7ce7434f87d332837b841fd6661a3e99272fc077b"
+    },
+    {
+      "file": "places.csv",
+      "bytes": 16048687,
+      "sha256": "5dd09b1a92c53e50cb9962bab44df12c5f0b7b683d4f228367d843637cfe5a59"
+    },
+    {
+      "file": "places_accuracy.csv",
+      "bytes": 80605903,
+      "sha256": "740849bd213d78993ad754fb316962f6a7cfd9a44cc4cbe7af925c12457709e9"
+    },
+    {
+      "file": "places_place_types.csv",
+      "bytes": 922188,
+      "sha256": "846acc52098771ead0ee673bf92e8304906389fc681c1750107f28d584e09d24"
+    },
+    {
+      "file": "README.md",
+      "bytes": 18514,
+      "sha256": "8a2de1089d80e0ac2f6d502bf30555881cc758de20ddcaafaec7a2917fc3b023"
+    },
+    {
+      "file": "time_periods.csv",
+      "bytes": 38271,
+      "sha256": "3b6e2bb631b94ca342d120cabf10d106cb9262e6570023f31bdcabdbc572e4c5"
+    },
+    {
+      "file": "transcription_accuracy.csv",
+      "bytes": 457,
+      "sha256": "f1b31e07de97f2833435bc2ccb8601cc4cfa84341b9a12c4b8aecac3f2a9c2ad"
+    },
+    {
+      "file": "transcription_completeness.csv",
+      "bytes": 586,
+      "sha256": "384396ca31ebebebb42ee8b6b042e42dff04f201795db08851244fe0333e28e9"
+    }
+  ]
+}
