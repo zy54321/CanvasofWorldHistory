@@ -273,17 +273,20 @@ V9b 诚实标注：本轮没有构造 `content_hash` 变化的第三轮输入，
 |---|---|
 | 分支 | `m4-2-import-rules` |
 | 起点 | `cbada4c0b85af4cbb9d93da24f875d8bfd16a17f`（M4-1 报告） |
-| 实现提交 | **`66536c7d0d7071f9907c39fdfe04e8c53ad6e6a6`** `feat(m4-2): drop licence gate, make provenance optional, rebase import counts` |
-| 报告提交 | 本文件的独立 `docs(m4)` 提交 |
+| M4-2 实现提交 | **`66536c7d0d7071f9907c39fdfe04e8c53ad6e6a6`** `feat(m4-2): drop licence gate, make provenance optional, rebase import counts` |
+| M4-2 报告提交 | **`c6c4fcd4f3bc9a2b58b7f046d250b1a2d8034a21`** `docs(m4): M4-2 report — licence gate removal, optional provenance, new import baseline` |
+| M4-2 报告措辞修订 | **`46e07dd5e7145506fab064d18904d8fdb3eb539f`** `docs(m4): clarify which licence references remain and why` |
+| **M4-2 收尾提交**（验收后修正） | **`0f4359e451377d6ef42e5ef89695971dba30e595`** `fix(m4-2): drop fixed ledger constants from the verifier, add V9b update-path test` |
+| 本报告最后一次修订 | 紧随收尾提交的 `docs(m4-2)` 提交（仅回填提交号与收尾章节，不含逻辑改动） |
 | 远程 | 无，未推送 |
 | 工作区 | 提交后干净 |
 
 纳入版本管理：`V8` 迁移、`import_staging.py`、`verify_import.py`、`PlaceQueryService`、`PlaceAdminService`、
-`Dtos`、`types.ts`、`DetailPanel.vue`、`p0/wb-002-normalize/*`、`ops/m4-2/*`（基线 + 日志 + 快照 + 新测试脚本）、
+`Dtos`、`types.ts`、`DetailPanel.vue`、`p0/wb-002-normalize/*`、`ops/m4-2/*`（基线 + 日志 + 快照 + 测试脚本）、
 `tests/e2e-m4/m4-place-no-source.cjs`、`IMPORT_VALIDATION_RULES.md`、`ops/README.md`、`CORE_DATA_MODEL_V2.1.1.md`（标注）。
 删除：`ops/verify_no_licence_gate.py`。
 
-`design/P0验证`、`P0收敛`、`code/data/staging/*.csv` 仍按既有策略不入库（大体积数据快照）。
+`设计资料/P0验证`、`P0收敛`、`code/data/staging/*.csv` 仍按既有策略不入库（大体积数据快照）。
 
 ## 十二、正式库数据保护验证
 
