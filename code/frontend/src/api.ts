@@ -12,6 +12,7 @@ import type {
   PersonPlaceRow,
   PlaceDetail,
   PlaceFeatureCollection,
+  PlaceOptions,
   SearchResult,
 } from './types'
 
@@ -115,6 +116,7 @@ function kw(keyword: string, page: number, size: number): string {
 
 // ------------------------------------------------------------------ 地点
 export const placeAdmin = {
+  options: (signal?: AbortSignal) => getJson<PlaceOptions>('/api/v1/places/admin/options', signal),
   list: (keyword: string, page = 1, size = 20, signal?: AbortSignal) =>
     getJson<Paged<AdminPlaceRow>>(`/api/v1/places/admin?${kw(keyword, page, size)}`, signal),
   create: (body: unknown) => send<{ placeId: number }>('POST', '/api/v1/places', body),

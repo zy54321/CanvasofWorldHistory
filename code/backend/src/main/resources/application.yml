@@ -25,6 +25,16 @@ spring:
   jackson:
     default-property-inclusion: non_null
 
+# 数据库写入白名单（M3 前置加固）。
+#   - 按【实际连接的库名】判定（启动时查 current_database()），不看端口、不看配置里写的库名；
+#   - 逗号分隔，精确匹配，不支持 * 通配；留空 = 全库禁止写入（fail-closed）；
+#   - 不在名单内的实例，POST/PUT/PATCH/DELETE 一律 403，GET 不受影响。
+# 正式库 canvas_history 默认不在名单里 → 8088 实例天然只读。
+# 测试库需显式：DB_WRITE_ALLOWED_DATABASES=canvas_history_m2check
+app:
+  write:
+    allowed-databases: ${DB_WRITE_ALLOWED_DATABASES:}
+
 logging:
   level:
     root: INFO

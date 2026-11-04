@@ -1,5 +1,6 @@
 package com.canvasofworldhistory.api.web;
 
+import com.canvasofworldhistory.api.config.WriteGuard;
 import com.canvasofworldhistory.api.dto.Dtos;
 import com.canvasofworldhistory.api.service.PlaceQueryService;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -18,10 +19,27 @@ public class MetaController {
 
     private final PlaceQueryService service;
     private final NamedParameterJdbcTemplate jdbc;
+    private final WriteGuard writeGuard;
 
-    public MetaController(PlaceQueryService service, NamedParameterJdbcTemplate jdbc) {
+    public MetaController(PlaceQueryService service, NamedParameterJdbcTemplate jdbc,
+                          WriteGuard writeGuard) {
         this.service = service;
         this.jdbc = jdbc;
+        this.writeGuard = writeGuard;
+    }
+
+    /** 写保护状态（只读接口）：前端/运维用它确认这个实例到底能不能写。 */
+    @GetMapping("/write-policy")
+    public Map<String, Object> writePolicy() {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("database", writeGuard.getDatabaseName() == null ? "(未识别)" : writeGuard.getDatabaseName());
+        m.put("allowedDatabases", writeGuard.getAllowedDatabases());
+        m.put("writeAllowed", writeGuard.isWriteAllowed());
+        m.put("configProblems", writeGuard.getConfigProblems());
+        m.put("note", writeGuard.isWriteAllowed()
+                ? "本实例允许写入（POST/PUT/PATCH/DELETE）"
+                : "本实例只读：写操作将返回 403；GET 不受影响");
+        return m;
     }
 
     @GetMapping("/stats")

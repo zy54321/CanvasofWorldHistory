@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 地点管理写入（M2 收尾补齐）。
@@ -102,7 +103,7 @@ public class PlaceAdminService {
                           AND l.crs_confidence <> 'unknown'
                         ORDER BY l.location_id LIMIT 1) loc ON TRUE
                 """ + where + """
-                 ORDER BY (p.canonical_name ILIKE coalesce(:like, '')) DESC, p.place_id
+                 ORDER BY p.updated_at DESC NULLS LAST, p.place_id DESC
                  LIMIT :limit OFFSET :offset
                 """;
 
@@ -185,7 +186,9 @@ public class PlaceAdminService {
                 UPDATE historical_place
                    SET canonical_name = :name, canonical_name_lang = :lang,
                        place_type = :type, place_type_basis_note = :basis,
-                       description = :desc, notes = :notes
+                       description = :desc, notes = :notes,
+                       -- 管理界面列表按 updated_at 倒序，编辑必须推进它，否则排序名不副实
+                       updated_at = now()
                        %s
                  WHERE place_id = :id
                 """.formatted(req.recordStatus() == null ? "" : ", record_status = :status"),
@@ -202,10 +205,29 @@ public class PlaceAdminService {
 
     @Transactional
     public int delete(long placeId) {
-        // 引用检查交给数据库：被 event_place / person_place / historical_place_location 引用时
-        // 外键会以 23503 拒绝，由 ApiExceptionHandler 转成 409，不在此处静默级联。
-        return jdbc.update("DELETE FROM historical_place WHERE place_id = :id",
+        // 删除语义（M3 前置收尾实测暴露的问题）：
+        //  historical_place_name / historical_place_location 的 FK 没有 ON DELETE 级联，
+        //  所以「删除一个加过别名的地点」会直接报 23503，界面上表现为莫名其妙的「仍被引用」。
+        //  这两张表属于地点聚合内部，人工录入的场景应当连带删除。
+        //
+        //  但对导入数据集的地点不这么做——它们的名称/位置是导入证据，不能在管理界面里连带抹掉，
+        //  要处理走数据治理流程。事件/人物/候选/台账对该地点的引用仍然交给数据库判定（RESTRICT
+        //  或默认 NO ACTION），一律转成 409，绝不连带删除其他业务对象。
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "SELECT dataset_id FROM historical_place WHERE place_id = :id",
                 new MapSqlParameterSource("id", placeId));
+        if (rows.isEmpty()) {
+            return 0;
+        }
+        Object ds = rows.get(0).get("dataset_id");
+        if (!MANUAL_DATASET.equals(String.valueOf(ds))) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "该地点属于导入数据集 " + ds + "，不允许在管理界面删除（其名称与位置是导入证据）");
+        }
+        MapSqlParameterSource prm = new MapSqlParameterSource("id", placeId);
+        jdbc.update("DELETE FROM historical_place_name WHERE place_id = :id", prm);
+        jdbc.update("DELETE FROM historical_place_location WHERE place_id = :id", prm);
+        return jdbc.update("DELETE FROM historical_place WHERE place_id = :id", prm);
     }
 
     // ================================================================ 名称

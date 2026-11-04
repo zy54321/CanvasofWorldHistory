@@ -303,3 +303,14 @@ export interface AdminPlaceRow {
   lat: number | null
   hasGeom: boolean
 }
+
+/** GET /api/v1/places/admin/options 的返回：取值与数据库 CHECK 约束一致 */
+export interface PlaceOptions {
+  placeTypes: string[]
+  placeTypeSources: string[]
+  recordStatuses: string[]
+  nameTypes: string[]
+  timeBoundTypes: string[]
+  locationPrecisions: string[]
+  crsConfidences: string[]
+}

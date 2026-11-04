@@ -3,10 +3,10 @@
  * 地点编辑器：主表 + 历史名称（多行）+ 位置（多行，允许无坐标）。
  * entityId 为 null 表示新建。
  */
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import AstroYear from './AstroYear.vue'
 import { placeAdmin } from '../../api'
-import type { PlaceDetail, PlaceLocation, PlaceName } from '../../types'
+import type { PlaceDetail, PlaceLocation, PlaceName, PlaceOptions } from '../../types'
 
 const props = defineProps<{ entityId: number | null }>()
 const emit = defineEmits<{
@@ -16,40 +16,71 @@ const emit = defineEmits<{
   (e: 'locate', lon: number, lat: number): void
 }>()
 
-const PLACE_TYPES = [
-  { v: 'settlement', t: '聚落' },
-  { v: 'admin_center_prefecture', t: '府级治所' },
-  { v: 'admin_center_county', t: '县级治所' },
-  { v: 'admin_center_other', t: '其他治所' },
-  { v: 'unknown', t: '未定' },
-]
-const NAME_TYPES = [
-  { v: 'primary', t: '正名' },
-  { v: 'alternate', t: '别名' },
-  { v: 'transliteration', t: '转写' },
-  { v: 'historical', t: '旧称' },
-  { v: 'colloquial', t: '俗名' },
-]
-const TBTS = [
-  { v: 'unknown', t: '未知' },
-  { v: 'exact', t: '确切' },
-  { v: 'bounded', t: '有界' },
-  { v: 'exact_or_bounded', t: '确切或有界' },
-  { v: 'tpq_taq', t: '最早/最晚' },
-  { v: 'derived_tpq_taq', t: '推导最早/最晚' },
-  { v: 'snapshot', t: '快照' },
-]
-const PRECISIONS = [
-  { v: 'unknown', t: '未知' },
-  { v: 'precise', t: '精确' },
-  { v: 'approximate', t: '近似' },
-  { v: 'rough', t: '粗略' },
-]
-const CRS_CONF = [
-  { v: 'inferred', t: '推定（人工录入默认）' },
-  { v: 'confirmed', t: '已确认' },
-  { v: 'unknown', t: '未知（不作可信位置）' },
-]
+// ---------------------------------------------------------------------------
+// 选项值一律来自 GET /api/v1/places/admin/options（后端与数据库 CHECK 约束对齐），
+// 前端只保留「代码 → 中文标签」的展示映射，不再维护第二份取值清单。
+// 接口加载失败时：不静默沿用任何内置选项，而是禁用编辑并提示刷新。
+// ---------------------------------------------------------------------------
+const LABELS: Record<string, string> = {
+  // 地点类型
+  settlement: '聚落',
+  admin_center_prefecture: '府级治所',
+  admin_center_county: '县级治所',
+  admin_center_other: '其他治所',
+  unknown: '未定',
+  // 地点名称类型
+  primary: '正名',
+  alternate: '别名',
+  transliteration: '转写',
+  historical: '旧称',
+  colloquial: '俗名',
+  // 时间界定类型
+  exact: '确切',
+  bounded: '有界',
+  exact_or_bounded: '确切或有界',
+  tpq_taq: '最早/最晚',
+  derived_tpq_taq: '推导最早/最晚',
+  snapshot: '快照',
+  // 位置精度
+  precise: '精确',
+  approximate: '近似',
+  rough: '粗略',
+  // 坐标系置信度
+  confirmed: '已确认',
+  inferred: '推定（人工录入默认）',
+  // 记录状态
+  staging: '暂存（staging）',
+  rejected: '已否决（rejected）',
+  published: '已发布（published）',
+  // 地点类型来源
+  manual: '人工判定',
+}
+
+const opts = ref<PlaceOptions | null>(null)
+const optErr = ref<string | null>(null)
+
+const label = (v: string | null | undefined) => (v ? (LABELS[v] ?? v) : '')
+const placeTypes = computed(() => opts.value?.placeTypes ?? [])
+const placeNameTypes = computed(() => opts.value?.nameTypes ?? [])
+const timeBoundTypes = computed(() => opts.value?.timeBoundTypes ?? [])
+const locationPrecisions = computed(() => opts.value?.locationPrecisions ?? [])
+const crsConfidences = computed(() => opts.value?.crsConfidences ?? [])
+const recordStatuses = computed(() =>
+  // 人工录入只允许 staging / rejected（published 由发布流程产出，不在表单里手选）
+  (opts.value?.recordStatuses ?? []).filter((v) => v === 'staging' || v === 'rejected'),
+)
+
+async function loadOptions() {
+  optErr.value = null
+  try {
+    opts.value = await placeAdmin.options()
+  } catch (e) {
+    opts.value = null
+    optErr.value = `地点选项加载失败：${(e as Error).message}。表单已禁用，请确认后端可用后刷新页面。`
+  }
+}
+
+onMounted(loadOptions)
 
 const detail = ref<PlaceDetail | null>(null)
 const loading = ref(false)
@@ -376,6 +407,7 @@ function fmtNameRange(n: PlaceName): string {
         <span v-if="detail" class="tiny dim">{{ detail.recordStatus }}</span>
       </h3>
 
+      <p v-if="optErr" class="m2-alert">{{ optErr }}</p>
       <p v-if="err" class="m2-alert">{{ err }}</p>
       <p v-if="msg" class="tiny" style="color: #256b3a">{{ msg }}</p>
 
@@ -390,15 +422,14 @@ function fmtNameRange(n: PlaceName): string {
         </div>
         <div class="m2-field">
           <label>地点类型</label>
-          <select v-model="form.placeType">
-            <option v-for="t in PLACE_TYPES" :key="t.v" :value="t.v">{{ t.t }}</option>
+          <select v-model="form.placeType" :disabled="!opts">
+            <option v-for="t in placeTypes" :key="t" :value="t">{{ label(t) }}</option>
           </select>
         </div>
         <div class="m2-field">
           <label>记录状态</label>
-          <select v-model="form.recordStatus">
-            <option value="staging">暂存（staging）</option>
-            <option value="rejected">已否决（rejected）</option>
+          <select v-model="form.recordStatus" :disabled="!opts">
+            <option v-for="r in recordStatuses" :key="r" :value="r">{{ label(r) }}</option>
           </select>
         </div>
       </div>
@@ -412,7 +443,7 @@ function fmtNameRange(n: PlaceName): string {
       </div>
 
       <div class="actions">
-        <button class="m2-btn primary" :disabled="saving" @click="save">
+        <button class="m2-btn primary" :disabled="saving || !opts" @click="save">
           {{ saving ? '保存中…' : entityId === null ? '创建地点' : '保存修改' }}
         </button>
         <button v-if="entityId !== null" class="m2-btn danger" @click="removePlace">删除地点</button>
@@ -430,7 +461,7 @@ function fmtNameRange(n: PlaceName): string {
           <span class="grow">
             <strong>{{ n.nameText }}</strong>
             <span class="tiny dim">
-              · {{ NAME_TYPES.find((t) => t.v === n.nameType)?.t ?? n.nameType }}
+              · {{ label(n.nameType) }}
               · {{ n.nameLang || '语言未填' }} · {{ fmtNameRange(n) }}
             </span>
           </span>
@@ -449,7 +480,7 @@ function fmtNameRange(n: PlaceName): string {
             <div class="m2-field">
               <label>类型</label>
               <select v-model="nameForm.nameType">
-                <option v-for="t in NAME_TYPES" :key="t.v" :value="t.v">{{ t.t }}</option>
+                <option v-for="t in placeNameTypes" :key="t" :value="t">{{ label(t) }}</option>
               </select>
             </div>
           </div>
@@ -461,7 +492,7 @@ function fmtNameRange(n: PlaceName): string {
             <div class="m2-field">
               <label>时间判定</label>
               <select v-model="nameForm.timeBoundType">
-                <option v-for="t in TBTS" :key="t.v" :value="t.v">{{ t.t }}</option>
+                <option v-for="t in timeBoundTypes" :key="t" :value="t">{{ label(t) }}</option>
               </select>
             </div>
           </div>
@@ -481,7 +512,7 @@ function fmtNameRange(n: PlaceName): string {
           </div>
           <p v-else class="m2-hint">时间判定为「未知」时不接受年份，避免编造。</p>
           <div class="actions">
-            <button class="m2-btn primary" @click="saveName">保存名称</button>
+            <button class="m2-btn primary" :disabled="!opts" @click="saveName">保存名称</button>
             <button class="m2-btn" @click="nameFormOpen = false">取消</button>
           </div>
         </div>
@@ -501,7 +532,7 @@ function fmtNameRange(n: PlaceName): string {
           <span class="grow">
             <span class="mono">{{ fmtCoord(l) }}</span>
             <span class="tiny dim">
-              · {{ PRECISIONS.find((p) => p.v === l.locationPrecision)?.t ?? l.locationPrecision }}
+              · {{ label(l.locationPrecision) }}
               <template v-if="l.uncertaintyM != null"> ±{{ l.uncertaintyM }}m</template>
               · {{ l.crsConfidence }}
             </span>
@@ -534,7 +565,7 @@ function fmtNameRange(n: PlaceName): string {
             <div class="m2-field">
               <label>定位精度</label>
               <select v-model="locForm.locationPrecision">
-                <option v-for="p in PRECISIONS" :key="p.v" :value="p.v">{{ p.t }}</option>
+                <option v-for="p in locationPrecisions" :key="p" :value="p">{{ label(p) }}</option>
               </select>
             </div>
             <div class="m2-field">
@@ -544,7 +575,7 @@ function fmtNameRange(n: PlaceName): string {
             <div class="m2-field">
               <label>坐标系置信</label>
               <select v-model="locForm.crsConfidence">
-                <option v-for="c in CRS_CONF" :key="c.v" :value="c.v">{{ c.t }}</option>
+                <option v-for="c in crsConfidences" :key="c" :value="c">{{ label(c) }}</option>
               </select>
             </div>
           </div>
@@ -556,7 +587,7 @@ function fmtNameRange(n: PlaceName): string {
             坐标留空即「未定位」，地图上不会显示；坐标系 unknown 的位置按规则不作为可信位置。
           </p>
           <div class="actions">
-            <button class="m2-btn primary" @click="saveLoc">保存位置</button>
+            <button class="m2-btn primary" :disabled="!opts" @click="saveLoc">保存位置</button>
             <button class="m2-btn" @click="locFormOpen = false">取消</button>
           </div>
         </div>

@@ -37,8 +37,11 @@ export default defineConfig({
     __MAPTILER_KEY__: JSON.stringify(env.VITE_MAPTILER_API_KEY || ''),
   },
   server: {
+    // 只绑回环地址：本机工具，不对外暴露
+    host: '127.0.0.1',
     port: webPort,
-    strictPort: false,
+    // 端口被占用时直接报错，避免「以为在 5180、其实悄悄跑到 5182」
+    strictPort: true,
     proxy: {
       // 浏览器只与前端同源通信，避免后端开 CORS
       '/api': {

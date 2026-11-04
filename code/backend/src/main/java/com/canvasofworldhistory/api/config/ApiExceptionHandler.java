@@ -39,6 +39,18 @@ public class ApiExceptionHandler {
     private static final Pattern COLUMN =
             Pattern.compile("column\\s+\"([^\"]+)\"", Pattern.CASE_INSENSITIVE);
 
+    @ExceptionHandler(WriteForbiddenException.class)
+    public ResponseEntity<Map<String, Object>> handleWriteForbidden(WriteForbiddenException ex) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("status", HttpStatus.FORBIDDEN.value());
+        m.put("error", "WRITE_FORBIDDEN");
+        m.put("message", ex.getMessage());
+        m.put("database", ex.getDatabase());
+        m.put("allowedDatabases", ex.getAllowedDatabases());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .contentType(MediaType.APPLICATION_JSON).body(m);
+    }
+
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<Map<String, Object>> handleStatus(ResponseStatusException ex) {
         HttpStatus status = HttpStatus.resolve(ex.getStatusCode().value());

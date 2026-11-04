@@ -333,11 +333,15 @@ def main():
           '200 + 人物 404', '%s/%s' % (st, st2))
 
     # M2 收尾新增了地点删除接口；被引用时库层 RESTRICT 会拒绝（409），这正是期望行为
+    # M3 前置收尾后，删除入口多了一层"导入数据集地点不允许在管理界面删除"的保护，
+    # 900001 属于测试库自建数据集 m2check_ds，因此在这里由应用层先拒（409 + 原因）。
+    # 数据库 RESTRICT 本身的证明见 api_m2_full_test.py 的 D01 / D01b（人工录入地点 + event_place 引用）。
     st, bad = call('DELETE', '/api/v1/places/900001')
     cons = (bad or {}).get('constraint') if isinstance(bad, dict) else None
-    check('G03', '删除被引用地点 → 被数据库 RESTRICT 拒绝',
-          st in (409, 400) and cons is not None,
-          '409/400 且给出 constraint', '%s %s' % (st, cons))
+    msg = (bad or {}).get('message', '') if isinstance(bad, dict) else ''
+    check('G03', '删除被引用地点 → 被拒绝且给出可读原因',
+          st in (409, 400) and (cons is not None or '导入数据集' in msg),
+          '409/400 + constraint 或导入数据集说明', '%s %s' % (st, cons or msg[:46]))
 
     print('\n== 汇总 ==')
     passed = sum(1 for r in RESULTS if r[2])

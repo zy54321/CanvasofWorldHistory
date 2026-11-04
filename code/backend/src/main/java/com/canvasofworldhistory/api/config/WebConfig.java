@@ -2,6 +2,7 @@ package com.canvasofworldhistory.api.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
@@ -15,6 +16,22 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+
+    private final WriteGuardInterceptor writeGuardInterceptor;
+
+    public WebConfig(WriteGuardInterceptor writeGuardInterceptor) {
+        this.writeGuardInterceptor = writeGuardInterceptor;
+    }
+
+    /**
+     * 写保护挂在整个 /api/** 上（含未来新增的写接口），GET/HEAD/OPTIONS 不受影响。
+     * 详见 {@link WriteGuard}。
+     */
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(writeGuardInterceptor).addPathPatterns("/api/**");
+    }
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
