@@ -28,6 +28,10 @@ const matrixOpen = ref(false)
 // M3 的事件标记叠加在它上面；互不关闭、互不覆盖。
 const showEvents = ref(true)
 const showPlaces = ref(true)
+// 无名地点（占位名 + 无别名）默认不显示；打开后单独查看
+const showUnnamed = ref(false)
+// 同一位置命中多个地点时的候选列表
+const overlap = ref<{ x: number; y: number; items: { placeId: number; name: string; geomType: string }[] } | null>(null)
 
 // ---- 时间状态：天文学纪年整数；默认公元前 500 年、10 年跨度（前500–前491）
 const timeFrom = ref(-499)
@@ -56,8 +60,26 @@ function onPick(item: PlaceSummary) {
 }
 
 function onPlaceSelect(placeId: number) {
+  overlap.value = null
   selectedEventId.value = null
   selectedPlaceId.value = placeId
+}
+
+/** 点中空白地图：关掉详情与候选列表 */
+function onMapBlank() {
+  if (overlap.value) {
+    overlap.value = null
+    return
+  }
+  if (selectedPlaceId.value !== null || selectedEventId.value !== null) {
+    closeDetail()
+  }
+}
+
+/** 从"重叠候选"里挑一个 */
+function pickOverlap(placeId: number) {
+  overlap.value = null
+  onPlaceSelect(placeId)
 }
 
 /** 地图标记 → 详情（已在该位置，不再自动飞） */
@@ -124,7 +146,10 @@ function onManageLocate(lon: number, lat: number) {
       :time-to="timeTo"
       :show-events="showEvents"
       :show-places="showPlaces"
+      :show-unnamed="showUnnamed"
       @select="onPlaceSelect"
+      @overlap="overlap = $event"
+      @clear="onMapBlank"
       @event-select="onMapEvent"
       @meta="viewport = $event"
       @event-meta="eventMeta = $event"
@@ -190,6 +215,27 @@ function onManageLocate(lon: number, lat: number) {
       </div>
     </transition>
 
+    <!-- 同一位置命中多个地点：列出来让用户挑，而不是随便选一个 -->
+    <div
+      v-if="overlap"
+      class="overlap panel"
+      :style="{ left: overlap.x + 'px', top: overlap.y + 'px' }"
+    >
+      <div class="ov-head tiny dim">
+        这里有 {{ overlap.items.length }} 个地点
+        <button class="ov-close" title="关闭" @click="overlap = null">✕</button>
+      </div>
+      <button
+        v-for="it in overlap.items"
+        :key="it.placeId"
+        class="ov-item"
+        @click="pickOverlap(it.placeId)"
+      >
+        <span class="ov-name">{{ it.name || '（未命名）' }}</span>
+        <span class="ov-type tiny dim">{{ it.geomType }}</span>
+      </button>
+    </div>
+
     <!-- 图层开关 -->
     <div class="layer-switch panel tiny">
       <span class="dim">图层</span>
@@ -206,6 +252,13 @@ function onManageLocate(lon: number, lat: number) {
         @click="showPlaces = !showPlaces"
       >
         <span class="dot pl" />地点
+      </button>
+      <button
+        :class="{ active: showUnnamed }"
+        title="显示无名地点（源标题为 Untitled / Unnamed Place 且没有任何别名的记录）"
+        @click="showUnnamed = !showUnnamed"
+      >
+        <span class="dot un" />无名
       </button>
     </div>
 
@@ -321,4 +374,40 @@ function onManageLocate(lon: number, lat: number) {
 
 .slide-enter-active, .slide-leave-active { transition: transform 0.2s ease, opacity 0.2s ease; }
 .slide-enter-from, .slide-leave-to { transform: translateX(12px); opacity: 0; }
+.overlap {
+  position: absolute;
+  z-index: 8;
+  transform: translate(10px, 10px);
+  min-width: 190px;
+  max-width: 280px;
+  max-height: 260px;
+  overflow: auto;
+  padding: 4px;
+}
+.ov-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 4px 4px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 3px;
+}
+.ov-close { border: none; background: transparent; padding: 0 3px; font-size: 11px; color: var(--ink-3); }
+.ov-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 4px 5px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+.ov-item:hover { background: var(--accent-soft); }
+.ov-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ov-type { flex: none; }
+.layer-switch .dot.un { background: #b9b2a8; border-color: #8c8a84; }
 </style>

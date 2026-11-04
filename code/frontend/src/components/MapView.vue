@@ -20,9 +20,13 @@ const props = defineProps<{
   /** 图层开关：事件 / 地点 */
   showEvents: boolean
   showPlaces: boolean
+  /** 是否显示"无名地点"（占位名且无别名的记录，默认不显示） */
+  showUnnamed: boolean
 }>()
 const emit = defineEmits<{
   (e: 'select', placeId: number): void
+  (e: 'overlap', payload: { x: number; y: number; items: { placeId: number; name: string; geomType: string }[] }): void
+  (e: 'clear'): void
   (e: 'event-select', eventId: number): void
   (e: 'meta', payload: { returned: number; totalInBbox: number; truncated: boolean }): void
   (e: 'event-meta', payload: { returned: number; totalInWindow: number; truncated: boolean }): void
@@ -36,7 +40,8 @@ const loading = ref(false)
 const mapError = ref<string | null>(null)
 const styleSwitching = ref(false)
 
-const PLACES = 'places'
+const PLACES = 'places'          // 面 / 线（真实几何，不聚合）
+const PLACES_PTS = 'places-pts'  // 点（低缩放聚合）
 const EVENTS = 'events'
 const SELECTED = 'selected-place'
 const MAP_LIMIT = 400
@@ -46,7 +51,8 @@ let fetchAbort: AbortController | null = null
 let eventAbort: AbortController | null = null
 let moveTimer: number | undefined
 
-let lastPlaces: PlaceFeatureCollection | null = null
+let lastShapes: PlaceFeatureCollection | null = null
+let lastPoints: PlaceFeatureCollection | null = null
 let lastEvents: EventFeatureCollection | null = null
 
 function emptyFC(): GeoJSON.FeatureCollection {
@@ -54,18 +60,107 @@ function emptyFC(): GeoJSON.FeatureCollection {
 }
 
 function ensureLayers(m: MlMap) {
-  // ---------------- 地点（M1）：浅底 + 棕色环，与实心红色事件标记明显区分
+  // ---------------- 面 / 线：真实几何（M4-4b 起库里就有 Polygon / MultiPolygon / LineString）
   if (!m.getSource(PLACES)) {
     m.addSource(PLACES, {
       type: 'geojson',
-      data: (lastPlaces ?? emptyFC()) as unknown as GeoJSON.FeatureCollection,
+      data: (lastShapes ?? emptyFC()) as unknown as GeoJSON.FeatureCollection,
+    })
+  }
+  if (!m.getLayer('places-fill')) {
+    m.addLayer({
+      id: 'places-fill',
+      type: 'fill',
+      source: PLACES,
+      filter: ['in', ['geometry-type'], ['literal', ['Polygon', 'MultiPolygon']]],
+      paint: {
+        // 面：暖赭色半透明填充 —— 与点的浅底棕环、事件的实心红点区分开
+        'fill-color': '#d9a463',
+        // 大区域（如 Italia 22 万 km²）在小比例尺下会盖住底图：
+        // 填充随缩放加深、但上限压低，轮廓另有一层，形状仍然清楚可辨
+        'fill-opacity': ['interpolate', ['linear'], ['zoom'], 2, 0.08, 6, 0.14, 10, 0.22],
+      },
+    })
+  }
+  if (!m.getLayer('places-outline')) {
+    m.addLayer({
+      id: 'places-outline',
+      type: 'line',
+      source: PLACES,
+      filter: ['in', ['geometry-type'], ['literal', ['Polygon', 'MultiPolygon']]],
+      paint: { 'line-color': '#8c5a2b', 'line-width': ['interpolate', ['linear'], ['zoom'], 2, 0.6, 8, 1.6] },
+    })
+  }
+  if (!m.getLayer('places-line')) {
+    m.addLayer({
+      id: 'places-line',
+      type: 'line',
+      source: PLACES,
+      filter: ['==', ['geometry-type'], 'LineString'],
+      paint: {
+        // 线：青蓝色虚线，与面、点、事件都不同色系
+        'line-color': '#1f6f8b',
+        'line-width': ['interpolate', ['linear'], ['zoom'], 2, 1, 8, 2.6],
+        'line-dasharray': [2, 1.4],
+      },
+    })
+  }
+  // 面/线的"加宽命中层"：真实几何很细，直接点几乎点不中
+  if (!m.getLayer('places-shape-hit')) {
+    m.addLayer({
+      id: 'places-shape-hit',
+      type: 'line',
+      source: PLACES,
+      paint: { 'line-color': 'rgba(0,0,0,0)', 'line-width': 14 },
+    })
+  }
+
+  // ---------------- 点：低缩放聚合
+  if (!m.getSource(PLACES_PTS)) {
+    m.addSource(PLACES_PTS, {
+      type: 'geojson',
+      data: (lastPoints ?? emptyFC()) as unknown as GeoJSON.FeatureCollection,
+      cluster: true,
+      clusterRadius: 44,
+      clusterMaxZoom: 5,
+    } as never)
+  }
+  if (!m.getLayer('places-cluster')) {
+    m.addLayer({
+      id: 'places-cluster',
+      type: 'circle',
+      source: PLACES_PTS,
+      filter: ['has', 'point_count'],
+      paint: {
+        'circle-radius': ['step', ['get', 'point_count'], 12, 20, 16, 100, 21, 500, 26],
+        'circle-color': '#8c5a2b',
+        'circle-opacity': 0.85,
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': 1.6,
+      },
+    })
+  }
+  if (!m.getLayer('places-cluster-count')) {
+    m.addLayer({
+      id: 'places-cluster-count',
+      type: 'symbol',
+      source: PLACES_PTS,
+      filter: ['has', 'point_count'],
+      layout: {
+        'text-field': ['get', 'point_count_abbreviated'],
+        'text-size': 11,
+        'text-font': ['Noto Sans Regular'],
+        'text-allow-overlap': true,
+      },
+      paint: { 'text-color': '#ffffff' },
     })
   }
   if (!m.getLayer('places-halo')) {
     m.addLayer({
       id: 'places-halo',
       type: 'circle',
-      source: PLACES,
+      source: PLACES_PTS,
+      filter: ['!', ['has', 'point_count']],
       paint: {
         'circle-radius': ['interpolate', ['linear'], ['zoom'], 0, 4, 4, 7, 8, 11],
         'circle-color': '#8c5a2b',
@@ -77,7 +172,8 @@ function ensureLayers(m: MlMap) {
     m.addLayer({
       id: 'places-dot',
       type: 'circle',
-      source: PLACES,
+      source: PLACES_PTS,
+      filter: ['!', ['has', 'point_count']],
       paint: {
         'circle-radius': ['interpolate', ['linear'], ['zoom'], 0, 2.2, 4, 4, 8, 6.5],
         // 浅色填充 + 棕色描边 = 「地名点」；事件是实心红点，缩小时也不会混淆
@@ -85,6 +181,28 @@ function ensureLayers(m: MlMap) {
         'circle-stroke-color': '#8c5a2b',
         'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 0, 1.1, 6, 1.8],
       },
+    })
+  }
+
+  // ---------------- 地名标签：只在看得清的时候出现
+  if (!m.getLayer('places-label')) {
+    m.addLayer({
+      id: 'places-label',
+      type: 'symbol',
+      source: PLACES_PTS,
+      minzoom: 6,
+      filter: ['all', ['!', ['has', 'point_count']], ['!=', ['get', 'unnamed'], true]],
+      layout: {
+        'text-field': ['get', 'name'],
+        'text-size': ['interpolate', ['linear'], ['zoom'], 6, 10, 10, 13],
+        'text-font': ['Noto Sans Regular'],
+        'text-offset': [0, 1.1],
+        'text-anchor': 'top',
+        'text-allow-overlap': false,
+        'text-ignore-placement': false,
+        'text-padding': 3,
+      },
+      paint: { 'text-color': '#4a3520', 'text-halo-color': 'rgba(255,255,255,0.9)', 'text-halo-width': 1.4 },
     })
   }
 
@@ -105,7 +223,6 @@ function ensureLayers(m: MlMap) {
       source: EVENTS,
       filter: ['has', 'point_count'],
       paint: {
-        // 聚合圈大小随数量增长，不依赖字体（离线降级底图下也能正常渲染）
         'circle-radius': ['step', ['get', 'point_count'], 11, 5, 14, 20, 18, 50, 22],
         'circle-color': '#b3261e',
         'circle-opacity': 0.85,
@@ -155,8 +272,11 @@ function applyVisibility(m: MlMap) {
   const set = (id: string, v: boolean) => {
     if (m.getLayer(id)) m.setLayoutProperty(id, 'visibility', v ? 'visible' : 'none')
   }
-  set('places-halo', props.showPlaces)
-  set('places-dot', props.showPlaces)
+  for (const id of ['places-fill', 'places-outline', 'places-line', 'places-shape-hit',
+                    'places-cluster', 'places-cluster-count', 'places-halo', 'places-dot',
+                    'places-label']) {
+    set(id, props.showPlaces)
+  }
   set('events-cluster', props.showEvents)
   set('events-point', props.showEvents)
 }
@@ -182,9 +302,21 @@ async function loadPlaces() {
   fetchAbort = new AbortController()
   try {
     const fc = await fetchMap(bbox, MAP_LIMIT, fetchAbort.signal)
-    lastPlaces = fc
-    const src = m.getSource(PLACES) as maplibregl.GeoJSONSource | undefined
-    src?.setData(fc as unknown as GeoJSON.FeatureCollection)
+    // 后端返回的是**真实几何**（Point / Polygon / MultiPolygon / LineString）。
+    // 面线走非聚合源（要保留形状），点走聚合源（低缩放正确聚合）。
+    // 无名地点（源标题是 Untitled / Unnamed Place 且没有别名）默认不进图层：
+    // 它们不是地名，混在地名里只会误导；用「无名地点」开关单独查看。
+    const feats = props.showUnnamed
+      ? fc.features
+      : fc.features.filter((f) => f.properties?.unnamed !== true)
+    const shapes = feats.filter((f) => f.geometry.type !== 'Point')
+    const points = feats.filter((f) => f.geometry.type === 'Point')
+    lastShapes = { ...fc, features: shapes }
+    lastPoints = { ...fc, features: points }
+    ;(m.getSource(PLACES) as maplibregl.GeoJSONSource | undefined)
+      ?.setData(lastShapes as unknown as GeoJSON.FeatureCollection)
+    ;(m.getSource(PLACES_PTS) as maplibregl.GeoJSONSource | undefined)
+      ?.setData(lastPoints as unknown as GeoJSON.FeatureCollection)
     emit('meta', {
       returned: fc.meta.returned,
       totalInBbox: fc.meta.totalInBbox,
@@ -235,11 +367,16 @@ function baseStyle() {
   return HAS_BASEMAP ? styleUrl(currentStyle.value) : fallbackStyle(currentStyle.value)
 }
 
+/** 命中判定的容差（像素）：点太小、线太细，按 0 像素判定几乎点不中 */
+const HIT_PAD = 7
+
 function onMapClick(e: MapMouseEvent) {
   const m = map.value
   if (!m) return
-  // 先看聚合圈：点一下放大，直到能看清具体标记
-  const cl = m.queryRenderedFeatures(e.point, { layers: ['events-cluster'] })
+  const pt = e.point
+
+  // 1) 事件聚合：放大到能看清具体标记
+  const cl = m.queryRenderedFeatures(pt, { layers: ['events-cluster'] })
   if (cl.length > 0) {
     const cid = cl[0].properties?.cluster_id
     const src = m.getSource(EVENTS) as maplibregl.GeoJSONSource
@@ -249,17 +386,55 @@ function onMapClick(e: MapMouseEvent) {
     })
     return
   }
-  const ev = m.queryRenderedFeatures(e.point, { layers: ['events-point'] })
+  // 2) 事件点
+  const ev = m.queryRenderedFeatures(pt, { layers: ['events-point'] })
   if (ev.length > 0) {
     const id = Number(ev[0].properties?.eventId)
     if (Number.isFinite(id)) emit('event-select', id)
     return
   }
-  const hits = m.queryRenderedFeatures(e.point, { layers: ['places-dot'] })
-  if (hits.length > 0) {
-    const id = Number(hits[0].properties?.placeId)
-    if (Number.isFinite(id)) emit('select', id)
+  // 3) 地点聚合：放大地图
+  const pcl = m.queryRenderedFeatures(pt, { layers: ['places-cluster'] })
+  if (pcl.length > 0) {
+    const cid = pcl[0].properties?.cluster_id
+    const src = m.getSource(PLACES_PTS) as maplibregl.GeoJSONSource
+    src.getClusterExpansionZoom(cid).then((z) => {
+      const geom = (pcl[0].geometry as GeoJSON.Point).coordinates as [number, number]
+      m.easeTo({ center: geom, zoom: Math.min(z + 0.3, 12), duration: 600 })
+    })
+    return
   }
+
+  // 4) 地点：带容差命中，并且把同一位置的所有地点都收集起来
+  const box: [maplibregl.PointLike, maplibregl.PointLike] = [
+    [pt.x - HIT_PAD, pt.y - HIT_PAD],
+    [pt.x + HIT_PAD, pt.y + HIT_PAD],
+  ]
+  const hitLayers = ['places-shape-hit', 'places-fill', 'places-dot'].filter((l) => m.getLayer(l))
+  const hits = m.queryRenderedFeatures(box, { layers: hitLayers })
+  if (hits.length > 0) {
+    const seen = new Set<number>()
+    const items: { placeId: number; name: string; geomType: string }[] = []
+    for (const f of hits) {
+      const id = Number(f.properties?.placeId)
+      if (!Number.isFinite(id) || seen.has(id)) continue
+      seen.add(id)
+      items.push({
+        placeId: id,
+        name: String(f.properties?.name ?? ''),
+        geomType: String(f.properties?.geomType ?? ''),
+      })
+    }
+    if (items.length === 1) {
+      emit('select', items[0].placeId)
+    } else if (items.length > 1) {
+      // 重叠：把候选列出来，而不是随便挑一个
+      emit('overlap', { x: pt.x, y: pt.y, items })
+    }
+    return
+  }
+  // 5) 点空白：关闭当前弹窗
+  emit('clear')
 }
 
 function setCursor(on: boolean) {
@@ -309,7 +484,8 @@ onMounted(() => {
 
   m.on('mousemove', (e) => {
     const hits = m.queryRenderedFeatures(e.point, {
-      layers: ['events-point', 'events-cluster', 'places-dot'].filter((l) => m.getLayer(l)),
+      layers: ['events-point', 'events-cluster', 'places-dot', 'places-cluster',
+               'places-fill', 'places-shape-hit'].filter((l) => m.getLayer(l)),
     })
     setCursor(hits.length > 0)
   })
@@ -407,6 +583,13 @@ watch(
   () => [props.timeFrom, props.timeTo] as const,
   () => {
     void loadEvents()
+  },
+)
+
+watch(
+  () => props.showUnnamed,
+  () => {
+    void loadPlaces()
   },
 )
 

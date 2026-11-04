@@ -1,6 +1,8 @@
 package com.canvasofworldhistory.api.service;
 
 import com.canvasofworldhistory.api.dto.Dtos;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,17 @@ public class PlaceQueryService {
     public static final int MAX_PAGE_SIZE = 100;
     public static final int DEFAULT_PAGE_SIZE = 20;
     public static final int MAX_MAP_FEATURES = 2000;
+
+    /**
+     * 源里的"占位标题"。Pleiades 对无正式名称的遗址写 Untitled / Unnamed Place，
+     * 这些字符串不是地名，不能当作正常命名地点展示（P0 审计：3,920 条）。
+     * 判定放在读取侧，canonical_name 与 source_record 原样保留、不改数据。
+     */
+    private static final java.util.Set<String> PLACEHOLDER_NAMES = java.util.Set.of(
+            "Untitled", "untitled", "Unnamed Place", "Unnamed place", "unnamed place",
+            "Unknown", "unknown", "Unknown place", "N/A", "?", "-", "(unknown)");
+
+    private static final ObjectMapper JSON = new ObjectMapper();
 
     /** 每个地点的"代表坐标行"：有 geom、CRS 已确认、未被驳回；按 location_id 定序取第一行。 */
     private static final String PREFERRED_LOCATION = """
@@ -336,7 +349,8 @@ public class PlaceQueryService {
                     SELECT DISTINCT ON (l.place_id)
                            l.place_id, l.location_id, l.representative_lon, l.representative_lat,
                            l.location_precision, l.uncertainty_m, l.crs_confidence,
-                           l.valid_from_year_astro, l.valid_to_year_astro, l.time_bound_type
+                           l.valid_from_year_astro, l.valid_to_year_astro, l.time_bound_type,
+                           l.geom_type
                       FROM historical_place_location l
                       LEFT JOIN source_record sr ON sr.source_record_id = l.source_record_id
                      WHERE l.geom IS NOT NULL
@@ -344,31 +358,69 @@ public class PlaceQueryService {
                        AND l.record_status <> 'rejected'
                        AND (sr.source_record_id IS NULL OR sr.is_active)
                        AND ST_Intersects(l.geom, ST_MakeEnvelope(:w, :s, :e, :n, 4326))
-                     ORDER BY l.place_id, l.location_id
+                     -- 同一地点可能同时有点、线、面：优先取信息量最大的真实几何，
+                     -- 让面/线能真正画出来；点只用于定位与标记，不替代真实几何。
+                     ORDER BY l.place_id,
+                              CASE l.geom_type
+                                   WHEN 'Polygon' THEN 0 WHEN 'MultiPolygon' THEN 0
+                                   WHEN 'LineString' THEN 1 ELSE 2 END,
+                              l.location_id
+                ), picked AS (
+                    SELECT c.place_id, c.location_id, c.representative_lon, c.representative_lat,
+                           c.location_precision, c.uncertainty_m, c.crs_confidence,
+                           c.valid_from_year_astro, c.valid_to_year_astro, c.time_bound_type,
+                           c.geom_type,
+                           p.canonical_name, p.canonical_name_lang, p.place_type, p.dataset_id,
+                           d.display_name AS dataset_name, p.record_status
+                      FROM cand c
+                      JOIN historical_place p ON p.place_id = c.place_id
+                      JOIN data_dataset d ON d.dataset_id = p.dataset_id
+                     WHERE p.merged_into_place_id IS NULL
+                     -- 截断时用 id 的确定性哈希排序，使有限采样在空间上分散，
+                     -- 避免按 id 顺序取前 N 个导致所有点挤在数据集的首个地理片区
+                     ORDER BY md5(c.place_id::text)
+                     LIMIT :lim
                 )
-                SELECT c.place_id, c.location_id, c.representative_lon, c.representative_lat,
-                       c.location_precision, c.uncertainty_m, c.crs_confidence,
-                       c.valid_from_year_astro, c.valid_to_year_astro, c.time_bound_type,
-                       p.canonical_name, p.canonical_name_lang, p.place_type, p.dataset_id,
-                       d.display_name AS dataset_name, p.record_status
-                  FROM cand c
-                  JOIN historical_place p ON p.place_id = c.place_id
-                  JOIN data_dataset d ON d.dataset_id = p.dataset_id
-                 WHERE p.merged_into_place_id IS NULL
-                 -- 截断时用 id 的确定性哈希排序，使有限采样在空间上分散，
-                 -- 避免按 id 顺序取前 N 个导致所有点挤在数据集的首个地理片区
-                 ORDER BY md5(c.place_id::text)
-                 LIMIT :lim
+                -- 两件"只对最终 N 行做"的事必须放在 LIMIT 之后：
+                --   1) ST_AsGeoJSON（对 bbox 内全部候选行算会把连接池拖死）
+                --   2) 别名 LATERAL（每行一次 name 查询，5 万行级别就是几秒）
+                SELECT k.*, alt.alt_name, alt.alt_lang, ST_AsGeoJSON(l.geom) AS geojson
+                  FROM picked k
+                  JOIN historical_place_location l ON l.location_id = k.location_id
+                  LEFT JOIN LATERAL (
+                        -- 占位名地点的可替代真名（P0 审计：64 条有别名，3,856 条确实没有）
+                        SELECT n.name_text AS alt_name, n.name_lang AS alt_lang
+                          FROM historical_place_name n
+                         WHERE n.place_id = k.place_id
+                           AND btrim(coalesce(n.name_text, '')) <> ''
+                         ORDER BY CASE n.name_type WHEN 'primary' THEN 0 ELSE 1 END, n.name_id
+                         LIMIT 1
+                  ) alt ON true
+                 ORDER BY md5(k.place_id::text)
                 """, prm, (rs, i) -> {
+            String canonical = rs.getString("canonical_name");
+            String altName = rs.getString("alt_name");
+            String altLang = rs.getString("alt_lang");
+            boolean placeholder = isPlaceholderName(canonical);
+            boolean hasAlt = altName != null && !altName.isBlank();
+            String displayName = placeholder && hasAlt ? altName : canonical;
+            // 真正的"无名地点"：源标题是占位名，且没有任何可用别名
+            boolean unnamed = placeholder && !hasAlt;
+
             Map<String, Object> props = new LinkedHashMap<>();
             props.put("placeId", rs.getLong("place_id"));
-            props.put("name", rs.getString("canonical_name"));
-            props.put("nameLang", rs.getString("canonical_name_lang"));
+            props.put("name", displayName);
+            props.put("nameLang", placeholder && hasAlt ? altLang : rs.getString("canonical_name_lang"));
+            props.put("rawName", canonical);
+            props.put("nameIsPlaceholder", placeholder);
+            props.put("unnamed", unnamed);
+            props.put("nameFromAlt", placeholder && hasAlt);
             props.put("placeType", rs.getString("place_type"));
             props.put("datasetId", rs.getString("dataset_id"));
             props.put("datasetName", rs.getString("dataset_name"));
             props.put("recordStatus", rs.getString("record_status"));
             props.put("locationId", rs.getLong("location_id"));
+            props.put("geomType", rs.getString("geom_type"));
             props.put("locationPrecision", rs.getString("location_precision"));
             props.put("uncertaintyM", rs.getObject("uncertainty_m"));
             props.put("crsConfidence", rs.getString("crs_confidence"));
@@ -376,11 +428,19 @@ public class PlaceQueryService {
             props.put("validToYear", rs.getObject("valid_to_year_astro"));
             props.put("timeBoundType", rs.getString("time_bound_type"));
 
-            Map<String, Object> geom = new LinkedHashMap<>();
-            geom.put("type", "Point");
-            geom.put("coordinates", List.of(
-                    ((Number) rs.getObject("representative_lon")).doubleValue(),
-                    ((Number) rs.getObject("representative_lat")).doubleValue()));
+            // 真实几何：直接把库里的 geom 转成 GeoJSON
+            Map<String, Object> geom;
+            try {
+                JsonNode node = JSON.readTree(rs.getString("geojson"));
+                geom = JSON.convertValue(node, Map.class);
+            } catch (Exception ex) {
+                Map<String, Object> pt = new LinkedHashMap<>();
+                pt.put("type", "Point");
+                pt.put("coordinates", List.of(
+                        ((Number) rs.getObject("representative_lon")).doubleValue(),
+                        ((Number) rs.getObject("representative_lat")).doubleValue()));
+                geom = pt;
+            }
 
             Map<String, Object> f = new LinkedHashMap<>();
             f.put("type", "Feature");
@@ -402,6 +462,15 @@ public class PlaceQueryService {
         fc.put("features", features);
         fc.put("meta", meta);
         return fc;
+    }
+
+    /** 源标题是否属于"占位名"（不是地名）。 */
+    private static boolean isPlaceholderName(String name) {
+        if (name == null) {
+            return true;
+        }
+        String t = name.trim();
+        return t.isEmpty() || PLACEHOLDER_NAMES.contains(t) || PLACEHOLDER_NAMES.contains(name);
     }
 
     // ------------------------------------------------------------------ 概览

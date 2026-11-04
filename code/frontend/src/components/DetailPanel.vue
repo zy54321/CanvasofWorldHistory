@@ -45,6 +45,17 @@ watch(
   { immediate: true },
 )
 
+/**
+ * 语言代码的展示名。`und`（BCP-47 的 undetermined）显示为「未注明」，
+ * 其余原样显示；undefined/空一律「未注明」，不显示空白或 null。
+ * 原始代码放在 title 里，信息不丢。
+ */
+function langLabel(code: string | null | undefined): string {
+  const c = (code ?? '').trim()
+  if (!c || c === 'und' || c === 'unknown') return '未注明'
+  return c
+}
+
 const primaryLocation = computed(() => {
   const d = detail.value
   if (!d) return null
@@ -191,7 +202,9 @@ function locate() {
             <tr v-for="n in detail.names" :key="n.nameId">
               <td>{{ n.nameText }}</td>
               <td>{{ nameTypeLabel[n.nameType ?? ''] ?? n.nameType ?? '—' }}</td>
-              <td class="mono tiny">{{ n.nameLang ?? '—' }}</td>
+              <td class="mono tiny" :title="n.nameLang ? `原始语言代码：${n.nameLang}` : '源未注明语言'">
+                {{ langLabel(n.nameLang) }}
+              </td>
               <td class="tiny" :class="{ dim: !n.timeBoundType }">{{ span(n.validFromYear, n.validToYear) }}</td>
             </tr>
           </tbody>

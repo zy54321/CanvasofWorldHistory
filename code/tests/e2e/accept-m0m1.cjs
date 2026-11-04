@@ -77,7 +77,8 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms))
         raster: (st.layers || []).filter((l) => l.type === 'raster').length,
         sources: Object.keys(st.sources || {}),
         layers: st.layers?.length,
-        places: (m.getSource('places')?._data?.features || []).length,
+        places: (m.getSource('places')?._data?.features || []).length
+              + (m.getSource('places-pts')?._data?.features || []).length,
         loaded: m.loaded(),
       }
     })
@@ -140,7 +141,10 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms))
       const m = window.__map
       const st = m.getStyle() || {}
       const dot = m.getLayer('places-dot')
+      // V1.0：地点拆成两个源 —— 面/线在 'places'，点在聚合源 'places-pts'。
+      // 低缩放下聚合源里通常是 cluster，'places' 可能是 0 条，所以两者相加才是"数据到了"。
       const src = m.getSource('places')
+      const pts = m.getSource('places-pts')
       return {
         name: st.name ?? null,
         layers: (st.layers || []).length,
@@ -150,7 +154,9 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms))
         hasPlacesSource: !!src,
         hasPlacesLayer: !!dot,
         placesVisible: !!dot && (dot.layout?.visibility ?? 'visible') !== 'none',
-        places: (src?._data?.features || []).length,
+        places: (src?._data?.features || []).length + (pts?._data?.features || []).length,
+        shapes: (src?._data?.features || []).length,
+        points: (pts?._data?.features || []).length,
       }
     })
   async function waitStyleReady(label) {

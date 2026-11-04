@@ -131,32 +131,74 @@ def main() -> int:
 
     # =============================================================== E2
     print("\nE2 几何：坐标与类型")
-    bad_range = [f["id"] for f in feats
-                 if not (isinstance(f["geometry"]["coordinates"], list)
-                         and len(f["geometry"]["coordinates"]) == 2
-                         and -180 <= f["geometry"]["coordinates"][0] <= 180
-                         and -90 <= f["geometry"]["coordinates"][1] <= 90)]
-    report.check("E2", "全部要素坐标在合法经纬度范围", not bad_range, f"越界 {bad_range[:5]}")
-    report.check("E2", "全部要素 geometry.type = Point",
-                 all(f["geometry"]["type"] == "Point" for f in feats), "")
+    # V1.0：地图接口改为返回**真实几何**，不再是清一色 Point。
+    # 判据相应从"必须是 Point"改成"必须是点/线/面之一，且每个坐标都合法"——
+    # 这不是放宽，而是把判据换成产品当前承诺的行为。
+    def coords_of(geom):
+        t, c = geom.get("type"), geom.get("coordinates")
+        if t == "Point":
+            return [c]
+        if t in ("LineString", "MultiLineString"):
+            flat = c if t == "LineString" else [p for part in c for p in part]
+            return flat
+        if t in ("Polygon", "MultiPolygon"):
+            rings = c if t == "Polygon" else [r for poly in c for r in poly]
+            return [p for ring in rings for p in ring]
+        return []
+
+    allowed_types = {"Point", "LineString", "Polygon", "MultiPolygon"}
+    bad_type = [f["id"] for f in feats if f["geometry"].get("type") not in allowed_types]
+    report.check("E2", "全部要素几何类型属于 点/线/面", not bad_type, f"异常 {bad_type[:5]}")
+
+    bad_range = []
+    for f in feats:
+        for pt in coords_of(f["geometry"]):
+            if not (isinstance(pt, list) and len(pt) >= 2
+                    and -180 <= pt[0] <= 180 and -90 <= pt[1] <= 90):
+                bad_range.append((f["id"], pt))
+                break
+    report.check("E2", "全部要素的每个坐标在合法经纬度范围", not bad_range, f"越界 {bad_range[:3]}")
+
+    # 要素几何类型必须与库内被选中的那条 location 的 geom_type 一致
+    type_mismatch = []
+    cur.execute("""SELECT DISTINCT ON (l.place_id) l.place_id, l.geom_type
+                     FROM historical_place_location l
+                    WHERE l.place_id = ANY(%s) AND l.geom IS NOT NULL
+                    ORDER BY l.place_id,
+                             CASE l.geom_type WHEN 'Polygon' THEN 0 WHEN 'MultiPolygon' THEN 0
+                                  WHEN 'LineString' THEN 1 ELSE 2 END, l.location_id""",
+                (list(by_id),))
+    db_types = dict(cur.fetchall())
+    for pid, f in by_id.items():
+        if db_types.get(pid) and db_types[pid] != f["geometry"]["type"]:
+            type_mismatch.append((pid, db_types[pid], f["geometry"]["type"]))
+    report.check("E2", "要素几何类型 = 库内 geom_type", not type_mismatch, f"{type_mismatch[:3]}")
+
+    # 面/线样本必须以真实几何返回（不再是代表点）
+    shape_as_point = [g["place_id"] for g in fx["geometry_samples"]
+                      if g["place_id"] in by_id
+                      and by_id[g["place_id"]]["geometry"]["type"] == "Point"]
+    report.check("E2", "面/线样本返回的不是 Point（真实几何已上图）",
+                 not shape_as_point, f"仍为点 {shape_as_point[:3]}")
 
     # 与库里的 representative 坐标逐点比对（类型不同的地点用代表点，这是产品的既定口径）
+    # 面/线的"代表点"只用于定位：必须落在该要素的外接矩形内（这是产品承诺的口径）
     coord_bad = []
-    type_bad = []
     for g in fx["geometry_samples"]:
         f = by_id.get(g["place_id"])
         if not f:
             continue
-        lon, lat = f["geometry"]["coordinates"]
-        if abs(lon - g["rep_lon"]) > 1e-9 or abs(lat - g["rep_lat"]) > 1e-9:
-            coord_bad.append((g["place_id"], (lon, lat), (g["rep_lon"], g["rep_lat"])))
-        db_type = one("""SELECT l.geom_type FROM historical_place_location l
-                          WHERE l.place_id=%s AND l.geom IS NOT NULL
-                          ORDER BY l.location_id LIMIT 1""", (g["place_id"],))
-        if db_type != g["geom_type"]:
-            type_bad.append((g["place_id"], db_type, g["geom_type"]))
-    report.check("E2", "面/线地点：地图坐标 = 库内代表坐标", not coord_bad, str(coord_bad[:3]))
-    report.check("E2", "面/线地点：库内 geom_type 与夹具一致", not type_bad, str(type_bad[:3]))
+        pts = coords_of(f["geometry"])
+        if not pts:
+            coord_bad.append((g["place_id"], "no coords"))
+            continue
+        xs = [p[0] for p in pts]
+        ys = [p[1] for p in pts]
+        tol = 1e-6
+        if not (min(xs) - tol <= g["rep_lon"] <= max(xs) + tol
+                and min(ys) - tol <= g["rep_lat"] <= max(ys) + tol):
+            coord_bad.append((g["place_id"], (min(xs), max(xs)), (g["rep_lon"],)))
+    report.check("E2", "面/线地点：代表点落在几何外接框内", not coord_bad, str(coord_bad[:3]))
     report.check("E2", "样本中确实含 Polygon 与 LineString",
                  {g["geom_type"] for g in fx["geometry_samples"]} >= {"Polygon", "LineString"},
                  str(sorted({g['geom_type'] for g in fx['geometry_samples']})))
@@ -229,7 +271,7 @@ def main() -> int:
 
     # =============================================================== E7
     print("\nE7 来源溯源")
-    st, d = http_json(f"{api}/api/v1/places/150913")
+    st, d = http_json(f"{api}/api/v1/places/{fx['athens']['place_id']}")
     report.expect("E7", "datasetId", (d or {}).get("datasetId"), "pleiades_gis_4_1")
     report.check("E7", "datasetName 显示 Pleiades 4.1",
                  "Pleiades" in ((d or {}).get("datasetName") or "")
