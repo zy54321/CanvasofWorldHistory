@@ -1,0 +1,3485 @@
+{
+  "databases": [
+    {
+      "database": "canvas_history",
+      "flyway": [
+        {
+          "version": "1",
+          "description": "enable extensions",
+          "checksum": 882334605,
+          "success": true,
+          "installed_on": "2026-11-03 04:36:14.504543",
+          "execution_time_ms": 17
+        },
+        {
+          "version": "2",
+          "description": "core data model",
+          "checksum": 966227528,
+          "success": true,
+          "installed_on": "2026-11-03 04:36:14.545214",
+          "execution_time_ms": 40
+        },
+        {
+          "version": "3",
+          "description": "derived views",
+          "checksum": -2058740630,
+          "success": true,
+          "installed_on": "2026-11-03 04:36:14.638617",
+          "execution_time_ms": 7
+        },
+        {
+          "version": "4",
+          "description": "person event model",
+          "checksum": 1291861836,
+          "success": true,
+          "installed_on": "2026-11-03 11:55:07.400875",
+          "execution_time_ms": 44
+        },
+        {
+          "version": "5",
+          "description": "manual entry dataset",
+          "checksum": -1325948257,
+          "success": true,
+          "installed_on": "2026-11-03 13:12:30.760325",
+          "execution_time_ms": 22
+        }
+      ],
+      "flyway_max": "5",
+      "tables": {
+        "candidate_match": 53131,
+        "data_dataset": 8,
+        "data_quality_issue": 12831,
+        "data_source": 5,
+        "event": 0,
+        "event_person": 0,
+        "event_place": 0,
+        "flyway_schema_history": 5,
+        "historical_place": 19039,
+        "historical_place_location": 18101,
+        "historical_place_name": 47499,
+        "import_batch": 7,
+        "person": 0,
+        "person_name": 0,
+        "person_place": 0,
+        "source_record": 29391,
+        "spatial_ref_sys": 8500
+      },
+      "business_tables_present": {
+        "data_source": 5,
+        "data_dataset": 8,
+        "source_record": 29391,
+        "import_batch": 7,
+        "historical_place": 19039,
+        "historical_place_name": 47499,
+        "historical_place_location": 18101,
+        "candidate_match": 53131,
+        "data_quality_issue": 12831,
+        "person": 0,
+        "person_name": 0,
+        "person_place": 0,
+        "event": 0,
+        "event_place": 0,
+        "event_person": 0,
+        "person_event_role": null,
+        "historical_polity": null,
+        "event_polity": null,
+        "polity_name": null
+      },
+      "pk_range": {
+        "historical_place": {
+          "column": "place_id",
+          "min": 19046,
+          "max": 38084
+        },
+        "historical_place_name": {
+          "column": "name_id",
+          "min": 47500,
+          "max": 94998
+        },
+        "historical_place_location": {
+          "column": "location_id",
+          "min": 18102,
+          "max": 36202
+        },
+        "source_record": {
+          "column": "source_record_id",
+          "min": 29399,
+          "max": 58789
+        },
+        "person": {
+          "column": "person_id",
+          "min": null,
+          "max": null
+        },
+        "event": {
+          "column": "event_id",
+          "min": null,
+          "max": null
+        }
+      },
+      "orphans": {
+        "名称→地点": 0,
+        "位置→地点": 0,
+        "地点→源记录": 0,
+        "名称→源记录": 0,
+        "位置→源记录": 0,
+        "候选A→地点": 0,
+        "候选B→地点": 0,
+        "事件-地点→地点": 0,
+        "事件-地点→事件": 0,
+        "事件-人物→人物": 0,
+        "人物-地点→人物": 0
+      },
+      "fingerprints": {
+        "historical_place": {
+          "rows": 19039,
+          "sha256": "03a654425cc71a2da7027fd601c575d8983ca7cb0a38d879392e86dfc766d38f",
+          "columns": 18
+        },
+        "historical_place_name": {
+          "rows": 47499,
+          "sha256": "92ea0bb54461d219f8634802f00bba2a1b950eaab38a8fddd6e994d4ff36d87b",
+          "columns": 20
+        },
+        "historical_place_location": {
+          "rows": 18101,
+          "sha256": "45376cfc392b0f1b139dc44cebc21bdbe65b871b222328849fdc288b328a1d93",
+          "columns": 31
+        },
+        "source_record": {
+          "rows": 29391,
+          "sha256": "e80cc8d53ccb15cae8d7d65b0af7954f318ab4e8ee8926d9875b03a15fa2ec01",
+          "columns": 14
+        },
+        "event": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 15
+        },
+        "person": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 15
+        }
+      },
+      "source_record_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5226,
+        "mcgd_zenodo_22094815_head960": 960,
+        "pleiades_gis_4_1_slice": 12445,
+        "whg_geoname_s_gn_sample": 209,
+        "whg_getty_tgn_sample": 21,
+        "whg_hgis_de_las_indias_sample": 8
+      },
+      "place_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5224,
+        "mcgd_zenodo_22094815_head960": 643,
+        "pleiades_gis_4_1_slice": 2643,
+        "whg_geoname_s_gn_sample": 4,
+        "whg_getty_tgn_sample": 1,
+        "whg_hgis_de_las_indias_sample": 2
+      },
+      "place_by_status": {
+        "staging": 19039
+      },
+      "place_by_created_by": {
+        "import": 19039
+      },
+      "issues_by_type": {
+        "unknown_time_bound_type": 6448,
+        "parent_place_not_in_sample": 4810,
+        "unknown_crs": 646,
+        "beg_eq_end": 341,
+        "missing_coordinate": 337,
+        "derived_value_mismatch": 197,
+        "beg_gt_end": 28,
+        "coordinate_outside_china_bbox": 6,
+        "duplicate_external_id": 5,
+        "truncated_slice_tail": 4,
+        "year_out_of_range": 4,
+        "duplicate_sysid": 2,
+        "nonstandard_field_name": 2,
+        "coordinate_out_of_range": 1
+      },
+      "import_batches": {
+        "count": 7,
+        "first": "2026-11-03 16:44:26.763923+08:00",
+        "last": "2026-11-03 16:44:26.763923+08:00",
+        "stamp": "started_at"
+      },
+      "person_provenance": {
+        "rows": 0,
+        "by_created_by": {},
+        "by_status": {}
+      },
+      "event_provenance": {
+        "rows": 0,
+        "by_created_by": {},
+        "by_status": {}
+      },
+      "relation_tables_missing": [
+        "event_polity",
+        "polity_name"
+      ]
+    },
+    {
+      "database": "canvas_history_m2check",
+      "flyway": [
+        {
+          "version": "1",
+          "description": "enable extensions",
+          "checksum": 882334605,
+          "success": true,
+          "installed_on": "2026-11-03 12:02:12.564545",
+          "execution_time_ms": 230
+        },
+        {
+          "version": "2",
+          "description": "core data model",
+          "checksum": 966227528,
+          "success": true,
+          "installed_on": "2026-11-03 12:02:12.822371",
+          "execution_time_ms": 35
+        },
+        {
+          "version": "3",
+          "description": "derived views",
+          "checksum": -2058740630,
+          "success": true,
+          "installed_on": "2026-11-03 12:02:12.917800",
+          "execution_time_ms": 7
+        },
+        {
+          "version": "4",
+          "description": "person event model",
+          "checksum": 1291861836,
+          "success": true,
+          "installed_on": "2026-11-03 12:02:12.955055",
+          "execution_time_ms": 17
+        },
+        {
+          "version": "5",
+          "description": "manual entry dataset",
+          "checksum": -1325948257,
+          "success": true,
+          "installed_on": "2026-11-03 13:12:32.261693",
+          "execution_time_ms": 13
+        },
+        {
+          "version": "6",
+          "description": "polity model",
+          "checksum": 1960208267,
+          "success": true,
+          "installed_on": "2026-11-04 01:27:06.196819",
+          "execution_time_ms": 13
+        },
+        {
+          "version": "7",
+          "description": "polity time optional ends",
+          "checksum": 47644776,
+          "success": true,
+          "installed_on": "2026-11-04 02:09:11.126537",
+          "execution_time_ms": 11
+        },
+        {
+          "version": "8",
+          "description": "quality issue attribution type",
+          "checksum": 518617124,
+          "success": true,
+          "installed_on": "2026-11-04 03:46:48.043160",
+          "execution_time_ms": 15
+        }
+      ],
+      "flyway_max": "8",
+      "tables": {
+        "candidate_match": 53131,
+        "data_dataset": 10,
+        "data_quality_issue": 12833,
+        "data_source": 5,
+        "event": 32,
+        "event_person": 13,
+        "event_place": 15,
+        "event_polity": 12,
+        "flyway_schema_history": 8,
+        "historical_place": 19091,
+        "historical_place_location": 18136,
+        "historical_place_name": 47534,
+        "historical_polity": 8,
+        "import_batch": 15,
+        "person": 20,
+        "person_name": 6,
+        "person_place": 7,
+        "source_record": 29398,
+        "spatial_ref_sys": 8500
+      },
+      "business_tables_present": {
+        "data_source": 5,
+        "data_dataset": 10,
+        "source_record": 29398,
+        "import_batch": 15,
+        "historical_place": 19091,
+        "historical_place_name": 47534,
+        "historical_place_location": 18136,
+        "candidate_match": 53131,
+        "data_quality_issue": 12833,
+        "person": 20,
+        "person_name": 6,
+        "person_place": 7,
+        "event": 32,
+        "event_place": 15,
+        "event_person": 13,
+        "person_event_role": null,
+        "historical_polity": 8,
+        "event_polity": 12,
+        "polity_name": null
+      },
+      "pk_range": {
+        "historical_place": {
+          "column": "place_id",
+          "min": -107,
+          "max": 900009
+        },
+        "historical_place_name": {
+          "column": "name_id",
+          "min": 1,
+          "max": 237552
+        },
+        "historical_place_location": {
+          "column": "location_id",
+          "min": 1,
+          "max": 90591
+        },
+        "source_record": {
+          "column": "source_record_id",
+          "min": 1,
+          "max": 146976
+        },
+        "person": {
+          "column": "person_id",
+          "min": 1,
+          "max": 78
+        },
+        "event": {
+          "column": "event_id",
+          "min": 1,
+          "max": 90
+        },
+        "historical_polity": {
+          "column": "polity_id",
+          "min": 35,
+          "max": 42
+        }
+      },
+      "orphans": {
+        "名称→地点": 0,
+        "位置→地点": 0,
+        "地点→源记录": 0,
+        "名称→源记录": 0,
+        "位置→源记录": 0,
+        "候选A→地点": 0,
+        "候选B→地点": 0,
+        "事件-地点→地点": 0,
+        "事件-地点→事件": 0,
+        "事件-人物→人物": 0,
+        "人物-地点→人物": 0,
+        "事件-政权→政权": 0
+      },
+      "fingerprints": {
+        "historical_place": {
+          "rows": 19091,
+          "sha256": "72c548c4b108c77c09d4dee6e98e3b62d6b35279156fe3e754382a0daec406a7",
+          "columns": 18
+        },
+        "historical_place_name": {
+          "rows": 47534,
+          "sha256": "0f0799dbd131c8bb245ec92b23c5bc3c36ad7ea809dce0dc45719d638fa29ecf",
+          "columns": 20
+        },
+        "historical_place_location": {
+          "rows": 18136,
+          "sha256": "2a0ef6811e0ce10cf13abe8c3f9ca2bca723a16e75ab60fe6a0efa2530b7998e",
+          "columns": 31
+        },
+        "source_record": {
+          "rows": 29398,
+          "sha256": "1a211abc1bb1ef7b6817950cac53f912ad44b0039e502fcefd5536722dccaf2b",
+          "columns": 14
+        },
+        "event": {
+          "rows": 32,
+          "sha256": "9c9cfc377f3ce2cbb21c93fb1abfb3c27e063356be2e497da95af2103daeb44c",
+          "columns": 15
+        },
+        "person": {
+          "rows": 20,
+          "sha256": "35c98fd644dc1eac2f7655f32698b8e701f09d7263f7974897f0cb8e0f80ba37",
+          "columns": 15
+        },
+        "historical_polity": {
+          "rows": 8,
+          "sha256": "a67440596578d8d890ed62bd2804581ae3b30e854f8e8b34042634e5b7bfb1bf",
+          "columns": 9
+        }
+      },
+      "source_record_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5226,
+        "m3_demo_ds": 7,
+        "mcgd_zenodo_22094815_head960": 960,
+        "pleiades_gis_4_1_slice": 12445,
+        "whg_geoname_s_gn_sample": 209,
+        "whg_getty_tgn_sample": 21,
+        "whg_hgis_de_las_indias_sample": 8
+      },
+      "place_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5224,
+        "m2check_ds": 4,
+        "m3_demo_ds": 7,
+        "manual_entry": 41,
+        "mcgd_zenodo_22094815_head960": 643,
+        "pleiades_gis_4_1_slice": 2643,
+        "whg_geoname_s_gn_sample": 4,
+        "whg_getty_tgn_sample": 1,
+        "whg_hgis_de_las_indias_sample": 2
+      },
+      "place_by_status": {
+        "staging": 19091
+      },
+      "place_by_created_by": {
+        "import": 19039,
+        "manual": 52
+      },
+      "issues_by_type": {
+        "unknown_time_bound_type": 6448,
+        "parent_place_not_in_sample": 4810,
+        "unknown_crs": 646,
+        "beg_eq_end": 341,
+        "missing_coordinate": 337,
+        "derived_value_mismatch": 197,
+        "beg_gt_end": 28,
+        "coordinate_outside_china_bbox": 6,
+        "duplicate_external_id": 5,
+        "year_out_of_range": 4,
+        "truncated_slice_tail": 4,
+        "nonstandard_field_name": 2,
+        "attribution_missing": 2,
+        "duplicate_sysid": 2,
+        "coordinate_out_of_range": 1
+      },
+      "import_batches": {
+        "count": 15,
+        "first": "2026-11-04 10:14:44.039357+08:00",
+        "last": "2026-11-04 11:47:44.108414+08:00",
+        "stamp": "started_at"
+      },
+      "person_provenance": {
+        "rows": 20,
+        "by_created_by": {
+          "manual": 20
+        },
+        "by_status": {
+          "staging": 20
+        },
+        "created_range": [
+          "2026-11-04 08:43:27.211856+08:00",
+          "2026-11-04 15:05:06.894898+08:00"
+        ],
+        "titles_sample": [
+          "孔丘（仲尼）",
+          "孔丘（仲尼）",
+          "孔丘（仲尼）",
+          "孔丘（仲尼）",
+          "孔丘（仲尼）",
+          "孔丘（仲尼）",
+          "测试-BCE1",
+          "测试-CE1",
+          "测试人物-资料残缺",
+          "测试-公元前1年",
+          "测试-公元前1年",
+          "测试-跨前后人物",
+          "测试-跨前后人物",
+          "界面测试人物",
+          "界面测试人物",
+          "界面测试人物",
+          "界面测试人物",
+          "界面测试人物",
+          "界面测试人物",
+          "界面测试人物"
+        ]
+      },
+      "event_provenance": {
+        "rows": 32,
+        "by_created_by": {
+          "manual": 32
+        },
+        "by_status": {
+          "staging": 32
+        },
+        "created_range": [
+          "2026-11-04 08:43:27.267157+08:00",
+          "2026-11-04 15:03:02.181828+08:00"
+        ],
+        "titles_sample": [
+          "孔子适周问礼",
+          "孔子适周问礼",
+          "孔子适周问礼",
+          "孔子适周问礼",
+          "孔子适周问礼",
+          "孔子适周问礼",
+          "测试事件-开放区间",
+          "测试事件-开放区间",
+          "测试事件-开放区间",
+          "测试事件-开放区间",
+          "测试事件-时间未知",
+          "测试事件-时间未知",
+          "测试事件-时间未知",
+          "测试事件-时间未知",
+          "测试-跨前后事件",
+          "测试-跨前后事件",
+          "测试-跨前后事件",
+          "测试-跨前后事件",
+          "测试-跨前后事件",
+          "测试-跨前后事件",
+          "演示：亚历山大东征",
+          "演示：孔雀王朝立国",
+          "演示：巴比伦之囚",
+          "演示：布匿战争",
+          "演示：时间未知的传说",
+          "演示：未归属政权的祭祀事件",
+          "演示：汉高祖称帝",
+          "演示：波斯攻克巴比伦",
+          "演示：温泉关战役",
+          "演示：秦灭六国",
+          "演示：跨公元前后的事件",
+          "演示：马拉松战役"
+        ]
+      },
+      "historical_polity_provenance": {
+        "rows": 8,
+        "by_status": {
+          "staging": 8
+        }
+      },
+      "relation_tables_missing": [
+        "polity_name"
+      ]
+    },
+    {
+      "database": "canvas_history_m4_4b",
+      "flyway": [
+        {
+          "version": "1",
+          "description": "enable extensions",
+          "checksum": 882334605,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:53.895084",
+          "execution_time_ms": 218
+        },
+        {
+          "version": "2",
+          "description": "core data model",
+          "checksum": 966227528,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.134414",
+          "execution_time_ms": 27
+        },
+        {
+          "version": "3",
+          "description": "derived views",
+          "checksum": -2058740630,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.203713",
+          "execution_time_ms": 6
+        },
+        {
+          "version": "4",
+          "description": "person event model",
+          "checksum": 1291861836,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.236658",
+          "execution_time_ms": 16
+        },
+        {
+          "version": "5",
+          "description": "manual entry dataset",
+          "checksum": -1325948257,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.274305",
+          "execution_time_ms": 4
+        },
+        {
+          "version": "6",
+          "description": "polity model",
+          "checksum": 1960208267,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.301574",
+          "execution_time_ms": 7
+        },
+        {
+          "version": "7",
+          "description": "polity time optional ends",
+          "checksum": 47644776,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.315995",
+          "execution_time_ms": 3
+        },
+        {
+          "version": "8",
+          "description": "quality issue attribution type",
+          "checksum": 518617124,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.333233",
+          "execution_time_ms": 2
+        },
+        {
+          "version": "9",
+          "description": "geometry linestring and issue types",
+          "checksum": 259549483,
+          "success": true,
+          "installed_on": "2026-11-04 11:01:10.845680",
+          "execution_time_ms": 42
+        }
+      ],
+      "flyway_max": "9",
+      "tables": {
+        "candidate_match": 66311,
+        "data_dataset": 9,
+        "data_quality_issue": 21447,
+        "data_source": 5,
+        "event": 0,
+        "event_person": 0,
+        "event_place": 0,
+        "event_polity": 0,
+        "flyway_schema_history": 9,
+        "historical_place": 57967,
+        "historical_place_location": 53792,
+        "historical_place_name": 84554,
+        "historical_polity": 0,
+        "import_batch": 30,
+        "person": 0,
+        "person_name": 0,
+        "person_place": 0,
+        "source_record": 157220,
+        "spatial_ref_sys": 8500
+      },
+      "business_tables_present": {
+        "data_source": 5,
+        "data_dataset": 9,
+        "source_record": 157220,
+        "import_batch": 30,
+        "historical_place": 57967,
+        "historical_place_name": 84554,
+        "historical_place_location": 53792,
+        "candidate_match": 66311,
+        "data_quality_issue": 21447,
+        "person": 0,
+        "person_name": 0,
+        "person_place": 0,
+        "event": 0,
+        "event_place": 0,
+        "event_person": 0,
+        "person_event_role": null,
+        "historical_polity": 0,
+        "event_polity": 0,
+        "polity_name": null
+      },
+      "pk_range": {
+        "historical_place": {
+          "column": "place_id",
+          "min": 1,
+          "max": 174802
+        },
+        "historical_place_name": {
+          "column": "name_id",
+          "min": 1,
+          "max": 195722
+        },
+        "historical_place_location": {
+          "column": "location_id",
+          "min": 1,
+          "max": 160868
+        },
+        "source_record": {
+          "column": "source_record_id",
+          "min": 1,
+          "max": 540764
+        },
+        "person": {
+          "column": "person_id",
+          "min": null,
+          "max": null
+        },
+        "event": {
+          "column": "event_id",
+          "min": null,
+          "max": null
+        },
+        "historical_polity": {
+          "column": "polity_id",
+          "min": null,
+          "max": null
+        }
+      },
+      "orphans": {
+        "名称→地点": 0,
+        "位置→地点": 0,
+        "地点→源记录": 0,
+        "名称→源记录": 0,
+        "位置→源记录": 0,
+        "候选A→地点": 0,
+        "候选B→地点": 0,
+        "事件-地点→地点": 0,
+        "事件-地点→事件": 0,
+        "事件-人物→人物": 0,
+        "人物-地点→人物": 0,
+        "事件-政权→政权": 0
+      },
+      "fingerprints": {
+        "historical_place": {
+          "rows": 57967,
+          "sha256": "df7aa38188d32c4b26d543d849e6d1bab47596de686929337d8a0cd98e1f6ff5",
+          "columns": 18
+        },
+        "historical_place_name": {
+          "rows": 84554,
+          "sha256": "4fcd2fab4b334a50739a4fb1677d3c5868a7ff79da014c5618b593e6e5038dae",
+          "columns": 20
+        },
+        "historical_place_location": {
+          "rows": 53792,
+          "sha256": "5142df9d20a8d931919be5762ae0a04db9a55b9df630ddef5839ff38294521a2",
+          "columns": 31
+        },
+        "source_record": {
+          "rows": 157220,
+          "sha256": "f07c2b2130d94a76e0b1c79bc641ecd18b45c6bc300df2d7cfe1a0aac40d6ab6",
+          "columns": 14
+        },
+        "event": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 15
+        },
+        "person": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 15
+        },
+        "historical_polity": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 9
+        }
+      },
+      "source_record_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5226,
+        "mcgd_zenodo_22094815_head960": 960,
+        "pleiades_gis_4_1": 127829,
+        "pleiades_gis_4_1_slice": 12445,
+        "whg_geoname_s_gn_sample": 209,
+        "whg_getty_tgn_sample": 21,
+        "whg_hgis_de_las_indias_sample": 8
+      },
+      "place_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5224,
+        "mcgd_zenodo_22094815_head960": 643,
+        "pleiades_gis_4_1": 38928,
+        "pleiades_gis_4_1_slice": 2643,
+        "whg_geoname_s_gn_sample": 4,
+        "whg_getty_tgn_sample": 1,
+        "whg_hgis_de_las_indias_sample": 2
+      },
+      "place_by_status": {
+        "staging": 57967
+      },
+      "place_by_created_by": {
+        "import": 57967
+      },
+      "issues_by_type": {
+        "missing_coordinate": 7537,
+        "unknown_time_bound_type": 6448,
+        "parent_place_not_in_sample": 4810,
+        "derived_value_mismatch": 820,
+        "accuracy_unknown_sentinel": 728,
+        "unknown_crs": 646,
+        "beg_eq_end": 341,
+        "duplicate_external_id": 36,
+        "connection_endpoint_missing": 28,
+        "beg_gt_end": 28,
+        "coordinate_outside_china_bbox": 6,
+        "year_out_of_range": 4,
+        "truncated_slice_tail": 4,
+        "geometry_invalid_repaired": 4,
+        "nonstandard_field_name": 2,
+        "attribution_missing": 2,
+        "duplicate_sysid": 2,
+        "coordinate_out_of_range": 1
+      },
+      "import_batches": {
+        "count": 30,
+        "first": "2026-11-04 12:28:57.400473+08:00",
+        "last": "2026-11-04 19:06:31.573519+08:00",
+        "stamp": "started_at"
+      },
+      "person_provenance": {
+        "rows": 0,
+        "by_created_by": {},
+        "by_status": {}
+      },
+      "event_provenance": {
+        "rows": 0,
+        "by_created_by": {},
+        "by_status": {}
+      },
+      "historical_polity_provenance": {
+        "rows": 0,
+        "by_status": {}
+      },
+      "relation_tables_missing": [
+        "polity_name"
+      ]
+    },
+    {
+      "database": "canvas_history_m4_4b_protect",
+      "flyway": [
+        {
+          "version": "1",
+          "description": "enable extensions",
+          "checksum": 882334605,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:53.895084",
+          "execution_time_ms": 218
+        },
+        {
+          "version": "2",
+          "description": "core data model",
+          "checksum": 966227528,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.134414",
+          "execution_time_ms": 27
+        },
+        {
+          "version": "3",
+          "description": "derived views",
+          "checksum": -2058740630,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.203713",
+          "execution_time_ms": 6
+        },
+        {
+          "version": "4",
+          "description": "person event model",
+          "checksum": 1291861836,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.236658",
+          "execution_time_ms": 16
+        },
+        {
+          "version": "5",
+          "description": "manual entry dataset",
+          "checksum": -1325948257,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.274305",
+          "execution_time_ms": 4
+        },
+        {
+          "version": "6",
+          "description": "polity model",
+          "checksum": 1960208267,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.301574",
+          "execution_time_ms": 7
+        },
+        {
+          "version": "7",
+          "description": "polity time optional ends",
+          "checksum": 47644776,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.315995",
+          "execution_time_ms": 3
+        },
+        {
+          "version": "8",
+          "description": "quality issue attribution type",
+          "checksum": 518617124,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.333233",
+          "execution_time_ms": 2
+        },
+        {
+          "version": "9",
+          "description": "geometry linestring and issue types",
+          "checksum": 259549483,
+          "success": true,
+          "installed_on": "2026-11-04 11:01:10.845680",
+          "execution_time_ms": 42
+        }
+      ],
+      "flyway_max": "9",
+      "tables": {
+        "candidate_match": 66311,
+        "data_dataset": 9,
+        "data_quality_issue": 21450,
+        "data_source": 5,
+        "event": 0,
+        "event_person": 0,
+        "event_place": 0,
+        "event_polity": 0,
+        "flyway_schema_history": 9,
+        "historical_place": 57968,
+        "historical_place_location": 53793,
+        "historical_place_name": 84555,
+        "historical_polity": 0,
+        "import_batch": 46,
+        "person": 1,
+        "person_name": 0,
+        "person_place": 1,
+        "source_record": 157220,
+        "spatial_ref_sys": 8500
+      },
+      "business_tables_present": {
+        "data_source": 5,
+        "data_dataset": 9,
+        "source_record": 157220,
+        "import_batch": 46,
+        "historical_place": 57968,
+        "historical_place_name": 84555,
+        "historical_place_location": 53793,
+        "candidate_match": 66311,
+        "data_quality_issue": 21450,
+        "person": 1,
+        "person_name": 0,
+        "person_place": 1,
+        "event": 0,
+        "event_place": 0,
+        "event_person": 0,
+        "person_event_role": null,
+        "historical_polity": 0,
+        "event_polity": 0,
+        "polity_name": null
+      },
+      "pk_range": {
+        "historical_place": {
+          "column": "place_id",
+          "min": 1,
+          "max": 174803
+        },
+        "historical_place_name": {
+          "column": "name_id",
+          "min": 1,
+          "max": 195723
+        },
+        "historical_place_location": {
+          "column": "location_id",
+          "min": 1,
+          "max": 160869
+        },
+        "source_record": {
+          "column": "source_record_id",
+          "min": 1,
+          "max": 540764
+        },
+        "person": {
+          "column": "person_id",
+          "min": 1,
+          "max": 1
+        },
+        "event": {
+          "column": "event_id",
+          "min": null,
+          "max": null
+        },
+        "historical_polity": {
+          "column": "polity_id",
+          "min": null,
+          "max": null
+        }
+      },
+      "orphans": {
+        "名称→地点": 0,
+        "位置→地点": 0,
+        "地点→源记录": 0,
+        "名称→源记录": 0,
+        "位置→源记录": 0,
+        "候选A→地点": 0,
+        "候选B→地点": 0,
+        "事件-地点→地点": 0,
+        "事件-地点→事件": 0,
+        "事件-人物→人物": 0,
+        "人物-地点→人物": 0,
+        "事件-政权→政权": 0
+      },
+      "fingerprints": {
+        "historical_place": {
+          "rows": 57968,
+          "sha256": "2451940e52486a81e4d4dd1331a894ead7409ed192093e1be9434b51b92c5522",
+          "columns": 18
+        },
+        "historical_place_name": {
+          "rows": 84555,
+          "sha256": "8865db9b220a2f4976d734bb64d200805920485ab18cebae2c29c9bea999502e",
+          "columns": 20
+        },
+        "historical_place_location": {
+          "rows": 53793,
+          "sha256": "f7dcfe8e3a6e3b40d75f475c2f9f0eb041bdd7638b74cfa0957f5d1b6fd33f83",
+          "columns": 31
+        },
+        "source_record": {
+          "rows": 157220,
+          "sha256": "f07c2b2130d94a76e0b1c79bc641ecd18b45c6bc300df2d7cfe1a0aac40d6ab6",
+          "columns": 14
+        },
+        "event": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 15
+        },
+        "person": {
+          "rows": 1,
+          "sha256": "04b758703e4a509273f9743a6d640f1d72b1233070b4e78f3f220f6712296309",
+          "columns": 15
+        },
+        "historical_polity": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 9
+        }
+      },
+      "source_record_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5226,
+        "mcgd_zenodo_22094815_head960": 960,
+        "pleiades_gis_4_1": 127829,
+        "pleiades_gis_4_1_slice": 12445,
+        "whg_geoname_s_gn_sample": 209,
+        "whg_getty_tgn_sample": 21,
+        "whg_hgis_de_las_indias_sample": 8
+      },
+      "place_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5224,
+        "manual_entry": 1,
+        "mcgd_zenodo_22094815_head960": 643,
+        "pleiades_gis_4_1": 38928,
+        "pleiades_gis_4_1_slice": 2643,
+        "whg_geoname_s_gn_sample": 4,
+        "whg_getty_tgn_sample": 1,
+        "whg_hgis_de_las_indias_sample": 2
+      },
+      "place_by_status": {
+        "staging": 57968
+      },
+      "place_by_created_by": {
+        "import": 57966,
+        "manual": 2
+      },
+      "issues_by_type": {
+        "missing_coordinate": 7537,
+        "unknown_time_bound_type": 6448,
+        "parent_place_not_in_sample": 4810,
+        "derived_value_mismatch": 820,
+        "accuracy_unknown_sentinel": 728,
+        "unknown_crs": 646,
+        "beg_eq_end": 341,
+        "duplicate_external_id": 36,
+        "beg_gt_end": 28,
+        "connection_endpoint_missing": 28,
+        "coordinate_outside_china_bbox": 6,
+        "truncated_slice_tail": 4,
+        "geometry_invalid_repaired": 4,
+        "year_out_of_range": 4,
+        "manual_edit_conflict": 3,
+        "nonstandard_field_name": 2,
+        "duplicate_sysid": 2,
+        "attribution_missing": 2,
+        "coordinate_out_of_range": 1
+      },
+      "import_batches": {
+        "count": 46,
+        "first": "2026-11-04 12:28:57.400473+08:00",
+        "last": "2026-11-04 19:31:57.820652+08:00",
+        "stamp": "started_at"
+      },
+      "person_provenance": {
+        "rows": 1,
+        "by_created_by": {
+          "manual": 1
+        },
+        "by_status": {
+          "staging": 1
+        },
+        "created_range": [
+          "2026-11-04 19:37:27.212426+08:00",
+          "2026-11-04 19:37:27.212426+08:00"
+        ],
+        "titles_sample": [
+          "界面测试人物"
+        ]
+      },
+      "event_provenance": {
+        "rows": 0,
+        "by_created_by": {},
+        "by_status": {}
+      },
+      "historical_polity_provenance": {
+        "rows": 0,
+        "by_status": {}
+      },
+      "relation_tables_missing": [
+        "polity_name"
+      ]
+    },
+    {
+      "database": "canvas_history_m4_4c_m2",
+      "flyway": [
+        {
+          "version": "1",
+          "description": "enable extensions",
+          "checksum": 882334605,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:53.895084",
+          "execution_time_ms": 218
+        },
+        {
+          "version": "2",
+          "description": "core data model",
+          "checksum": 966227528,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.134414",
+          "execution_time_ms": 27
+        },
+        {
+          "version": "3",
+          "description": "derived views",
+          "checksum": -2058740630,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.203713",
+          "execution_time_ms": 6
+        },
+        {
+          "version": "4",
+          "description": "person event model",
+          "checksum": 1291861836,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.236658",
+          "execution_time_ms": 16
+        },
+        {
+          "version": "5",
+          "description": "manual entry dataset",
+          "checksum": -1325948257,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.274305",
+          "execution_time_ms": 4
+        },
+        {
+          "version": "6",
+          "description": "polity model",
+          "checksum": 1960208267,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.301574",
+          "execution_time_ms": 7
+        },
+        {
+          "version": "7",
+          "description": "polity time optional ends",
+          "checksum": 47644776,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.315995",
+          "execution_time_ms": 3
+        },
+        {
+          "version": "8",
+          "description": "quality issue attribution type",
+          "checksum": 518617124,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.333233",
+          "execution_time_ms": 2
+        },
+        {
+          "version": "9",
+          "description": "geometry linestring and issue types",
+          "checksum": 259549483,
+          "success": true,
+          "installed_on": "2026-11-04 11:01:10.845680",
+          "execution_time_ms": 42
+        }
+      ],
+      "flyway_max": "9",
+      "tables": {
+        "candidate_match": 66311,
+        "data_dataset": 9,
+        "data_quality_issue": 21447,
+        "data_source": 5,
+        "event": 1,
+        "event_person": 1,
+        "event_place": 0,
+        "event_polity": 0,
+        "flyway_schema_history": 9,
+        "historical_place": 57968,
+        "historical_place_location": 53793,
+        "historical_place_name": 84555,
+        "historical_polity": 0,
+        "import_batch": 30,
+        "person": 1,
+        "person_name": 0,
+        "person_place": 1,
+        "source_record": 157220,
+        "spatial_ref_sys": 8500
+      },
+      "business_tables_present": {
+        "data_source": 5,
+        "data_dataset": 9,
+        "source_record": 157220,
+        "import_batch": 30,
+        "historical_place": 57968,
+        "historical_place_name": 84555,
+        "historical_place_location": 53793,
+        "candidate_match": 66311,
+        "data_quality_issue": 21447,
+        "person": 1,
+        "person_name": 0,
+        "person_place": 1,
+        "event": 1,
+        "event_place": 0,
+        "event_person": 1,
+        "person_event_role": null,
+        "historical_polity": 0,
+        "event_polity": 0,
+        "polity_name": null
+      },
+      "pk_range": {
+        "historical_place": {
+          "column": "place_id",
+          "min": 1,
+          "max": 174803
+        },
+        "historical_place_name": {
+          "column": "name_id",
+          "min": 1,
+          "max": 195723
+        },
+        "historical_place_location": {
+          "column": "location_id",
+          "min": 1,
+          "max": 160869
+        },
+        "source_record": {
+          "column": "source_record_id",
+          "min": 1,
+          "max": 540764
+        },
+        "person": {
+          "column": "person_id",
+          "min": 1,
+          "max": 1
+        },
+        "event": {
+          "column": "event_id",
+          "min": 1,
+          "max": 1
+        },
+        "historical_polity": {
+          "column": "polity_id",
+          "min": null,
+          "max": null
+        }
+      },
+      "orphans": {
+        "名称→地点": 0,
+        "位置→地点": 0,
+        "地点→源记录": 0,
+        "名称→源记录": 0,
+        "位置→源记录": 0,
+        "候选A→地点": 0,
+        "候选B→地点": 0,
+        "事件-地点→地点": 0,
+        "事件-地点→事件": 0,
+        "事件-人物→人物": 0,
+        "人物-地点→人物": 0,
+        "事件-政权→政权": 0
+      },
+      "fingerprints": {
+        "historical_place": {
+          "rows": 57968,
+          "sha256": "2c718693b499f4bc0bbc923b6e596c3a0071250f1bbc3c58fd43b86e280e0e0f",
+          "columns": 18
+        },
+        "historical_place_name": {
+          "rows": 84555,
+          "sha256": "8865db9b220a2f4976d734bb64d200805920485ab18cebae2c29c9bea999502e",
+          "columns": 20
+        },
+        "historical_place_location": {
+          "rows": 53793,
+          "sha256": "f7dcfe8e3a6e3b40d75f475c2f9f0eb041bdd7638b74cfa0957f5d1b6fd33f83",
+          "columns": 31
+        },
+        "source_record": {
+          "rows": 157220,
+          "sha256": "f07c2b2130d94a76e0b1c79bc641ecd18b45c6bc300df2d7cfe1a0aac40d6ab6",
+          "columns": 14
+        },
+        "event": {
+          "rows": 1,
+          "sha256": "0605746308bd8e6366fed546ad183c3e4c99a773ac53558dfba762f5d73a544a",
+          "columns": 15
+        },
+        "person": {
+          "rows": 1,
+          "sha256": "04b758703e4a509273f9743a6d640f1d72b1233070b4e78f3f220f6712296309",
+          "columns": 15
+        },
+        "historical_polity": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 9
+        }
+      },
+      "source_record_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5226,
+        "mcgd_zenodo_22094815_head960": 960,
+        "pleiades_gis_4_1": 127829,
+        "pleiades_gis_4_1_slice": 12445,
+        "whg_geoname_s_gn_sample": 209,
+        "whg_getty_tgn_sample": 21,
+        "whg_hgis_de_las_indias_sample": 8
+      },
+      "place_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5224,
+        "manual_entry": 1,
+        "mcgd_zenodo_22094815_head960": 643,
+        "pleiades_gis_4_1": 38928,
+        "pleiades_gis_4_1_slice": 2643,
+        "whg_geoname_s_gn_sample": 4,
+        "whg_getty_tgn_sample": 1,
+        "whg_hgis_de_las_indias_sample": 2
+      },
+      "place_by_status": {
+        "staging": 57968
+      },
+      "place_by_created_by": {
+        "import": 57967,
+        "manual": 1
+      },
+      "issues_by_type": {
+        "missing_coordinate": 7537,
+        "unknown_time_bound_type": 6448,
+        "parent_place_not_in_sample": 4810,
+        "derived_value_mismatch": 820,
+        "accuracy_unknown_sentinel": 728,
+        "unknown_crs": 646,
+        "beg_eq_end": 341,
+        "duplicate_external_id": 36,
+        "connection_endpoint_missing": 28,
+        "beg_gt_end": 28,
+        "coordinate_outside_china_bbox": 6,
+        "year_out_of_range": 4,
+        "truncated_slice_tail": 4,
+        "geometry_invalid_repaired": 4,
+        "nonstandard_field_name": 2,
+        "attribution_missing": 2,
+        "duplicate_sysid": 2,
+        "coordinate_out_of_range": 1
+      },
+      "import_batches": {
+        "count": 30,
+        "first": "2026-11-04 12:28:57.400473+08:00",
+        "last": "2026-11-04 19:06:31.573519+08:00",
+        "stamp": "started_at"
+      },
+      "person_provenance": {
+        "rows": 1,
+        "by_created_by": {
+          "manual": 1
+        },
+        "by_status": {
+          "staging": 1
+        },
+        "created_range": [
+          "2026-11-04 19:39:03.606570+08:00",
+          "2026-11-04 19:39:03.606570+08:00"
+        ],
+        "titles_sample": [
+          "界面测试人物"
+        ]
+      },
+      "event_provenance": {
+        "rows": 1,
+        "by_created_by": {
+          "manual": 1
+        },
+        "by_status": {
+          "staging": 1
+        },
+        "created_range": [
+          "2026-11-04 19:38:42.179683+08:00",
+          "2026-11-04 19:38:42.179683+08:00"
+        ],
+        "titles_sample": [
+          "M4-4c 预置事件"
+        ]
+      },
+      "historical_polity_provenance": {
+        "rows": 0,
+        "by_status": {}
+      },
+      "relation_tables_missing": [
+        "polity_name"
+      ]
+    },
+    {
+      "database": "canvas_history_m4_5_verify",
+      "flyway": [
+        {
+          "version": "1",
+          "description": "enable extensions",
+          "checksum": 882334605,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:53.895084",
+          "execution_time_ms": 218
+        },
+        {
+          "version": "2",
+          "description": "core data model",
+          "checksum": 966227528,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.134414",
+          "execution_time_ms": 27
+        },
+        {
+          "version": "3",
+          "description": "derived views",
+          "checksum": -2058740630,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.203713",
+          "execution_time_ms": 6
+        },
+        {
+          "version": "4",
+          "description": "person event model",
+          "checksum": 1291861836,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.236658",
+          "execution_time_ms": 16
+        },
+        {
+          "version": "5",
+          "description": "manual entry dataset",
+          "checksum": -1325948257,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.274305",
+          "execution_time_ms": 4
+        },
+        {
+          "version": "6",
+          "description": "polity model",
+          "checksum": 1960208267,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.301574",
+          "execution_time_ms": 7
+        },
+        {
+          "version": "7",
+          "description": "polity time optional ends",
+          "checksum": 47644776,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.315995",
+          "execution_time_ms": 3
+        },
+        {
+          "version": "8",
+          "description": "quality issue attribution type",
+          "checksum": 518617124,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.333233",
+          "execution_time_ms": 2
+        },
+        {
+          "version": "9",
+          "description": "geometry linestring and issue types",
+          "checksum": 259549483,
+          "success": true,
+          "installed_on": "2026-11-04 11:01:10.845680",
+          "execution_time_ms": 42
+        }
+      ],
+      "flyway_max": "9",
+      "tables": {
+        "candidate_match": 66311,
+        "data_dataset": 9,
+        "data_quality_issue": 21447,
+        "data_source": 5,
+        "event": 0,
+        "event_person": 0,
+        "event_place": 0,
+        "event_polity": 0,
+        "flyway_schema_history": 9,
+        "historical_place": 57967,
+        "historical_place_location": 53792,
+        "historical_place_name": 84554,
+        "historical_polity": 0,
+        "import_batch": 46,
+        "person": 0,
+        "person_name": 0,
+        "person_place": 0,
+        "source_record": 157220,
+        "spatial_ref_sys": 8500
+      },
+      "business_tables_present": {
+        "data_source": 5,
+        "data_dataset": 9,
+        "source_record": 157220,
+        "import_batch": 46,
+        "historical_place": 57967,
+        "historical_place_name": 84554,
+        "historical_place_location": 53792,
+        "candidate_match": 66311,
+        "data_quality_issue": 21447,
+        "person": 0,
+        "person_name": 0,
+        "person_place": 0,
+        "event": 0,
+        "event_place": 0,
+        "event_person": 0,
+        "person_event_role": null,
+        "historical_polity": 0,
+        "event_polity": 0,
+        "polity_name": null
+      },
+      "pk_range": {
+        "historical_place": {
+          "column": "place_id",
+          "min": 1,
+          "max": 174802
+        },
+        "historical_place_name": {
+          "column": "name_id",
+          "min": 1,
+          "max": 195722
+        },
+        "historical_place_location": {
+          "column": "location_id",
+          "min": 1,
+          "max": 160868
+        },
+        "source_record": {
+          "column": "source_record_id",
+          "min": 1,
+          "max": 540764
+        },
+        "person": {
+          "column": "person_id",
+          "min": null,
+          "max": null
+        },
+        "event": {
+          "column": "event_id",
+          "min": null,
+          "max": null
+        },
+        "historical_polity": {
+          "column": "polity_id",
+          "min": null,
+          "max": null
+        }
+      },
+      "orphans": {
+        "名称→地点": 0,
+        "位置→地点": 0,
+        "地点→源记录": 0,
+        "名称→源记录": 0,
+        "位置→源记录": 0,
+        "候选A→地点": 0,
+        "候选B→地点": 0,
+        "事件-地点→地点": 0,
+        "事件-地点→事件": 0,
+        "事件-人物→人物": 0,
+        "人物-地点→人物": 0,
+        "事件-政权→政权": 0
+      },
+      "fingerprints": {
+        "historical_place": {
+          "rows": 57967,
+          "sha256": "df7aa38188d32c4b26d543d849e6d1bab47596de686929337d8a0cd98e1f6ff5",
+          "columns": 18
+        },
+        "historical_place_name": {
+          "rows": 84554,
+          "sha256": "4fcd2fab4b334a50739a4fb1677d3c5868a7ff79da014c5618b593e6e5038dae",
+          "columns": 20
+        },
+        "historical_place_location": {
+          "rows": 53792,
+          "sha256": "5142df9d20a8d931919be5762ae0a04db9a55b9df630ddef5839ff38294521a2",
+          "columns": 31
+        },
+        "source_record": {
+          "rows": 157220,
+          "sha256": "f07c2b2130d94a76e0b1c79bc641ecd18b45c6bc300df2d7cfe1a0aac40d6ab6",
+          "columns": 14
+        },
+        "event": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 15
+        },
+        "person": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 15
+        },
+        "historical_polity": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 9
+        }
+      },
+      "source_record_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5226,
+        "mcgd_zenodo_22094815_head960": 960,
+        "pleiades_gis_4_1": 127829,
+        "pleiades_gis_4_1_slice": 12445,
+        "whg_geoname_s_gn_sample": 209,
+        "whg_getty_tgn_sample": 21,
+        "whg_hgis_de_las_indias_sample": 8
+      },
+      "place_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5224,
+        "mcgd_zenodo_22094815_head960": 643,
+        "pleiades_gis_4_1": 38928,
+        "pleiades_gis_4_1_slice": 2643,
+        "whg_geoname_s_gn_sample": 4,
+        "whg_getty_tgn_sample": 1,
+        "whg_hgis_de_las_indias_sample": 2
+      },
+      "place_by_status": {
+        "staging": 57967
+      },
+      "place_by_created_by": {
+        "import": 57967
+      },
+      "issues_by_type": {
+        "missing_coordinate": 7537,
+        "unknown_time_bound_type": 6448,
+        "parent_place_not_in_sample": 4810,
+        "derived_value_mismatch": 820,
+        "accuracy_unknown_sentinel": 728,
+        "unknown_crs": 646,
+        "beg_eq_end": 341,
+        "duplicate_external_id": 36,
+        "connection_endpoint_missing": 28,
+        "beg_gt_end": 28,
+        "coordinate_outside_china_bbox": 6,
+        "year_out_of_range": 4,
+        "truncated_slice_tail": 4,
+        "geometry_invalid_repaired": 4,
+        "nonstandard_field_name": 2,
+        "attribution_missing": 2,
+        "duplicate_sysid": 2,
+        "coordinate_out_of_range": 1
+      },
+      "import_batches": {
+        "count": 46,
+        "first": "2026-11-04 12:28:57.400473+08:00",
+        "last": "2026-11-04 20:10:47.318331+08:00",
+        "stamp": "started_at"
+      },
+      "person_provenance": {
+        "rows": 0,
+        "by_created_by": {},
+        "by_status": {}
+      },
+      "event_provenance": {
+        "rows": 0,
+        "by_created_by": {},
+        "by_status": {}
+      },
+      "historical_polity_provenance": {
+        "rows": 0,
+        "by_status": {}
+      },
+      "relation_tables_missing": [
+        "polity_name"
+      ]
+    },
+    {
+      "database": "canvas_history_m4check",
+      "flyway": [
+        {
+          "version": "1",
+          "description": "enable extensions",
+          "checksum": 882334605,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:53.895084",
+          "execution_time_ms": 218
+        },
+        {
+          "version": "2",
+          "description": "core data model",
+          "checksum": 966227528,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.134414",
+          "execution_time_ms": 27
+        },
+        {
+          "version": "3",
+          "description": "derived views",
+          "checksum": -2058740630,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.203713",
+          "execution_time_ms": 6
+        },
+        {
+          "version": "4",
+          "description": "person event model",
+          "checksum": 1291861836,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.236658",
+          "execution_time_ms": 16
+        },
+        {
+          "version": "5",
+          "description": "manual entry dataset",
+          "checksum": -1325948257,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.274305",
+          "execution_time_ms": 4
+        },
+        {
+          "version": "6",
+          "description": "polity model",
+          "checksum": 1960208267,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.301574",
+          "execution_time_ms": 7
+        },
+        {
+          "version": "7",
+          "description": "polity time optional ends",
+          "checksum": 47644776,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.315995",
+          "execution_time_ms": 3
+        },
+        {
+          "version": "8",
+          "description": "quality issue attribution type",
+          "checksum": 518617124,
+          "success": true,
+          "installed_on": "2026-11-04 04:28:54.333233",
+          "execution_time_ms": 2
+        }
+      ],
+      "flyway_max": "8",
+      "tables": {
+        "candidate_match": 53131,
+        "data_dataset": 8,
+        "data_quality_issue": 12833,
+        "data_source": 5,
+        "event": 0,
+        "event_person": 0,
+        "event_place": 0,
+        "event_polity": 0,
+        "flyway_schema_history": 8,
+        "historical_place": 19039,
+        "historical_place_location": 18101,
+        "historical_place_name": 47499,
+        "historical_polity": 0,
+        "import_batch": 14,
+        "person": 0,
+        "person_name": 0,
+        "person_place": 0,
+        "source_record": 29391,
+        "spatial_ref_sys": 8500
+      },
+      "business_tables_present": {
+        "data_source": 5,
+        "data_dataset": 8,
+        "source_record": 29391,
+        "import_batch": 14,
+        "historical_place": 19039,
+        "historical_place_name": 47499,
+        "historical_place_location": 18101,
+        "candidate_match": 53131,
+        "data_quality_issue": 12833,
+        "person": 0,
+        "person_name": 0,
+        "person_place": 0,
+        "event": 0,
+        "event_place": 0,
+        "event_person": 0,
+        "person_event_role": null,
+        "historical_polity": 0,
+        "event_polity": 0,
+        "polity_name": null
+      },
+      "pk_range": {
+        "historical_place": {
+          "column": "place_id",
+          "min": 1,
+          "max": 19039
+        },
+        "historical_place_name": {
+          "column": "name_id",
+          "min": 1,
+          "max": 47499
+        },
+        "historical_place_location": {
+          "column": "location_id",
+          "min": 1,
+          "max": 18101
+        },
+        "source_record": {
+          "column": "source_record_id",
+          "min": 1,
+          "max": 29391
+        },
+        "person": {
+          "column": "person_id",
+          "min": null,
+          "max": null
+        },
+        "event": {
+          "column": "event_id",
+          "min": null,
+          "max": null
+        },
+        "historical_polity": {
+          "column": "polity_id",
+          "min": null,
+          "max": null
+        }
+      },
+      "orphans": {
+        "名称→地点": 0,
+        "位置→地点": 0,
+        "地点→源记录": 0,
+        "名称→源记录": 0,
+        "位置→源记录": 0,
+        "候选A→地点": 0,
+        "候选B→地点": 0,
+        "事件-地点→地点": 0,
+        "事件-地点→事件": 0,
+        "事件-人物→人物": 0,
+        "人物-地点→人物": 0,
+        "事件-政权→政权": 0
+      },
+      "fingerprints": {
+        "historical_place": {
+          "rows": 19039,
+          "sha256": "33931e24f8a9bf7db103da45b5c4579614acc177a22c8989446032a863331a43",
+          "columns": 18
+        },
+        "historical_place_name": {
+          "rows": 47499,
+          "sha256": "2459d73acaffbd3aed115d431cf1ed8af06c01d8c33e1ea54e370698c2801975",
+          "columns": 20
+        },
+        "historical_place_location": {
+          "rows": 18101,
+          "sha256": "61a8cd9b93cecd0ffdc1a7ec7a56ba9fd1d0c97854aaccf8d10d5cc7ba233688",
+          "columns": 31
+        },
+        "source_record": {
+          "rows": 29391,
+          "sha256": "a79f4969e11ed3413f3512ba4e48c0736d01189d1a1eb3ce3e5f6b4803d2781f",
+          "columns": 14
+        },
+        "event": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 15
+        },
+        "person": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 15
+        },
+        "historical_polity": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 9
+        }
+      },
+      "source_record_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5226,
+        "mcgd_zenodo_22094815_head960": 960,
+        "pleiades_gis_4_1_slice": 12445,
+        "whg_geoname_s_gn_sample": 209,
+        "whg_getty_tgn_sample": 21,
+        "whg_hgis_de_las_indias_sample": 8
+      },
+      "place_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5224,
+        "mcgd_zenodo_22094815_head960": 643,
+        "pleiades_gis_4_1_slice": 2643,
+        "whg_geoname_s_gn_sample": 4,
+        "whg_getty_tgn_sample": 1,
+        "whg_hgis_de_las_indias_sample": 2
+      },
+      "place_by_status": {
+        "staging": 19039
+      },
+      "place_by_created_by": {
+        "import": 19039
+      },
+      "issues_by_type": {
+        "unknown_time_bound_type": 6448,
+        "parent_place_not_in_sample": 4810,
+        "unknown_crs": 646,
+        "beg_eq_end": 341,
+        "missing_coordinate": 337,
+        "derived_value_mismatch": 197,
+        "beg_gt_end": 28,
+        "coordinate_outside_china_bbox": 6,
+        "duplicate_external_id": 5,
+        "year_out_of_range": 4,
+        "truncated_slice_tail": 4,
+        "nonstandard_field_name": 2,
+        "attribution_missing": 2,
+        "duplicate_sysid": 2,
+        "coordinate_out_of_range": 1
+      },
+      "import_batches": {
+        "count": 14,
+        "first": "2026-11-04 12:28:57.400473+08:00",
+        "last": "2026-11-04 12:29:09.161158+08:00",
+        "stamp": "started_at"
+      },
+      "person_provenance": {
+        "rows": 0,
+        "by_created_by": {},
+        "by_status": {}
+      },
+      "event_provenance": {
+        "rows": 0,
+        "by_created_by": {},
+        "by_status": {}
+      },
+      "historical_polity_provenance": {
+        "rows": 0,
+        "by_status": {}
+      },
+      "relation_tables_missing": [
+        "polity_name"
+      ]
+    },
+    {
+      "database": "canvas_history_migrationcheck",
+      "flyway": [
+        {
+          "version": "1",
+          "description": "enable extensions",
+          "checksum": 882334605,
+          "success": true,
+          "installed_on": "2026-11-03 04:44:00.013071",
+          "execution_time_ms": 232
+        },
+        {
+          "version": "2",
+          "description": "core data model",
+          "checksum": 966227528,
+          "success": true,
+          "installed_on": "2026-11-03 04:44:00.271931",
+          "execution_time_ms": 29
+        },
+        {
+          "version": "3",
+          "description": "derived views",
+          "checksum": -2058740630,
+          "success": true,
+          "installed_on": "2026-11-03 04:44:00.347124",
+          "execution_time_ms": 6
+        }
+      ],
+      "flyway_max": "3",
+      "tables": {
+        "candidate_match": 0,
+        "data_dataset": 0,
+        "data_quality_issue": 0,
+        "data_source": 0,
+        "flyway_schema_history": 3,
+        "historical_place": 0,
+        "historical_place_location": 0,
+        "historical_place_name": 0,
+        "import_batch": 0,
+        "source_record": 0,
+        "spatial_ref_sys": 8500
+      },
+      "business_tables_present": {
+        "data_source": 0,
+        "data_dataset": 0,
+        "source_record": 0,
+        "import_batch": 0,
+        "historical_place": 0,
+        "historical_place_name": 0,
+        "historical_place_location": 0,
+        "candidate_match": 0,
+        "data_quality_issue": 0,
+        "person": null,
+        "person_name": null,
+        "person_place": null,
+        "event": null,
+        "event_place": null,
+        "event_person": null,
+        "person_event_role": null,
+        "historical_polity": null,
+        "event_polity": null,
+        "polity_name": null
+      },
+      "pk_range": {
+        "historical_place": {
+          "column": "place_id",
+          "min": null,
+          "max": null
+        },
+        "historical_place_name": {
+          "column": "name_id",
+          "min": null,
+          "max": null
+        },
+        "historical_place_location": {
+          "column": "location_id",
+          "min": null,
+          "max": null
+        },
+        "source_record": {
+          "column": "source_record_id",
+          "min": null,
+          "max": null
+        }
+      },
+      "orphans": {
+        "名称→地点": 0,
+        "位置→地点": 0,
+        "地点→源记录": 0,
+        "名称→源记录": 0,
+        "位置→源记录": 0,
+        "候选A→地点": 0,
+        "候选B→地点": 0
+      },
+      "fingerprints": {
+        "historical_place": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 18
+        },
+        "historical_place_name": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 20
+        },
+        "historical_place_location": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 31
+        },
+        "source_record": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 14
+        }
+      },
+      "source_record_by_dataset": {},
+      "place_by_dataset": {},
+      "place_by_status": {},
+      "place_by_created_by": {},
+      "issues_by_type": {},
+      "import_batches": {
+        "count": 0,
+        "first": "None",
+        "last": "None",
+        "stamp": "started_at"
+      },
+      "relation_tables_missing": [
+        "event_place",
+        "event_person",
+        "person_place",
+        "event_polity",
+        "person_name",
+        "polity_name"
+      ]
+    },
+    {
+      "database": "canvas_history_p0_rehearsal",
+      "flyway": [
+        {
+          "version": "1",
+          "description": "enable extensions",
+          "checksum": 882334605,
+          "success": true,
+          "installed_on": "2026-11-03 04:36:14.504543",
+          "execution_time_ms": 17
+        },
+        {
+          "version": "2",
+          "description": "core data model",
+          "checksum": 966227528,
+          "success": true,
+          "installed_on": "2026-11-03 04:36:14.545214",
+          "execution_time_ms": 40
+        },
+        {
+          "version": "3",
+          "description": "derived views",
+          "checksum": -2058740630,
+          "success": true,
+          "installed_on": "2026-11-03 04:36:14.638617",
+          "execution_time_ms": 7
+        },
+        {
+          "version": "4",
+          "description": "person event model",
+          "checksum": 1291861836,
+          "success": true,
+          "installed_on": "2026-11-03 11:55:07.400875",
+          "execution_time_ms": 44
+        },
+        {
+          "version": "5",
+          "description": "manual entry dataset",
+          "checksum": -1325948257,
+          "success": true,
+          "installed_on": "2026-11-03 13:12:30.760325",
+          "execution_time_ms": 22
+        },
+        {
+          "version": "6",
+          "description": "polity model",
+          "checksum": 1960208267,
+          "success": true,
+          "installed_on": "2026-11-04 12:46:20.232352",
+          "execution_time_ms": 15
+        },
+        {
+          "version": "7",
+          "description": "polity time optional ends",
+          "checksum": 47644776,
+          "success": true,
+          "installed_on": "2026-11-04 12:46:20.276459",
+          "execution_time_ms": 3
+        },
+        {
+          "version": "8",
+          "description": "quality issue attribution type",
+          "checksum": 518617124,
+          "success": true,
+          "installed_on": "2026-11-04 12:46:20.299960",
+          "execution_time_ms": 5
+        },
+        {
+          "version": "9",
+          "description": "geometry linestring and issue types",
+          "checksum": 259549483,
+          "success": true,
+          "installed_on": "2026-11-04 12:46:20.327607",
+          "execution_time_ms": 23
+        }
+      ],
+      "flyway_max": "9",
+      "tables": {
+        "candidate_match": 66311,
+        "data_dataset": 9,
+        "data_quality_issue": 20824,
+        "data_source": 5,
+        "event": 0,
+        "event_person": 0,
+        "event_place": 0,
+        "event_polity": 0,
+        "flyway_schema_history": 9,
+        "historical_place": 57967,
+        "historical_place_location": 53792,
+        "historical_place_name": 84554,
+        "historical_polity": 0,
+        "import_batch": 15,
+        "person": 0,
+        "person_name": 0,
+        "person_place": 0,
+        "source_record": 157220,
+        "spatial_ref_sys": 8500
+      },
+      "business_tables_present": {
+        "data_source": 5,
+        "data_dataset": 9,
+        "source_record": 157220,
+        "import_batch": 15,
+        "historical_place": 57967,
+        "historical_place_name": 84554,
+        "historical_place_location": 53792,
+        "candidate_match": 66311,
+        "data_quality_issue": 20824,
+        "person": 0,
+        "person_name": 0,
+        "person_place": 0,
+        "event": 0,
+        "event_place": 0,
+        "event_person": 0,
+        "person_event_role": null,
+        "historical_polity": 0,
+        "event_polity": 0,
+        "polity_name": null
+      },
+      "pk_range": {
+        "historical_place": {
+          "column": "place_id",
+          "min": 19046,
+          "max": 77014
+        },
+        "historical_place_name": {
+          "column": "name_id",
+          "min": 47500,
+          "max": 132053
+        },
+        "historical_place_location": {
+          "column": "location_id",
+          "min": 18102,
+          "max": 71893
+        },
+        "source_record": {
+          "column": "source_record_id",
+          "min": 29399,
+          "max": 186618
+        },
+        "person": {
+          "column": "person_id",
+          "min": null,
+          "max": null
+        },
+        "event": {
+          "column": "event_id",
+          "min": null,
+          "max": null
+        },
+        "historical_polity": {
+          "column": "polity_id",
+          "min": null,
+          "max": null
+        }
+      },
+      "orphans": {
+        "名称→地点": 0,
+        "位置→地点": 0,
+        "地点→源记录": 0,
+        "名称→源记录": 0,
+        "位置→源记录": 0,
+        "候选A→地点": 0,
+        "候选B→地点": 0,
+        "事件-地点→地点": 0,
+        "事件-地点→事件": 0,
+        "事件-人物→人物": 0,
+        "人物-地点→人物": 0,
+        "事件-政权→政权": 0
+      },
+      "fingerprints": {
+        "historical_place": {
+          "rows": 57967,
+          "sha256": "e0ca6dcb13eab3192b3c3cfd1ce8454e3efeeef89e9c42bde21e8622c84a5563",
+          "columns": 18
+        },
+        "historical_place_name": {
+          "rows": 84554,
+          "sha256": "afabfb55e11b2f7cc063b3327fb94e992f24dca5c324239712b4c112443640ba",
+          "columns": 20
+        },
+        "historical_place_location": {
+          "rows": 53792,
+          "sha256": "7db3843b5bbff5de10733c65ebbdd6781343e417d3ffbec5649b100d2558738c",
+          "columns": 31
+        },
+        "source_record": {
+          "rows": 157220,
+          "sha256": "5d8075a682bd96605e29a6b00134fc2117249617cdcd4ac04e21d879a1996db0",
+          "columns": 14
+        },
+        "event": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 15
+        },
+        "person": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 15
+        },
+        "historical_polity": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 9
+        }
+      },
+      "source_record_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5226,
+        "mcgd_zenodo_22094815_head960": 960,
+        "pleiades_gis_4_1": 127829,
+        "pleiades_gis_4_1_slice": 12445,
+        "whg_geoname_s_gn_sample": 209,
+        "whg_getty_tgn_sample": 21,
+        "whg_hgis_de_las_indias_sample": 8
+      },
+      "place_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5224,
+        "mcgd_zenodo_22094815_head960": 643,
+        "pleiades_gis_4_1": 38928,
+        "pleiades_gis_4_1_slice": 2643,
+        "whg_geoname_s_gn_sample": 4,
+        "whg_getty_tgn_sample": 1,
+        "whg_hgis_de_las_indias_sample": 2
+      },
+      "place_by_status": {
+        "staging": 57967
+      },
+      "place_by_created_by": {
+        "import": 57967
+      },
+      "issues_by_type": {
+        "missing_coordinate": 7537,
+        "unknown_time_bound_type": 6448,
+        "parent_place_not_in_sample": 4810,
+        "accuracy_unknown_sentinel": 728,
+        "unknown_crs": 646,
+        "beg_eq_end": 341,
+        "derived_value_mismatch": 197,
+        "duplicate_external_id": 36,
+        "connection_endpoint_missing": 28,
+        "beg_gt_end": 28,
+        "coordinate_outside_china_bbox": 6,
+        "year_out_of_range": 4,
+        "truncated_slice_tail": 4,
+        "geometry_invalid_repaired": 4,
+        "nonstandard_field_name": 2,
+        "attribution_missing": 2,
+        "duplicate_sysid": 2,
+        "coordinate_out_of_range": 1
+      },
+      "import_batches": {
+        "count": 15,
+        "first": "2026-11-03 16:44:26.763923+08:00",
+        "last": "2026-11-04 20:46:31.029026+08:00",
+        "stamp": "started_at"
+      },
+      "person_provenance": {
+        "rows": 0,
+        "by_created_by": {},
+        "by_status": {}
+      },
+      "event_provenance": {
+        "rows": 0,
+        "by_created_by": {},
+        "by_status": {}
+      },
+      "historical_polity_provenance": {
+        "rows": 0,
+        "by_status": {}
+      },
+      "relation_tables_missing": [
+        "polity_name"
+      ]
+    },
+    {
+      "database": "canvas_history_stage3",
+      "flyway": [
+        {
+          "version": "1",
+          "description": "enable extensions",
+          "checksum": 882334605,
+          "success": true,
+          "installed_on": "2026-11-03 04:52:58.958562",
+          "execution_time_ms": 262
+        },
+        {
+          "version": "2",
+          "description": "core data model",
+          "checksum": 966227528,
+          "success": true,
+          "installed_on": "2026-11-03 04:52:59.244905",
+          "execution_time_ms": 30
+        },
+        {
+          "version": "3",
+          "description": "derived views",
+          "checksum": -2058740630,
+          "success": true,
+          "installed_on": "2026-11-03 04:52:59.322089",
+          "execution_time_ms": 7
+        }
+      ],
+      "flyway_max": "3",
+      "tables": {
+        "candidate_match": 53131,
+        "data_dataset": 7,
+        "data_quality_issue": 12831,
+        "data_source": 4,
+        "flyway_schema_history": 3,
+        "historical_place": 19039,
+        "historical_place_location": 18101,
+        "historical_place_name": 47499,
+        "import_batch": 42,
+        "source_record": 29391,
+        "spatial_ref_sys": 8500
+      },
+      "business_tables_present": {
+        "data_source": 4,
+        "data_dataset": 7,
+        "source_record": 29391,
+        "import_batch": 42,
+        "historical_place": 19039,
+        "historical_place_name": 47499,
+        "historical_place_location": 18101,
+        "candidate_match": 53131,
+        "data_quality_issue": 12831,
+        "person": null,
+        "person_name": null,
+        "person_place": null,
+        "event": null,
+        "event_place": null,
+        "event_person": null,
+        "person_event_role": null,
+        "historical_polity": null,
+        "event_polity": null,
+        "polity_name": null
+      },
+      "pk_range": {
+        "historical_place": {
+          "column": "place_id",
+          "min": 38079,
+          "max": 57117
+        },
+        "historical_place_name": {
+          "column": "name_id",
+          "min": 94999,
+          "max": 142497
+        },
+        "historical_place_location": {
+          "column": "location_id",
+          "min": 36203,
+          "max": 54303
+        },
+        "source_record": {
+          "column": "source_record_id",
+          "min": 58783,
+          "max": 88173
+        }
+      },
+      "orphans": {
+        "名称→地点": 0,
+        "位置→地点": 0,
+        "地点→源记录": 0,
+        "名称→源记录": 0,
+        "位置→源记录": 0,
+        "候选A→地点": 0,
+        "候选B→地点": 0
+      },
+      "fingerprints": {
+        "historical_place": {
+          "rows": 19039,
+          "sha256": "2726fbe299597aab37c2d2619901a6c48caaba019b4b07cca4166cd6774b5bb8",
+          "columns": 18
+        },
+        "historical_place_name": {
+          "rows": 47499,
+          "sha256": "1e8ead61d100b237ea28b7f66146829d6cbaa9a7f08ab55f6e21518c8395151c",
+          "columns": 20
+        },
+        "historical_place_location": {
+          "rows": 18101,
+          "sha256": "641821f8be3e5685f30e9ee0d8874b87c8d49252200d10fd9509f7b094874f1e",
+          "columns": 31
+        },
+        "source_record": {
+          "rows": 29391,
+          "sha256": "36d40a91b3e1ea5eb9c529dad0a6cbf284a98759761ee9a4e4dfcdcd104e06e9",
+          "columns": 14
+        }
+      },
+      "source_record_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5226,
+        "mcgd_zenodo_22094815_head960": 960,
+        "pleiades_gis_4_1_slice": 12445,
+        "whg_geoname_s_gn_sample": 209,
+        "whg_getty_tgn_sample": 21,
+        "whg_hgis_de_las_indias_sample": 8
+      },
+      "place_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5224,
+        "mcgd_zenodo_22094815_head960": 643,
+        "pleiades_gis_4_1_slice": 2643,
+        "whg_geoname_s_gn_sample": 4,
+        "whg_getty_tgn_sample": 1,
+        "whg_hgis_de_las_indias_sample": 2
+      },
+      "place_by_status": {
+        "staging": 19039
+      },
+      "place_by_created_by": {
+        "import": 19039
+      },
+      "issues_by_type": {
+        "unknown_time_bound_type": 6448,
+        "parent_place_not_in_sample": 4810,
+        "unknown_crs": 646,
+        "beg_eq_end": 341,
+        "missing_coordinate": 337,
+        "derived_value_mismatch": 197,
+        "beg_gt_end": 28,
+        "coordinate_outside_china_bbox": 6,
+        "duplicate_external_id": 5,
+        "truncated_slice_tail": 4,
+        "year_out_of_range": 4,
+        "duplicate_sysid": 2,
+        "nonstandard_field_name": 2,
+        "coordinate_out_of_range": 1
+      },
+      "import_batches": {
+        "count": 42,
+        "first": "2026-11-03 12:56:20.844303+08:00",
+        "last": "2026-11-03 13:10:59.408014+08:00",
+        "stamp": "started_at"
+      },
+      "relation_tables_missing": [
+        "event_place",
+        "event_person",
+        "person_place",
+        "event_polity",
+        "person_name",
+        "polity_name"
+      ]
+    },
+    {
+      "database": "canvas_history_stage3_r1",
+      "flyway": [
+        {
+          "version": "1",
+          "description": "enable extensions",
+          "checksum": 882334605,
+          "success": true,
+          "installed_on": "2026-11-03 06:35:58.463761",
+          "execution_time_ms": 215
+        },
+        {
+          "version": "2",
+          "description": "core data model",
+          "checksum": 966227528,
+          "success": true,
+          "installed_on": "2026-11-03 06:35:58.702810",
+          "execution_time_ms": 31
+        },
+        {
+          "version": "3",
+          "description": "derived views",
+          "checksum": -2058740630,
+          "success": true,
+          "installed_on": "2026-11-03 06:35:58.776359",
+          "execution_time_ms": 8
+        }
+      ],
+      "flyway_max": "3",
+      "tables": {
+        "candidate_match": 53131,
+        "data_dataset": 7,
+        "data_quality_issue": 12831,
+        "data_source": 4,
+        "flyway_schema_history": 3,
+        "historical_place": 19039,
+        "historical_place_location": 18101,
+        "historical_place_name": 47499,
+        "import_batch": 14,
+        "source_record": 29391,
+        "spatial_ref_sys": 8500
+      },
+      "business_tables_present": {
+        "data_source": 4,
+        "data_dataset": 7,
+        "source_record": 29391,
+        "import_batch": 14,
+        "historical_place": 19039,
+        "historical_place_name": 47499,
+        "historical_place_location": 18101,
+        "candidate_match": 53131,
+        "data_quality_issue": 12831,
+        "person": null,
+        "person_name": null,
+        "person_place": null,
+        "event": null,
+        "event_place": null,
+        "event_person": null,
+        "person_event_role": null,
+        "historical_polity": null,
+        "event_polity": null,
+        "polity_name": null
+      },
+      "pk_range": {
+        "historical_place": {
+          "column": "place_id",
+          "min": 19040,
+          "max": 38078
+        },
+        "historical_place_name": {
+          "column": "name_id",
+          "min": 47500,
+          "max": 94998
+        },
+        "historical_place_location": {
+          "column": "location_id",
+          "min": 18102,
+          "max": 36202
+        },
+        "source_record": {
+          "column": "source_record_id",
+          "min": 29392,
+          "max": 58782
+        }
+      },
+      "orphans": {
+        "名称→地点": 0,
+        "位置→地点": 0,
+        "地点→源记录": 0,
+        "名称→源记录": 0,
+        "位置→源记录": 0,
+        "候选A→地点": 0,
+        "候选B→地点": 0
+      },
+      "fingerprints": {
+        "historical_place": {
+          "rows": 19039,
+          "sha256": "c6e91b6e54bf2425e06d4358433702dd84e782a1b8791df448afa53565658330",
+          "columns": 18
+        },
+        "historical_place_name": {
+          "rows": 47499,
+          "sha256": "1eedbcdc66872fa6476eea18bad51c7f8593b7beb2aa454e515bf0ee1416e30b",
+          "columns": 20
+        },
+        "historical_place_location": {
+          "rows": 18101,
+          "sha256": "ce1adbbea569dd8d1a11a5c7ec7ae662c0f3767eb43924b53c5608280ba05807",
+          "columns": 31
+        },
+        "source_record": {
+          "rows": 29391,
+          "sha256": "22a1de037e5771b18210a059e1286401d944c7fe299aa4f04ffdb4eb8f110e86",
+          "columns": 14
+        }
+      },
+      "source_record_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5226,
+        "mcgd_zenodo_22094815_head960": 960,
+        "pleiades_gis_4_1_slice": 12445,
+        "whg_geoname_s_gn_sample": 209,
+        "whg_getty_tgn_sample": 21,
+        "whg_hgis_de_las_indias_sample": 8
+      },
+      "place_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5224,
+        "mcgd_zenodo_22094815_head960": 643,
+        "pleiades_gis_4_1_slice": 2643,
+        "whg_geoname_s_gn_sample": 4,
+        "whg_getty_tgn_sample": 1,
+        "whg_hgis_de_las_indias_sample": 2
+      },
+      "place_by_status": {
+        "staging": 19039
+      },
+      "place_by_created_by": {
+        "import": 19039
+      },
+      "issues_by_type": {
+        "unknown_time_bound_type": 6448,
+        "parent_place_not_in_sample": 4810,
+        "unknown_crs": 646,
+        "beg_eq_end": 341,
+        "missing_coordinate": 337,
+        "derived_value_mismatch": 197,
+        "beg_gt_end": 28,
+        "coordinate_outside_china_bbox": 6,
+        "duplicate_external_id": 5,
+        "truncated_slice_tail": 4,
+        "year_out_of_range": 4,
+        "duplicate_sysid": 2,
+        "nonstandard_field_name": 2,
+        "coordinate_out_of_range": 1
+      },
+      "import_batches": {
+        "count": 14,
+        "first": "2026-11-03 14:36:19.932101+08:00",
+        "last": "2026-11-03 14:36:32.108040+08:00",
+        "stamp": "started_at"
+      },
+      "relation_tables_missing": [
+        "event_place",
+        "event_person",
+        "person_place",
+        "event_polity",
+        "person_name",
+        "polity_name"
+      ]
+    },
+    {
+      "database": "canvas_history_stage3_r11",
+      "flyway": [
+        {
+          "version": "1",
+          "description": "enable extensions",
+          "checksum": 882334605,
+          "success": true,
+          "installed_on": "2026-11-03 06:55:57.998698",
+          "execution_time_ms": 226
+        },
+        {
+          "version": "2",
+          "description": "core data model",
+          "checksum": 966227528,
+          "success": true,
+          "installed_on": "2026-11-03 06:55:58.251016",
+          "execution_time_ms": 30
+        },
+        {
+          "version": "3",
+          "description": "derived views",
+          "checksum": -2058740630,
+          "success": true,
+          "installed_on": "2026-11-03 06:55:58.330002",
+          "execution_time_ms": 6
+        }
+      ],
+      "flyway_max": "3",
+      "tables": {
+        "candidate_match": 53131,
+        "data_dataset": 7,
+        "data_quality_issue": 12831,
+        "data_source": 4,
+        "flyway_schema_history": 3,
+        "historical_place": 19039,
+        "historical_place_location": 18101,
+        "historical_place_name": 47499,
+        "import_batch": 14,
+        "source_record": 29391,
+        "spatial_ref_sys": 8500
+      },
+      "business_tables_present": {
+        "data_source": 4,
+        "data_dataset": 7,
+        "source_record": 29391,
+        "import_batch": 14,
+        "historical_place": 19039,
+        "historical_place_name": 47499,
+        "historical_place_location": 18101,
+        "candidate_match": 53131,
+        "data_quality_issue": 12831,
+        "person": null,
+        "person_name": null,
+        "person_place": null,
+        "event": null,
+        "event_place": null,
+        "event_person": null,
+        "person_event_role": null,
+        "historical_polity": null,
+        "event_polity": null,
+        "polity_name": null
+      },
+      "pk_range": {
+        "historical_place": {
+          "column": "place_id",
+          "min": 19040,
+          "max": 38078
+        },
+        "historical_place_name": {
+          "column": "name_id",
+          "min": 47500,
+          "max": 94998
+        },
+        "historical_place_location": {
+          "column": "location_id",
+          "min": 18102,
+          "max": 36202
+        },
+        "source_record": {
+          "column": "source_record_id",
+          "min": 29392,
+          "max": 58782
+        }
+      },
+      "orphans": {
+        "名称→地点": 0,
+        "位置→地点": 0,
+        "地点→源记录": 0,
+        "名称→源记录": 0,
+        "位置→源记录": 0,
+        "候选A→地点": 0,
+        "候选B→地点": 0
+      },
+      "fingerprints": {
+        "historical_place": {
+          "rows": 19039,
+          "sha256": "c6e91b6e54bf2425e06d4358433702dd84e782a1b8791df448afa53565658330",
+          "columns": 18
+        },
+        "historical_place_name": {
+          "rows": 47499,
+          "sha256": "1eedbcdc66872fa6476eea18bad51c7f8593b7beb2aa454e515bf0ee1416e30b",
+          "columns": 20
+        },
+        "historical_place_location": {
+          "rows": 18101,
+          "sha256": "ce1adbbea569dd8d1a11a5c7ec7ae662c0f3767eb43924b53c5608280ba05807",
+          "columns": 31
+        },
+        "source_record": {
+          "rows": 29391,
+          "sha256": "b171ccd5e99dfef785978b692956621fe6f88dd1f35010b17a71d53ff2107ff3",
+          "columns": 14
+        }
+      },
+      "source_record_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5226,
+        "mcgd_zenodo_22094815_head960": 960,
+        "pleiades_gis_4_1_slice": 12445,
+        "whg_geoname_s_gn_sample": 209,
+        "whg_getty_tgn_sample": 21,
+        "whg_hgis_de_las_indias_sample": 8
+      },
+      "place_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5224,
+        "mcgd_zenodo_22094815_head960": 643,
+        "pleiades_gis_4_1_slice": 2643,
+        "whg_geoname_s_gn_sample": 4,
+        "whg_getty_tgn_sample": 1,
+        "whg_hgis_de_las_indias_sample": 2
+      },
+      "place_by_status": {
+        "staging": 19039
+      },
+      "place_by_created_by": {
+        "import": 19039
+      },
+      "issues_by_type": {
+        "unknown_time_bound_type": 6448,
+        "parent_place_not_in_sample": 4810,
+        "unknown_crs": 646,
+        "beg_eq_end": 341,
+        "missing_coordinate": 337,
+        "derived_value_mismatch": 197,
+        "beg_gt_end": 28,
+        "coordinate_outside_china_bbox": 6,
+        "duplicate_external_id": 5,
+        "truncated_slice_tail": 4,
+        "year_out_of_range": 4,
+        "duplicate_sysid": 2,
+        "nonstandard_field_name": 2,
+        "coordinate_out_of_range": 1
+      },
+      "import_batches": {
+        "count": 14,
+        "first": "2026-11-03 14:56:18.272401+08:00",
+        "last": "2026-11-03 14:56:31.416644+08:00",
+        "stamp": "started_at"
+      },
+      "relation_tables_missing": [
+        "event_place",
+        "event_person",
+        "person_place",
+        "event_polity",
+        "person_name",
+        "polity_name"
+      ]
+    },
+    {
+      "database": "canvas_history_stage3_r11_fault",
+      "flyway": [
+        {
+          "version": "1",
+          "description": "enable extensions",
+          "checksum": 882334605,
+          "success": true,
+          "installed_on": "2026-11-03 06:56:00.066323",
+          "execution_time_ms": 231
+        },
+        {
+          "version": "2",
+          "description": "core data model",
+          "checksum": 966227528,
+          "success": true,
+          "installed_on": "2026-11-03 06:56:00.322756",
+          "execution_time_ms": 29
+        },
+        {
+          "version": "3",
+          "description": "derived views",
+          "checksum": -2058740630,
+          "success": true,
+          "installed_on": "2026-11-03 06:56:00.400556",
+          "execution_time_ms": 7
+        }
+      ],
+      "flyway_max": "3",
+      "tables": {
+        "candidate_match": 0,
+        "data_dataset": 0,
+        "data_quality_issue": 0,
+        "data_source": 0,
+        "flyway_schema_history": 3,
+        "historical_place": 0,
+        "historical_place_location": 0,
+        "historical_place_name": 0,
+        "import_batch": 0,
+        "source_record": 0,
+        "spatial_ref_sys": 8500
+      },
+      "business_tables_present": {
+        "data_source": 0,
+        "data_dataset": 0,
+        "source_record": 0,
+        "import_batch": 0,
+        "historical_place": 0,
+        "historical_place_name": 0,
+        "historical_place_location": 0,
+        "candidate_match": 0,
+        "data_quality_issue": 0,
+        "person": null,
+        "person_name": null,
+        "person_place": null,
+        "event": null,
+        "event_place": null,
+        "event_person": null,
+        "person_event_role": null,
+        "historical_polity": null,
+        "event_polity": null,
+        "polity_name": null
+      },
+      "pk_range": {
+        "historical_place": {
+          "column": "place_id",
+          "min": null,
+          "max": null
+        },
+        "historical_place_name": {
+          "column": "name_id",
+          "min": null,
+          "max": null
+        },
+        "historical_place_location": {
+          "column": "location_id",
+          "min": null,
+          "max": null
+        },
+        "source_record": {
+          "column": "source_record_id",
+          "min": null,
+          "max": null
+        }
+      },
+      "orphans": {
+        "名称→地点": 0,
+        "位置→地点": 0,
+        "地点→源记录": 0,
+        "名称→源记录": 0,
+        "位置→源记录": 0,
+        "候选A→地点": 0,
+        "候选B→地点": 0
+      },
+      "fingerprints": {
+        "historical_place": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 18
+        },
+        "historical_place_name": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 20
+        },
+        "historical_place_location": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 31
+        },
+        "source_record": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 14
+        }
+      },
+      "source_record_by_dataset": {},
+      "place_by_dataset": {},
+      "place_by_status": {},
+      "place_by_created_by": {},
+      "issues_by_type": {},
+      "import_batches": {
+        "count": 0,
+        "first": "None",
+        "last": "None",
+        "stamp": "started_at"
+      },
+      "relation_tables_missing": [
+        "event_place",
+        "event_person",
+        "person_place",
+        "event_polity",
+        "person_name",
+        "polity_name"
+      ]
+    },
+    {
+      "database": "canvas_history_stage3_r12",
+      "flyway": [
+        {
+          "version": "1",
+          "description": "enable extensions",
+          "checksum": 882334605,
+          "success": true,
+          "installed_on": "2026-11-03 07:30:11.198619",
+          "execution_time_ms": 266
+        },
+        {
+          "version": "2",
+          "description": "core data model",
+          "checksum": 966227528,
+          "success": true,
+          "installed_on": "2026-11-03 07:30:11.492965",
+          "execution_time_ms": 34
+        },
+        {
+          "version": "3",
+          "description": "derived views",
+          "checksum": -2058740630,
+          "success": true,
+          "installed_on": "2026-11-03 07:30:11.591685",
+          "execution_time_ms": 7
+        }
+      ],
+      "flyway_max": "3",
+      "tables": {
+        "candidate_match": 53131,
+        "data_dataset": 7,
+        "data_quality_issue": 12831,
+        "data_source": 4,
+        "flyway_schema_history": 3,
+        "historical_place": 19039,
+        "historical_place_location": 18101,
+        "historical_place_name": 47499,
+        "import_batch": 14,
+        "source_record": 29391,
+        "spatial_ref_sys": 8500
+      },
+      "business_tables_present": {
+        "data_source": 4,
+        "data_dataset": 7,
+        "source_record": 29391,
+        "import_batch": 14,
+        "historical_place": 19039,
+        "historical_place_name": 47499,
+        "historical_place_location": 18101,
+        "candidate_match": 53131,
+        "data_quality_issue": 12831,
+        "person": null,
+        "person_name": null,
+        "person_place": null,
+        "event": null,
+        "event_place": null,
+        "event_person": null,
+        "person_event_role": null,
+        "historical_polity": null,
+        "event_polity": null,
+        "polity_name": null
+      },
+      "pk_range": {
+        "historical_place": {
+          "column": "place_id",
+          "min": 19040,
+          "max": 38078
+        },
+        "historical_place_name": {
+          "column": "name_id",
+          "min": 47500,
+          "max": 94998
+        },
+        "historical_place_location": {
+          "column": "location_id",
+          "min": 18102,
+          "max": 36202
+        },
+        "source_record": {
+          "column": "source_record_id",
+          "min": 29392,
+          "max": 58782
+        }
+      },
+      "orphans": {
+        "名称→地点": 0,
+        "位置→地点": 0,
+        "地点→源记录": 0,
+        "名称→源记录": 0,
+        "位置→源记录": 0,
+        "候选A→地点": 0,
+        "候选B→地点": 0
+      },
+      "fingerprints": {
+        "historical_place": {
+          "rows": 19039,
+          "sha256": "c6e91b6e54bf2425e06d4358433702dd84e782a1b8791df448afa53565658330",
+          "columns": 18
+        },
+        "historical_place_name": {
+          "rows": 47499,
+          "sha256": "1eedbcdc66872fa6476eea18bad51c7f8593b7beb2aa454e515bf0ee1416e30b",
+          "columns": 20
+        },
+        "historical_place_location": {
+          "rows": 18101,
+          "sha256": "ce1adbbea569dd8d1a11a5c7ec7ae662c0f3767eb43924b53c5608280ba05807",
+          "columns": 31
+        },
+        "source_record": {
+          "rows": 29391,
+          "sha256": "3f00068e8472e0d7c78e4284f3cc557d65fa15d32be8319a08e635c00d58f4c9",
+          "columns": 14
+        }
+      },
+      "source_record_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5226,
+        "mcgd_zenodo_22094815_head960": 960,
+        "pleiades_gis_4_1_slice": 12445,
+        "whg_geoname_s_gn_sample": 209,
+        "whg_getty_tgn_sample": 21,
+        "whg_hgis_de_las_indias_sample": 8
+      },
+      "place_by_dataset": {
+        "chgis_v6_county_points": 10522,
+        "chgis_v6_prefecture_points": 5224,
+        "mcgd_zenodo_22094815_head960": 643,
+        "pleiades_gis_4_1_slice": 2643,
+        "whg_geoname_s_gn_sample": 4,
+        "whg_getty_tgn_sample": 1,
+        "whg_hgis_de_las_indias_sample": 2
+      },
+      "place_by_status": {
+        "staging": 19039
+      },
+      "place_by_created_by": {
+        "import": 19039
+      },
+      "issues_by_type": {
+        "unknown_time_bound_type": 6448,
+        "parent_place_not_in_sample": 4810,
+        "unknown_crs": 646,
+        "beg_eq_end": 341,
+        "missing_coordinate": 337,
+        "derived_value_mismatch": 197,
+        "beg_gt_end": 28,
+        "coordinate_outside_china_bbox": 6,
+        "duplicate_external_id": 5,
+        "truncated_slice_tail": 4,
+        "year_out_of_range": 4,
+        "duplicate_sysid": 2,
+        "nonstandard_field_name": 2,
+        "coordinate_out_of_range": 1
+      },
+      "import_batches": {
+        "count": 14,
+        "first": "2026-11-03 15:30:31.504995+08:00",
+        "last": "2026-11-03 15:30:43.601202+08:00",
+        "stamp": "started_at"
+      },
+      "relation_tables_missing": [
+        "event_place",
+        "event_person",
+        "person_place",
+        "event_polity",
+        "person_name",
+        "polity_name"
+      ]
+    },
+    {
+      "database": "canvas_history_stage3_r12_fault",
+      "flyway": [
+        {
+          "version": "1",
+          "description": "enable extensions",
+          "checksum": 882334605,
+          "success": true,
+          "installed_on": "2026-11-03 07:31:03.277472",
+          "execution_time_ms": 245
+        },
+        {
+          "version": "2",
+          "description": "core data model",
+          "checksum": 966227528,
+          "success": true,
+          "installed_on": "2026-11-03 07:31:03.547101",
+          "execution_time_ms": 34
+        },
+        {
+          "version": "3",
+          "description": "derived views",
+          "checksum": -2058740630,
+          "success": true,
+          "installed_on": "2026-11-03 07:31:03.635955",
+          "execution_time_ms": 7
+        }
+      ],
+      "flyway_max": "3",
+      "tables": {
+        "candidate_match": 0,
+        "data_dataset": 0,
+        "data_quality_issue": 0,
+        "data_source": 0,
+        "flyway_schema_history": 3,
+        "historical_place": 0,
+        "historical_place_location": 0,
+        "historical_place_name": 0,
+        "import_batch": 0,
+        "source_record": 0,
+        "spatial_ref_sys": 8500
+      },
+      "business_tables_present": {
+        "data_source": 0,
+        "data_dataset": 0,
+        "source_record": 0,
+        "import_batch": 0,
+        "historical_place": 0,
+        "historical_place_name": 0,
+        "historical_place_location": 0,
+        "candidate_match": 0,
+        "data_quality_issue": 0,
+        "person": null,
+        "person_name": null,
+        "person_place": null,
+        "event": null,
+        "event_place": null,
+        "event_person": null,
+        "person_event_role": null,
+        "historical_polity": null,
+        "event_polity": null,
+        "polity_name": null
+      },
+      "pk_range": {
+        "historical_place": {
+          "column": "place_id",
+          "min": null,
+          "max": null
+        },
+        "historical_place_name": {
+          "column": "name_id",
+          "min": null,
+          "max": null
+        },
+        "historical_place_location": {
+          "column": "location_id",
+          "min": null,
+          "max": null
+        },
+        "source_record": {
+          "column": "source_record_id",
+          "min": null,
+          "max": null
+        }
+      },
+      "orphans": {
+        "名称→地点": 0,
+        "位置→地点": 0,
+        "地点→源记录": 0,
+        "名称→源记录": 0,
+        "位置→源记录": 0,
+        "候选A→地点": 0,
+        "候选B→地点": 0
+      },
+      "fingerprints": {
+        "historical_place": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 18
+        },
+        "historical_place_name": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 20
+        },
+        "historical_place_location": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 31
+        },
+        "source_record": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 14
+        }
+      },
+      "source_record_by_dataset": {},
+      "place_by_dataset": {},
+      "place_by_status": {},
+      "place_by_created_by": {},
+      "issues_by_type": {},
+      "import_batches": {
+        "count": 0,
+        "first": "None",
+        "last": "None",
+        "stamp": "started_at"
+      },
+      "relation_tables_missing": [
+        "event_place",
+        "event_person",
+        "person_place",
+        "event_polity",
+        "person_name",
+        "polity_name"
+      ]
+    },
+    {
+      "database": "canvas_history_stage3_r1_fault",
+      "flyway": [
+        {
+          "version": "1",
+          "description": "enable extensions",
+          "checksum": 882334605,
+          "success": true,
+          "installed_on": "2026-11-03 06:36:00.463984",
+          "execution_time_ms": 213
+        },
+        {
+          "version": "2",
+          "description": "core data model",
+          "checksum": 966227528,
+          "success": true,
+          "installed_on": "2026-11-03 06:36:00.700699",
+          "execution_time_ms": 29
+        },
+        {
+          "version": "3",
+          "description": "derived views",
+          "checksum": -2058740630,
+          "success": true,
+          "installed_on": "2026-11-03 06:36:00.772926",
+          "execution_time_ms": 6
+        }
+      ],
+      "flyway_max": "3",
+      "tables": {
+        "candidate_match": 0,
+        "data_dataset": 0,
+        "data_quality_issue": 0,
+        "data_source": 0,
+        "flyway_schema_history": 3,
+        "historical_place": 0,
+        "historical_place_location": 0,
+        "historical_place_name": 0,
+        "import_batch": 0,
+        "source_record": 0,
+        "spatial_ref_sys": 8500
+      },
+      "business_tables_present": {
+        "data_source": 0,
+        "data_dataset": 0,
+        "source_record": 0,
+        "import_batch": 0,
+        "historical_place": 0,
+        "historical_place_name": 0,
+        "historical_place_location": 0,
+        "candidate_match": 0,
+        "data_quality_issue": 0,
+        "person": null,
+        "person_name": null,
+        "person_place": null,
+        "event": null,
+        "event_place": null,
+        "event_person": null,
+        "person_event_role": null,
+        "historical_polity": null,
+        "event_polity": null,
+        "polity_name": null
+      },
+      "pk_range": {
+        "historical_place": {
+          "column": "place_id",
+          "min": null,
+          "max": null
+        },
+        "historical_place_name": {
+          "column": "name_id",
+          "min": null,
+          "max": null
+        },
+        "historical_place_location": {
+          "column": "location_id",
+          "min": null,
+          "max": null
+        },
+        "source_record": {
+          "column": "source_record_id",
+          "min": null,
+          "max": null
+        }
+      },
+      "orphans": {
+        "名称→地点": 0,
+        "位置→地点": 0,
+        "地点→源记录": 0,
+        "名称→源记录": 0,
+        "位置→源记录": 0,
+        "候选A→地点": 0,
+        "候选B→地点": 0
+      },
+      "fingerprints": {
+        "historical_place": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 18
+        },
+        "historical_place_name": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 20
+        },
+        "historical_place_location": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 31
+        },
+        "source_record": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "columns": 14
+        }
+      },
+      "source_record_by_dataset": {},
+      "place_by_dataset": {},
+      "place_by_status": {},
+      "place_by_created_by": {},
+      "issues_by_type": {},
+      "import_batches": {
+        "count": 0,
+        "first": "None",
+        "last": "None",
+        "stamp": "started_at"
+      },
+      "relation_tables_missing": [
+        "event_place",
+        "event_person",
+        "person_place",
+        "event_polity",
+        "person_name",
+        "polity_name"
+      ]
+    }
+  ]
+}
