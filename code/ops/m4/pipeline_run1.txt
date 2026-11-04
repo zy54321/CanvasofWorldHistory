@@ -1,0 +1,35 @@
+WB-002 normalisation (wb-002-normalize/1.2.0)
+  project root : C:\Users\the_z\AppData\Local\Temp\m4-repro-20261104\root
+  input root   : 设计资料\P0验证\WB-002\sample_data
+  ingested_at  : 2026-11-02T00:00:00Z
+
+    0.021s  hash inputs (before)  [21 files]
+    0.022s  parse CHGIS date-rule dictionary  [7 rules from xtra_date_rules.xlsx]
+    0.130s  extract CHGIS DBF records  [chgis_cnty=10522, chgis_pref=5226]
+    0.001s  read CHGIS README (license + citation)  ["CHGIS, Version: 6." (c) Fairbank Center for Chinese Studies...]
+    0.004s  extract MCGD sample rows  [rows=960, license=cc-by-4.0]
+    0.118s  extract Pleiades GIS slices  [rows=12665, places=2643, discarded_tails=4]
+    0.003s  extract WHG API samples  [rows=238, places=7, schemas={'flat': 2, 'jsonld': 5}]
+    0.000s  verify astronomical-year conversion  [5 assertions passed]
+    0.043s  analyse time anomalies  [beg>end=28 (pref=9, cnty=19)]
+    0.082s  build coordinate clusters  [clusters=6013, max_size=34]
+    0.079s  analyse homonyms  [multi_coord_names=2071/8303]
+    0.000s  detect field-name quirks  [2 found]
+    0.030s  find cross-layer disagreements  [29 (name,year-span) pairs placed differently]
+    0.190s  analyse migration chains  [7223 adjacent pairs, 1254 migration chains, 1866 legs queued for review]
+  [ground-truth] 新兴郡: PASS
+                 seats=3 coords=['112.731508|38.398588', '112.944084|38.492717', '112.733095|38.261740']
+                 foreign seat excluded from chain=True; homonym legs=1
+  [ground-truth] 中山国: PASS
+                 cross-layer edges=0; chains=[1, 1]; migration_chains=0
+    0.027s  verify migration ground truth  [新兴郡=PASS, 中山国=PASS]
+    1.623s  build seven staging tables  [historical_places=19039, historical_place_locations=18103, historical_place_names=47503, source_records=29391, data_quality_issues=12631, candidate_matches=53137, data_datasets=7]
+    0.943s  write normalized/*.csv  [7 tables]
+    0.230s  write issues/*.csv  [8 files]
+    0.085s  write stats.json  [20 top-level keys]
+    0.012s  hash inputs (after)  [unchanged]
+    0.239s  write run_manifest.json
+
+  total: 3.88s
+  output: C:\Users\the_z\AppData\Local\Temp\m4-repro-20261104\root\设计资料\P0收敛\WB-002\normalized
+          C:\Users\the_z\AppData\Local\Temp\m4-repro-20261104\root\设计资料\P0收敛\WB-002\issues

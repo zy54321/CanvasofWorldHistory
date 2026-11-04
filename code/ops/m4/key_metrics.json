@@ -1,0 +1,100 @@
+{
+  "pipeline_version": "wb-002-normalize/1.2.0",
+  "python_version": "3.13.14",
+  "platform": "Windows-11-10.0.28000-SP0",
+  "ingested_at": "2026-11-02T00:00:00Z",
+  "duration_seconds_run1": 3.643,
+  "duration_seconds_run2": 3.576,
+  "output_row_counts": {
+    "candidate_matches.csv": 53137,
+    "chgis_all_records.csv": 15748,
+    "cluster_members.csv": 15738,
+    "coordinate_clusters.csv": 6013,
+    "cross_layer_disagreements.csv": 29,
+    "data_datasets.csv": 7,
+    "data_quality_issues.csv": 12631,
+    "historical_place_locations.csv": 18103,
+    "historical_place_names.csv": 47503,
+    "historical_places.csv": 19039,
+    "homonyms.csv": 2071,
+    "migration_chains.csv": 1254,
+    "migration_review_queue.csv": 1866,
+    "source_records.csv": 29391,
+    "time_inversions.csv": 28
+  },
+  "astro_assertions": [
+    "astro_year(-221) == -220 OK",
+    "astro_year(1) == 1 OK",
+    "astro_year(1911) == 1911 OK",
+    "astro_year(None) is None OK",
+    "astro_year(0) raises ValueError OK"
+  ],
+  "input_integrity_verified": true,
+  "input_changed_files": [],
+  "migration_ground_truth": {
+    "xinxing_jun": {
+      "case": "新兴郡 @ chgis_pref",
+      "chain_id": "ch_001113",
+      "chain_sys_ids": [
+        "210009",
+        "210011",
+        "210012",
+        "210014",
+        "94203"
+      ],
+      "expected_seats_covered": [
+        "112.731508|38.398588",
+        "112.944084|38.492717",
+        "112.733095|38.261740"
+      ],
+      "expected_seats_missing": [],
+      "foreign_seat": "112.225082|22.702915",
+      "foreign_seat_excluded_from_chain": true,
+      "homonym_edges": [
+        {
+          "confidence": "high",
+          "distance_m": 1745946.6,
+          "from_coord": "112.731508|38.398588",
+          "gap_years": 125,
+          "to_coord": "112.225082|22.702915"
+        }
+      ],
+      "migration_chain_count": 1,
+      "observed_seats": [
+        "112.731508|38.398588",
+        "112.944084|38.492717",
+        "112.733095|38.261740"
+      ],
+      "passed": true,
+      "seat_count": 3
+    },
+    "zhongshan_guo": {
+      "case": "中山国 cross-layer conflict",
+      "chains_for_name": [
+        {
+          "chain_id": "ch_000095",
+          "coord_keys": [
+            "114.975040|38.520060"
+          ],
+          "is_migration_chain": false,
+          "seat_count": 1,
+          "source_dataset": "chgis_cnty"
+        },
+        {
+          "chain_id": "ch_000096",
+          "coord_keys": [
+            "114.563995|38.140121"
+          ],
+          "is_migration_chain": false,
+          "seat_count": 1,
+          "source_dataset": "chgis_pref"
+        }
+      ],
+      "cross_layer_edges": 0,
+      "edge_joining_the_two_disputed_coords": 0,
+      "exclusion_reason": "grouping is (NAME_CH, source_dataset) so the prefecture and county rows are never compared; and within each layer all 中山国 records share one coordinate, so every pair is dist==0 and the chain collapses to seat_count==1",
+      "migration_chain_count": 0,
+      "passed": true
+    }
+  }
+}
