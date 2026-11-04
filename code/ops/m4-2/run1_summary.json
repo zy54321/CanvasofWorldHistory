@@ -1,6 +1,6 @@
 {
   "db": "canvas_history_m4check",
-  "run_at": "2026-11-04T03:51:18+00:00",
+  "run_at": "2026-11-04T04:29:04+00:00",
   "derivation_version": "v2.1.1",
   "dry_run": false,
   "inject_fault": null,
@@ -38,7 +38,7 @@
     "candidate_matches": 53137,
     "data_quality_issues": 12631
   },
-  "excluded_csv": "ops/m4-2/excluded_clean.csv",
+  "excluded_csv": "ops/m4-2/stage3_excluded_rows.csv",
   "quarantine_ids": [
     "sr_0004941",
     "sr_0004942",

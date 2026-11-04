@@ -133,7 +133,8 @@ def main():
     check('B06', '转写名称（带 pinyin）→ 201', st == 201 and n2.get('transliterationScheme') == 'pinyin',
           '201 且 scheme=pinyin', '%s %s' % (st, n2.get('transliterationScheme') if isinstance(n2, dict) else '?'))
 
-    st, body = call('GET', '/api/v1/persons?keyword=%s&size=5' % urllib.parse.quote('Kong'))
+    # size 取足够大：命中判定不该受分页窗口大小影响（测试库里可能留有历史同名记录）
+    st, body = call('GET', '/api/v1/persons?keyword=%s&size=100' % urllib.parse.quote('Kong'))
     check('B07', '按别名搜索命中（走 person_name）', st == 200 and any(x['personId'] == pid for x in body['items']),
           '200 且命中该人物', '%s total=%s' % (st, body.get('total')))
 

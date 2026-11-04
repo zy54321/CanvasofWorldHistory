@@ -1,0 +1,97 @@
+{
+  "_说明": "M4-2 导入结果的历史基线，仅作审计证据。通用验证器 verify_import.py 不读取本文件，也不以其中的任何数字作为判据；验证器一律现场读取暂存行数、现场统计合成类型。",
+  "generated_at": "2026-11-04T04:37:28+00:00",
+  "database": "canvas_history_m4check",
+  "pipeline_version": "wb-002-normalize/1.3.0",
+  "derivation_version": "v2.1.1",
+  "run1": {
+    "counts_after": {
+      "source_record": 29391,
+      "historical_place": 19039,
+      "historical_place_name": 47499,
+      "historical_place_location": 18101,
+      "candidate_match": 53131,
+      "data_quality_issue": 12833,
+      "import_batch": 7,
+      "data_dataset": 8,
+      "data_source": 5
+    },
+    "table_delta_inserted": {
+      "source_record": 29391,
+      "historical_place": 19039,
+      "historical_place_name": 47499,
+      "historical_place_location": 18101,
+      "candidate_match": 53131,
+      "data_quality_issue": 12833,
+      "import_batch": 7,
+      "data_dataset": 7,
+      "data_source": 4
+    },
+    "ledger_stat": {
+      "staging": 12631,
+      "dup": 5,
+      "mismatch": 197,
+      "places": 130,
+      "manual": 0
+    },
+    "source_stat": {
+      "inserted": 29391,
+      "updated": 0,
+      "touched": 0,
+      "held": 0
+    },
+    "candidate_stat": {
+      "staging": 53137,
+      "inserted": 53131,
+      "self_ref": 2,
+      "c09": 4
+    },
+    "staging_rows": {
+      "data_datasets": 7,
+      "source_records": 29391,
+      "historical_places": 19039,
+      "historical_place_names": 47503,
+      "historical_place_locations": 18103,
+      "candidate_matches": 53137,
+      "data_quality_issues": 12631
+    },
+    "committed": true
+  },
+  "run2_idempotent": {
+    "table_delta_inserted": {
+      "source_record": 0,
+      "historical_place": 0,
+      "historical_place_name": 0,
+      "historical_place_location": 0,
+      "candidate_match": 0,
+      "data_quality_issue": 0,
+      "import_batch": 7,
+      "data_dataset": 0,
+      "data_source": 0
+    },
+    "ledger_stat": {
+      "staging": 12631,
+      "dup": 5,
+      "mismatch": 197,
+      "places": 130,
+      "manual": 0
+    },
+    "source_stat": {
+      "inserted": 0,
+      "updated": 0,
+      "touched": 29388,
+      "held": 3
+    },
+    "committed": true
+  },
+  "m4_2_ledger_baseline": {
+    "staged_rows": 12631,
+    "duplicate_external_id": 5,
+    "derived_value_mismatch": 197,
+    "derived_value_mismatch_places": 130,
+    "manual_edit_conflict": 0,
+    "total": 12833,
+    "issue_types": 15,
+    "note": "许可门禁取消后零丢弃；两条历史 licence_unconfirmed 已改判 attribution_missing(info)。"
+  }
+}

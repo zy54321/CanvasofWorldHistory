@@ -32,8 +32,8 @@
 | 1 | `ops/import_staging.py` 台账派生 | 删除 `if issue_type == 'licence_unconfirmed': continue` 分支，台账**零丢弃** | 12,631 行全部入库 |
 | 2 | `ops/import_staging.py` 时间类型断言 A10 | 5 条分布/F17 断言与「分布逐类型比对」全部限定 `created_by='import'`，避免测试库里既有人工行污染判定 | 断言按导入自身输出判定 |
 | 3 | `ops/verify_import.py` 常量 | 删除 `LEDGER_DROPPED = 2`；`LEDGER_TARGET` 改为 `暂存 + 合成`（12,833） | 不再有「许可剔除」常量 |
-| 4 | `ops/verify_import.py` V2 | 台账期望改为 `暂存行 + 库内 dup + mismatch + manual_conflict` 动态计算；新增「license* 残留必须为 0」等式 | 七项等式 |
-| 5 | `ops/verify_import.py` V7 | 删除「licence 必须为 0」这种许可门禁断言，改为「license* 残留 0 + 许可类 2 行已转写为 `attribution_missing`」 | 检查内容是否完整处理 |
+| 4 | `ops/verify_import.py` V2 | 台账期望改为现场推算：暂存行数现场读 CSV、合成行数现场按类型统计 | 七项等式 |
+| 5 | `ops/verify_import.py` V7 | 删除全部许可专项断言，改为「类型覆盖 / 总数 / 指纹唯一」的通用判据（详见 §十四） | 不再检查许可 |
 | 6 | `ops/verify_import.py` V1 | 非本导入器创建的批次（如测试库 `demo.json`）列为 external 跳过，不再误判 NULL | 批次核对只针对导入批次 |
 | 7 | `ops/verify_no_licence_gate.py` | **整文件删除**（`git rm`）。它本身就是一个「许可检查程序」 | 系统内不再存在许可审计工具 |
 | 8 | `ops/IMPORT_VALIDATION_RULES.md` | 「与许可相关的两条口径」整节重写：旧版「2 行直接剔除」标注废止 | 现行口径与代码一致 |
@@ -228,7 +228,7 @@ data_dataset 8 / data_source 5
 | 测试库两轮导入 | EXIT 0，六表 Δ=0（在 39 条人工地点共存的情况下仍幂等） |
 | 导入器自检 | `verify_import.py` 13 项：**PASS 11 / FAIL 0 / UNVERIFIED 1**（V9b「内容变更→UPDATE」路径两轮输入相同未触发，与阶段三结论一致，不冒充通过） |
 | 回滚保护 | 9 项：**PASS 8 / FAIL 0**（1 项 INFO） |
-| 台账 | 12,833 行 / 15 类型 / license* 0 / attribution_missing 2 |
+| 台账 | 12,833 行 / 15 类型；`issue_type` 中不存在任何 `licence*` 值；`attribution_missing` 2 行（由 SQL 直查，非验证器判据） |
 | 候选留痕 | 53,137 = 入库 53,131 + 留痕 6；19 列逐字保留 |
 
 V9b 诚实标注：本轮没有构造 `content_hash` 变化的第三轮输入，因此「内容变更走 UPDATE 而非 INSERT」的路径
@@ -309,6 +309,104 @@ import_batch 7  data_dataset 8  data_source 5
 
 ---
 
+## 十四、验收后收尾修正（M4-2 收尾轮）
+
+Owner 验收指出的六项已全部处理，未扩大范围：来源可选化、地图与数据库结构一律未动。
+
+### 14.1 验证器去掉全部固定数量（`ops/verify_import.py`）
+
+| 项 | 收尾前 | 收尾后 |
+|---|---|---|
+| 暂存台账行数 | 常量 `LEDGER_STAGED = 12631` | **现场 `len(csv_rows('data_quality_issues.csv'))`** |
+| 合成台账行数 | `LEDGER_SYNTH_DUP = 5` / `LEDGER_SYNTH_MIS = 197` | **现场按 `SYNTH_ISSUE_TYPES` 三类 count** |
+| 台账目标 | 常量 `LEDGER_TARGET = 12833` | `暂存 + 合成`，一次算出 |
+| 偏差地点数 | `MISMATCH_PLACES = 130` | 删除该判据，仅打印参考分布 |
+| 类型数 | `len(暂存类型) + 2` | `len(暂存类型 ∪ 实际出现的合成类型)` |
+| V7 判据 | 总数/类型数/偏差条数/偏差地点/dup 五个固定期望 | **暂存类型缺失=0、未声明类型=0、总数=暂存+合成、指纹唯一** 五个现场判据 |
+
+**历史基线不删，但验证器不读**：M4-2 的数量（12,631 / 5 / 197 / 130 / 12,833 / 15 类型）
+保存在 `code/ops/m4-2/import_baseline.json`，文件头明确写「仅作审计证据，验证器不读取、不作判据」。
+
+**对照实验（证明不是换个地方写死）**：复制干净库，人为插入 7 条额外的
+`duplicate_external_id` 台账行（快照里没有），再跑验证器：
+
+```
+✓ V2  PASS  台账 暂存 12,631（现场读取、零丢弃） + 合成 209 = 12,840（期望同值）
+✓ V7  PASS  12,840 行 = 暂存 12,631 + 合成 209；15 种 issue_type = 暂存 13 + 合成 2
+```
+
+若仍依赖固定的 202 / 12,833，这两项必然 FAIL。日志：`ops/m4-2/no_fixed_numbers_control.txt`
+（同一次运行里 V8 判 FAIL 是预期的——V8 校「快照 ↔ 实际行数」，人为插入的行本来就不在快照里）。
+
+### 14.2 通用验证器清除许可专项检查
+
+| 删除项 | 说明 |
+|---|---|
+| `strpos(lower(issue_type),'licen') > 0` 断言 | V2 的「license* 残留必须为 0」整条移除 |
+| `LICENCE_REMAP_TYPE` / `LICENCE_REMAP_ROWS` | 两个常量与其判据一并删除 |
+| 「`attribution_missing` 必须恰为 2 条」 | 删除；该类型现在只是普通的质量记录，数量随数据变化 |
+| V7 标题与输出里的许可措辞 | 改为中性的「类型覆盖 / 总数 / 指纹唯一」 |
+
+历史两条记录（`dq_0007820` / `dq_0007821`）的处理结果**保留在本报告 §六**，不因验证器改动而丢失。
+正常的信息性质量记录（`attribution_missing`、`unknown_crs` 等）一条未删。
+
+### 14.3 V9b：内容变化 ⇒ UPDATE 路径实测（新增）
+
+新增 `ops/m4-2/v9b_update_path_test.py`，在**一次性隔离库** `canvas_history_v9b` 里跑完即删：
+
+1. 建空库并迁到 V8；用暂存副本导入一轮；
+2. 改 3 条 CHGIS 县级源记录 payload 里的 `CHECKER`（与派生无关的字段）→ `content_hash` 变化；
+3. 同时改一个地点的正名，并在库里把该地点 `locked=true`；
+4. 再导一轮，核对更新语义。
+
+结果 **14 / 14 PASS**：
+
+| 判据 | 结果 |
+|---|---|
+| 源记录总数不变（无重复新增） | 29,391 → 29,391 |
+| 3 条 content_hash 全部变化 | 3 / 3 |
+| `first_batch_id` 未改写 | 3 / 3 |
+| `last_batch_id` 推进到新批次 | 3 / 3 |
+| `import_batch.updated_source_record_ids` 恰好这 3 个 | 3 个 · `chgis_v6_county_points` |
+| 被锁定地点的正名未被覆盖 | 「由拳县」保持原值，`locked=true` |
+| 人工保护登记 1 条 `manual_edit_conflict` | 0 → 1 |
+| 地点总数不变 | 19,039 → 19,039 |
+| 同一变更再导一次仍成功（更新幂等） | EXIT 0 |
+
+**这条测试顺带暴露并修掉一个真实缺陷**：`write_places` 里地点级人工保护用的是
+`self.cnt_blocked[ds]`，与「源记录级 quarantine_hold」共用一个计数器，导致 G1 恒等式
+（`input = 失败 + 隔离 + 新增 + 更新 + 无变化 + 跳过`）多算 1 而整批回滚。
+现在地点级改用独立的 `cnt_place_blocked`，G1 只统计源记录级阻断；批次日志同时打印
+`blocked` 与 `place_blocked` 两个数。此前所有测试都没有触发过「地点被人工保护挡下」的组合，
+所以这个缺陷一直潜伏。
+
+### 14.4 隔离能力
+
+`ops/import_staging.py` 新增 `--staging-dir`（默认仍是 `code/data/staging`），
+仅用于把**输入目录**指向临时副本；派生规则、校验规则、写库逻辑一行未改。
+V9b 靠它做到「构造变化 + 用完即删库」，不污染正式库与既有测试库。
+
+### 14.5 收尾轮回归（全部真实执行）
+
+| 套件 | 结果 |
+|---|---|
+| 干净库两轮导入 + `verify_import.py` | 13 项：**PASS 11 / FAIL 0 / UNVERIFIED 1**（V9b 由隔离测试承担，见 14.3） |
+| 人工保护与回滚 `verify_rollback_and_protection.py` | 9 项：**PASS 8 / FAIL 0** |
+| V9b 更新路径（隔离库） | **14 / 14** |
+| M4-2 来源可选化 API | **19 / 19** |
+| M4-2 无来源地点上图 E2E | **9 / 9** |
+| M3 接口 / 写保护 / E2E | **51 / 51**、**4 / 4**、**56 / 56** |
+| M2-A / M2 完整 / M2 管理界面 | **43 / 43**、**36 / 36**、**14 / 14** |
+| M0/M1 浏览器 E2E | **15 / 15** |
+| 正式库 | 仍 **V5**，九表 29,391 / 19,039 / 47,499 / 18,101 / 53,131 / 12,831 与 M3 封存时一致 |
+
+> 一处测试卫生修正：M2-A 的 `B07`「按别名搜索命中」原本用 `size=5` 取结果，
+> 测试库积累了多轮自动化留下的人物后命中被挤出首页 → 改为 `size=100`（命中判定不应受分页窗口影响），
+> 并清理了 35 条**无任何引用**的自动化人物残留（`测试*` / `界面测试*` / 重复的 `孔丘*`）。
+> 这是测试数据治理，不涉及产品逻辑。
+
+---
+
 ## 附：交付物清单
 
 | 路径 | 内容 |
@@ -318,10 +416,13 @@ import_batch 7  data_dataset 8  data_source 5
 | `code/ops/m4-2/run_manifest.json` | 1.3.0 运行清单 |
 | `code/ops/m4-2/run1_summary.json` / `run2_summary.json` | 干净库两轮导入快照 |
 | `code/ops/m4-2/import_run1.json` / `import_run2.json` | 测试库两轮导入快照 |
-| `code/ops/m4-2/verify_import.log` | 13 项核验输出 |
-| `code/ops/m4-2/protection.log` | 人工保护与回滚实测输出 |
+| `code/ops/m4-2/verify_import.txt` | 13 项核验输出 |
+| `code/ops/m4-2/protection.txt` | 人工保护与回滚实测输出 |
 | `code/ops/m4-2/stage3_excluded_rows.csv` | 候选排除留痕（6 行） |
 | `code/ops/m4-2/api_m4_2_test.py` | 来源可选化 API 测试（19 项） |
+| `code/ops/m4-2/v9b_update_path_test.py` | V9b 内容变化 UPDATE 路径实测（隔离库，14 项） |
+| `code/ops/m4-2/import_baseline.json` | M4-2 历史数量基线（审计用，验证器不读） |
+| `code/ops/m4-2/no_fixed_numbers_control.txt` | 验证器不依赖固定数字的对照实验 |
 | `code/tests/e2e-m4/m4-place-no-source.cjs` | 无来源地点上图 E2E（9 项） |
 | `code/ops/reports/m4-2/shots/` | `40_/41_` 无来源地点截图 + 回归截图 |
 

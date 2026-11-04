@@ -270,7 +270,8 @@ class Importer:
         self.cnt_inserted: Counter = Counter()
         self.cnt_updated: Counter = Counter()
         self.cnt_noop: Counter = Counter()
-        self.cnt_blocked: Counter = Counter()
+        self.cnt_blocked: Counter = Counter()       # §3.2.1 成因 4：quarantine_hold（源记录级，进 G1）
+        self.cnt_place_blocked: Counter = Counter()  # 地点级人工保护跳过（不进 G1，另记台账）
         self.updated_ids: dict[str, list[int]] = {}
         self.manual_blocks: list[tuple] = []      # (ds, sr_id, place_id, fields)
         # write_places 的四类处置计数（供 P2 人工保护断言使用，只记账、不改处理语义）
@@ -657,7 +658,9 @@ class Importer:
                             (ds, self._anchor_id(anc) if anc else None, db[0],
                              "|".join(why) or "manual_edited_fields",
                              db[3], r["canonical_name"]))
-                        self.cnt_blocked[ds] += 1
+                        # 注意：这是**地点级**人工保护，与源记录级 quarantine_hold 不是同一件事，
+                        # 不能计进 G1 的 N_blocked（否则恒等式会多 1）。单独记数。
+                        self.cnt_place_blocked[ds] += 1
                         n_block += 1
                     skip += 1
                     continue
@@ -1117,7 +1120,8 @@ class Importer:
                  self.cnt_noop[ds], self.cnt_blocked[ds], bid))
             print(f"  batch {bid:>2} {ds:34s} succeeded  inserted={len(ids or []):,}"
                   f" updated={len(self.updated_ids.get(ds) or [])} quarantined={quar or 0}"
-                  f" noop={self.cnt_noop[ds]:,} blocked={self.cnt_blocked[ds]}")
+                  f" noop={self.cnt_noop[ds]:,} blocked={self.cnt_blocked[ds]}"
+                  f" place_blocked={self.cnt_place_blocked[ds]}")
 
 
 # ============================================================ main
@@ -1132,7 +1136,15 @@ def main() -> int:
                     help="把本次事务前后行数快照写入 JSON（供幂等性取证）")
     ap.add_argument("--excluded-csv", default="",
                     help="未入库暂存行的逐条留痕路径（默认 ops/reports/stage3_excluded_rows.csv）")
+    ap.add_argument("--staging-dir", default="",
+                    help="暂存 CSV 目录（默认 code/data/staging）。只供隔离测试指定输入，"
+                         "不改变任何派生规则")
     args = ap.parse_args()
+
+    if args.staging_dir:
+        global STAGING
+        STAGING = Path(args.staging_dir).resolve()
+        print(f"### 暂存目录覆盖为 {STAGING}")
 
     env = load_env()
     conn = psycopg2.connect(host="127.0.0.1", port=int(env.get("DB_HOST_PORT", "55432")),

@@ -1,0 +1,145 @@
+### 事务内受控实测  db=canvas_history_m4check（结束时整体 ROLLBACK）
+
+==============================================================================
+P   人工锁定与字段保护（真实导入代码路径，事务内）
+==============================================================================
+    夹具：chgis_v6_prefecture_points       place_id=1  保护位=locked
+    夹具：mcgd_zenodo_22094815_head960     place_id=15747  保护位=manual_edited_fields
+    夹具：pleiades_gis_4_1_slice           place_id=16390  保护位=created_by=manual
+
+    以真实 Importer 重跑一次（只跑到 write_places + write_ledger，随后整体回滚）…
+## 1. 读取暂存 CSV 与实际文件指纹
+  data_datasets.csv                  4b530673373005ccb1feaad5edc1c689d457139497a398399373c658bc624ed4
+  source_records.csv                 83bd11626964a21de4becf3a7cfc6ae99f022b48aafd40e1e70462c765d1c93e
+  historical_places.csv              bfddd91c6fb2a502f063e64aa6b4b2c045d454b057bc56bd2a0d23ad7035fb94
+  historical_place_names.csv         80674c0ded553241c6f4745db0d6957d4dd6617acdfa7918d503128c1690ebbd
+  historical_place_locations.csv     9e987ba578e933ed9bdb11564487125783b22623abf348b9201a74d562d637a2
+  candidate_matches.csv              4e29c2ec64ebe263c325bab5f0eb70dc922116dd737542cf234373d86c98ab12
+  data_quality_issues.csv            7b9020ee41a1ad141dc7dd29529bd7e1202e98409aa3ef55371e5691b5a4a9c5
+
+  暂存原始行数：data_datasets=7 / source_records=29,391 / historical_places=19,039 / historical_place_names=47,503 / historical_place_locations=18,103 / candidate_matches=53,137 / data_quality_issues=12,631
+
+## 1b. 导入级必填校验（数据库不强制、导入器强制）
+  I-01 name.notes 非空：47,503/47,503 ✓
+  I-02 dataset.grain_evidence 非空：7/7 ✓
+
+## 2. 派生：record_scope / parent_external_id / content_hash / duplicate_ordinal
+  record_scope：29,391 行全部命中 4 值（无第五种）
+  parent_external_id：可派生 10,765 / 落哨兵 18,626
+  content_hash：规范化式与逐字节式相等 29,391/29,391  ✓
+  duplicate_ordinal：0 的 29,377 行；重复组 7 组 / 14 行
+  隔离 3 条：sr_0004941, sr_0004942, sr_0027175
+  grain_key：19,039 个地点键
+  暂存 places 19,039 行与派生键 1:1 匹配  ✓
+
+## 2b. time_bound_type 三分支映射（mask 分支两端相等 ⇒ snapshot）
+  location|empty_direct                  651
+  location|mask_keep                   1,704
+  location|numeric_direct             15,748
+  name|empty_direct                    1,183
+  name|mask_collapse_to_snapshot           2
+  name|mask_keep                       2,072
+  name|numeric_direct                 44,246
+  改判行 2：name/nm_0045996: bounded→snapshot（1500=1500）; name/nm_0046197: bounded→snapshot（1500=1500）
+  台账：暂存 12,631 行 → 全部入库 12,631 行（零丢弃、零许可过滤）
+
+### 3.1 data_source / data_dataset（幂等初始化）
+  data_source 5 行（期望 4） / data_dataset 8 行（期望 7）
+
+### 3.2 import_batch（每数据集 1 批，status=running）
+  batch 15  chgis_v6_prefecture_points         input_row_count=5,226
+  batch 16  chgis_v6_county_points             input_row_count=10,522
+  batch 17  mcgd_zenodo_22094815_head960       input_row_count=960
+  batch 18  pleiades_gis_4_1_slice             input_row_count=12,445
+  batch 19  whg_geoname_s_gn_sample            input_row_count=209
+  batch 20  whg_getty_tgn_sample               input_row_count=21
+  batch 21  whg_hgis_de_las_indias_sample      input_row_count=8
+
+### 3.3 source_record（五段键；隔离不删行）
+  库中已存在 29,391 行
+  新增 0 / 内容变更 0 / 仅触 last_batch_id 29,388 / 隔离保持 3；库中合计 29,391
+
+### 3.4 historical_place（每地点恰好 1 条锚点）
+  新增 0 / 内容变更 0 / 无变化 19,036 / 人工保护跳过 3（其中名称冲突登记台账 3）；库中合计 19,039
+
+### 3.8 data_quality_issue
+  暂存 12,631 + duplicate_external_id 5 + derived_value_mismatch 197（130 个地点）+ manual_edit_conflict 3 = 12,836
+  库中 12,836 行 / 唯一指纹 12,836  ✓
+
+    断言：
+      locked                 place 1 现值 = 【保护测试·locked】  未覆盖 ✓
+      manual_edited_fields   place 15747 现值 = 【保护测试·字段级】  未覆盖 ✓
+      created_by=manual      place 16390 现值 = 【保护测试·人工创建】  未覆盖 ✓
+      记录级跳过 blocked_count 合计 3（期望 3）
+      台账 manual_edit_conflict 3 条（期望 3，一行一条，R2 的 1:1 前提）
+  ✓ [P1] locked / manual_edited_fields / created_by=manual 三种保护位均未被机器覆盖；blocked_count=3、manual_edit_conflict=3（1:1）
+
+    本轮 write_places 四类处置：新增 0 / 更新 0 / 无变化 19,036 / 人工保护跳过 3（登记台账 3）；合计 19,039 vs 地点数 19,039
+  ✓ [P2] 19,039 个地点 = 新增 0 + 更新 0 + 无变化 19,036 + 人工保护跳过 3；仅这 3 个被挡且各登记 1 条台账，其余 19,036 个地点重跑均判为无变化，无误挡
+
+==============================================================================
+Q   回滚四道闸 R1 / R2 / R2b / R2c（ROLLBACK §3.4 六步判定顺序的参考实现）
+==============================================================================
+    被回滚批 R = 22（夹具 11 行：正常3 / 已失效1 / 保护位2 / 批次不符1 / 墓碑1 / 隔离2 / 写入失败1）
+      sr#29392  fx01  → rolled_back   （预期 rolled_back）
+      sr#29393  fx02  → rolled_back   （预期 rolled_back）
+      sr#29394  fx03  → rolled_back   （预期 rolled_back）
+      sr#29395  fx04  → noop          （预期 noop）
+      sr#29396  fx05  → stale_batch   （预期 stale_batch）
+      sr#29397  fx06  → locked        （预期 locked）
+      sr#29398  fx07  → locked        （预期 field_locked）
+      sr#29399  fx08  → tombstone     （预期 tombstone）
+      sr#29400  fx09  → quarantine    （预期 quarantine）
+      sr#29401  fx10  → quarantine    （预期 quarantine）
+      sr#29402  fx11  → failed        （预期 inject_fail）
+
+    参考实现结果：N_quar=2 N_noop=1 N_blocked=4 N_fail_rb=1 N_rolled_back=3  合计=11
+    G2(i)  11 = 2 + 9 → 成立
+    G2(ii) 9 = 3 + 4 + 1 + 1 → 成立
+    R1     LHS=3  RHS=(|B|11 − N_quar2) − N_noop1 − blocked4 − failed1 = 3 → 成立
+  ✓ [Q1] R1 成立：回滚成功 3 行 == (|B|−N_quar)−N_noop−blocked−failed = 3
+    洞4反证：若先判 is_active=false ⇒ N_noop=6，RHS=-2 ≠ LHS=3 → 证明判定顺序不可换
+  ✓ [Q2] 判定顺序不可换已实测：错误顺序会使 R1 右式变成 -2（差 5）
+    R2     回滚期台账 4 条 == N_blocked 4 → 成立
+  ✓ [Q3] R2 成立：rollback_conflict+manual_edit_conflict = 4 == N_blocked 4（1:1 行级记账）
+    R2b    补集（正常质量问题）0 条 ≥ 0 → 恒真，按设计不做校验
+  · [R2b] 补集 0 条；设计明示恒真、不做校验（作用是防把质量问题归类成回滚问题）
+    R2c    import_row_error 1 条 == N_fail_rb 1 → 成立
+  ✓ [Q4] R2c 等式成立（1 == 1）；触发方式为**受控注入**，设计 §11 U5『无真实回滚批次』的保留仍成立
+    回滚后夹具地点存活态：{'active': 4, 'all_sources_absent': 1, 'all_sources_rolled_back': 3, 'merged': 1}
+  ✓ [Q5] 3 行软撤后 liveness 变为 all_sources_rolled_back（{'active': 4, 'all_sources_absent': 1, 'all_sources_rolled_back': 3, 'merged': 1}）；被挡的 4 行仍为 active
+
+==============================================================================
+T   真值表 7 个合法格 + orphaned 反例（C27 穷尽性，事务内）
+==============================================================================
+    夹具地点：
+      M1    → mixed_inactive             rejected
+      t01   → active                     staging
+      t02   → manual                     staging
+      t03   → merged                     merged
+      t04   → all_sources_absent         rejected
+      t05   → all_sources_rolled_back    rejected
+      t06   → quarantined_only           rejected
+      t99   → orphaned                   staging
+
+    7 个合法格命中 7/7：[('active', 'staging'), ('all_sources_absent', 'rejected'), ('all_sources_rolled_back', 'rejected'), ('manual', 'staging'), ('merged', 'merged'), ('mixed_inactive', 'rejected'), ('quarantined_only', 'rejected')]
+    断言结果： {'R4a': 0, 'R4b': 0, 'R4c': 0, 'R4d': 0, 'R4e': 0, 'R4f': 1}
+    R4f=1 是**故意造出来的 orphaned 反例**，证明该断言不是空转；其余 5 条必须为 0
+  ✓ [T1] 真值表 7 个合法格全部命中（[('active', 'staging'), ('all_sources_absent', 'rejected'), ('all_sources_rolled_back', 'rejected'), ('manual', 'staging'), ('merged', 'merged'), ('mixed_inactive', 'rejected'), ('quarantined_only', 'rejected')]），无越界组合；R4a–R4e 全 0，R4f 对故意反例返回 1
+
+### 已 ROLLBACK：historical_place 19039 → 19039；data_dataset 8；data_quality_issue 12833
+
+==============================================================================
+汇总
+==============================================================================
+  ✓ P1   PASS       locked / manual_edited_fields / created_by=manual 三种保护位均未被机器覆盖；blocked_count=3、manual_edit_conflict=3（1:1）
+  ✓ P2   PASS       19,039 个地点 = 新增 0 + 更新 0 + 无变化 19,036 + 人工保护跳过 3；仅这 3 个被挡且各登记 1 条台账，其余 19,036 个地点重跑均判为无变化，无误挡
+  ✓ Q1   PASS       R1 成立：回滚成功 3 行 == (|B|−N_quar)−N_noop−blocked−failed = 3
+  ✓ Q2   PASS       判定顺序不可换已实测：错误顺序会使 R1 右式变成 -2（差 5）
+  ✓ Q3   PASS       R2 成立：rollback_conflict+manual_edit_conflict = 4 == N_blocked 4（1:1 行级记账）
+  · R2b  INFO       补集 0 条；设计明示恒真、不做校验（作用是防把质量问题归类成回滚问题）
+  ✓ Q4   PASS       R2c 等式成立（1 == 1）；触发方式为**受控注入**，设计 §11 U5『无真实回滚批次』的保留仍成立
+  ✓ Q5   PASS       3 行软撤后 liveness 变为 all_sources_rolled_back（{'active': 4, 'all_sources_absent': 1, 'all_sources_rolled_back': 3, 'merged': 1}）；被挡的 4 行仍为 active
+  ✓ T1   PASS       真值表 7 个合法格全部命中（[('active', 'staging'), ('all_sources_absent', 'rejected'), ('all_sources_rolled_back', 'rejected'), ('manual', 'staging'), ('merged', 'merged'), ('mixed_inactive', 'rejected'), ('quarantined_only', 'rejected')]），无越界组合；R4a–R4e 全 0，R4f 对故意反例返回 1
+
+  合计 9 项：PASS 8 / FAIL 0
