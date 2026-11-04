@@ -461,8 +461,12 @@ def _place_time_bounds(
     The four sources are handled differently because they make different claims:
 
     * CHGIS: the envelope of its records, ``min_max_of_children``.
-    * Pleiades: the TPQ/TAQ envelope of its name and location rows,
+    * Pleiades: the TPQ/TAQ envelope of its **name and location** rows,
       ``tpq_taq_of_children``.  The place row itself has no time columns.
+      Connection rows are excluded: a connection's TPQ/TAQ describes when the
+      *relation between two places* is attested, not when the place existed
+      (CORE_DATA_MODEL_V2.1 §5.5.4, IMPORT_RULES_V2.1 §7.6).  Including them
+      inflated 820 place/field values across 629 places -- see M4-5.
     * MCGD and WHG: ``none`` -- nothing to aggregate.
 
     Returns:
@@ -502,6 +506,20 @@ def _place_time_bounds(
     if group.source_dataset in EXTRA_SOURCE_DATASETS:
         bounds: List[Tuple[Optional[int], Optional[int]]] = []
         for record in children:
+            # M4-5：connection 子记录**不进入**地点级时间包络。
+            #
+            # 依据（不是本轮新造的语义）：
+            #   CORE_DATA_MODEL_V2.1 §5.5.4 —— "地点的时间跨度是『它的名称与位置
+            #   的时间跨度之并』，是一句可以随时重算的派生结论"，派生视图只 UNION
+            #   historical_place_location 与 historical_place_name，没有 connection。
+            #   IMPORT_RULES_V2.1 §7.6 的重算规则同样只聚合 name+location。
+            #
+            # 语义上也站得住：connection 的 year_after_which / year_before_which 说的是
+            # "这两个地点之间的关系何时被证实"（part_of_admin、insula-batavorum …），
+            # 不是"这个地点何时存在"。把它算进地点包络，等于让邻接地点的年代改写
+            # 本地点——实测 820 行 / 629 个地点的虚增全部来自这里（见 M4-5 审计）。
+            if record.record_kind == "connection":
+                continue
             if record.time_bound_type not in ("tpq_taq", "bounded"):
                 continue
             from_astro, to_astro = _extra_years(record)

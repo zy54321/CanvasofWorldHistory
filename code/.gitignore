@@ -12,6 +12,10 @@ data/staging/*
 data/staging_m4_3/*
 !data/staging_m4_3/manifest.json
 !data/staging_m4_3/SHA256SUMS.txt
+# M4-5：时间包络口径修正后的重建产物，约定同 M4-4a（七张 CSV 不入库，只留两份清单）。
+data/staging_m4_5/*
+!data/staging_m4_5/manifest.json
+!data/staging_m4_5/SHA256SUMS.txt
 data/backup/
 *.dump
 *.backup

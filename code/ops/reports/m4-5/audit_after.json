@@ -1,0 +1,18 @@
+{
+  "summary": {
+    "staging_dir": "E:\\01_Work\\01_PersonalProjects\\014-CanvasofWorldHistory\\code\\data\\staging_m4_5",
+    "places_total": 57967,
+    "mismatch_rows": 0,
+    "mismatch_places": 0,
+    "by_dataset": {},
+    "places_by_dataset": {},
+    "by_classification": {},
+    "by_field": {},
+    "staged_equals_name_loc_conn": 0,
+    "connection_only": 0,
+    "both_connection_and_filter": 0,
+    "bound_type_filter_only": 0,
+    "unexplained": 0
+  },
+  "details": []
+}
