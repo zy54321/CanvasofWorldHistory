@@ -1,0 +1,14 @@
+== 归档 ==
+  size 286,621,469 ok=True  md5 ad339c92c6b8… ok=True  zip ok
+== 地点 ==
+  rows 41,480 (期望 41,480, 命中=True)  unique id 41,480  dup id 0  unique uri 41,480  dup uri 0
+  precision {'precise': 29396, 'rough': 12084}
+== 名称 ==
+  rows 38,862  orphan 0  exact-dup rows 651  time 35,591  tp>taq 0
+  types {'geographic': 36258, 'ethnic': 1396, 'associated_modern': 1028, 'label': 159, 'undefined': 14, 'unknown': 7}
+== 位置 ==
+  Point      rows 25,038  parsed 25,038  invalid 0  empty 0  oob 0  orphan 0  precision {'precise': 25038}
+  Polygon    rows 4,385  parsed 4,385  invalid 5  empty 0  oob 0  orphan 0  precision {'rough': 3942, 'precise': 443}
+  LineString rows 5,265  parsed 5,265  invalid 0  empty 0  oob 0  orphan 0  precision {'precise': 5265}
+== 连接 ==
+  rows 13,603  orphan 29  self 2  dup 9  types {'connection': 3622, 'at': 2963, 'on': 1223, 'part_of_physical': 1144, 'near': 963, 'part_of_regional': 784, 'part_of_admin': 594, 'part_of_analytical': 517, 'flows_into': 3

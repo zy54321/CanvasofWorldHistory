@@ -355,7 +355,7 @@ ck_hpl_geom_matches_type: CHECK (geom IS NULL OR st_geometrytype(geom) = 'ST_' |
 | `code/ops/reports/M4_3_IMPORT_PLAN.md` | 导入方案与最小改造清单 |
 | `code/ops/m4-3/pleiades_audit.py` | 只读审计脚本（可重跑，输出 JSON） |
 | `code/ops/m4-3/audit.json` | 全量审计结果（含 19 个文件 SHA256、全部计数、示例） |
-| `code/ops/m4-3/audit_run.log` | 本次执行的控制台输出 |
+| `code/ops/m4-3/audit_run.txt` | 本次执行的控制台输出 |
 | `code/data/raw/pleiades_gis_4_1/` | 原始 zip + 提取的 19 个文件（不入库） |
 
 **M4-3 — DATA ACQUISITION & AUDIT COMPLETED / READY FOR IMPORT PLAN ACCEPTANCE**
