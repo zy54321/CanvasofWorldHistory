@@ -270,7 +270,8 @@ V9b 诚实标注：本轮没有构造 `content_hash` 变化的第三轮输入，
 |---|---|
 | 分支 | `m4-2-import-rules` |
 | 起点 | `cbada4c0b85af4cbb9d93da24f875d8bfd16a17f`（M4-1 报告） |
-| 实现提交 | 见文末（本报告与其同轮提交） |
+| 实现提交 | **`66536c7d0d7071f9907c39fdfe04e8c53ad6e6a6`** `feat(m4-2): drop licence gate, make provenance optional, rebase import counts` |
+| 报告提交 | 本文件的独立 `docs(m4)` 提交 |
 | 远程 | 无，未推送 |
 | 工作区 | 提交后干净 |
 
