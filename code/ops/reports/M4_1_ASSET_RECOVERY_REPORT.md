@@ -2,8 +2,8 @@
 
 - 执行时间：2026-11-04（Asia/Shanghai）
 - 分支：`m3-time-map`（HEAD 起点 `c40dcbb`，M4-0 审计报告）
-- 恢复提交：**`b856175`** `chore(m4): restore P0 assets and prove the normalisation pipeline still reproduces`
-- 报告提交：紧随恢复提交的独立 `docs(m4)` 提交
+- 恢复提交：**`b856175ca5bd7b11678ca1414a958c09fd91fc5f`** `chore(m4): restore P0 assets and prove the normalisation pipeline still reproduces`
+- 报告提交：**`cbada4c0b85af4cbb9d93da24f875d8bfd16a17f`** `docs(m4): M4-1 asset recovery and pipeline reproduction report`
 - 结论：**ASSET RECOVERY：PASS；PIPELINE REPRODUCTION：PASS；DATA INTEGRITY：PASS**
 
 > 本轮只做三件事：把回收站里的 P0 资产复制回来、逐文件核验、在隔离目录重跑归一化流水线。
@@ -39,7 +39,10 @@
 | `$IXROG9G` → `$RXROG9G` | `…\设计资料\P0收敛` | 2026-11-03 12:14:09 | 107,765,301 B |
 | `$ICJY9IU` → `$RCJY9IU` | `…\code\p0` | 2026-11-03 12:14:14 | 135,626,661 B |
 
-> 三个 `$I` 记录的大小与恢复后逐文件字节总和完全一致（2,223,550 / 107,765,301 / 选定的 511,225），说明回收站内容未被截断或替换。
+> `$I4BI1K6` / `$IXROG9G` 两个记录的大小与恢复后逐文件字节总和完全一致（2,223,550 / 107,765,301），说明回收站内容未被截断或替换。
+>
+> `$ICJY9IU` 的记录大小为 **135,626,661 字节**（整个 `code/p0` 目录），本轮按指令只恢复其中 **23 个核心文件，合计 511,225 字节**，
+> 未恢复的 135,115,436 字节是 `wb-001-maptiler-demo/` 的源码、`dist` 与 `node_modules`。
 
 ### 1.4 恢复目标与防覆盖策略
 
@@ -68,7 +71,7 @@
 |---|---|---|
 | `P0验证`：“43 个文件，约 1.90 MB” | 目录内实际 **51 个文件 / 2,223,550 B** | 43 是 `WB-002/` 子集（37 个原始样本 + 6 个报告/映射）；同目录还有 `WB-001/` 6 个地图验证材料与 2 份 P0 总报告。按“完整找回误删目录”原则一并恢复，未丢弃。 |
 | `P0收敛`：“182 个文件，约 102.8 MB” | **182 个文件 / 107,765,301 B** | 与指令一致（102.8 MiB = 107.8 MB） |
-| `code/p0`：“2,871 个文件，约 129.3 MB” | 只恢复 **23 个脚本 / 511,225 B** | 2,871 中含 `wb-001-maptiler-demo/node_modules` 与 `dist`；按指令“禁止为方便恢复全部”只取核心脚本 |
+| `code/p0`：“2,871 个文件，约 129.3 MB” | 只恢复 **23 个脚本 / 511,225 B** | 回收站记录 `$ICJY9IU` 全目录为 135,626,661 B；2,871 中含 `wb-001-maptiler-demo/node_modules` 与 `dist`（135,115,436 B）。按指令“禁止为方便恢复全部”只取核心脚本 |
 
 `P0收敛` 的 182 个文件构成：
 
@@ -118,6 +121,10 @@ $RXROG9G : src_files 182 missing 0  hash_mismatch 0
 ## 三、核心脚本恢复结果
 
 ### 3.1 清单（23 个，全部 `restored`）
+
+**23 个文件的构成：20 个 Python 文件 + 2 个 Shell 文件 + 1 个 README。**
+README（`wb-002-normalize/README.md`）是**文档，不是运行时依赖**——流水线运行时只 import 那 20 个 `.py`；
+2 个 `.sh` 是抓取脚本，本轮复现未调用。因此“运行时必需依赖”实际是 **20 个 Python 文件**。
 
 | 文件 | 字节 | SHA256（前 16 位） |
 |---|---:|---|
@@ -260,8 +267,8 @@ hash inputs (after) [unchanged]
 | 项 | 值 |
 |---|---|
 | 分支 | `m3-time-map` |
-| 恢复提交 | **`b856175`** `chore(m4): restore P0 assets and prove the normalisation pipeline still reproduces` |
-| 报告提交 | 本文件的独立 `docs(m4)` 提交 |
+| 恢复提交 | **`b856175ca5bd7b11678ca1414a958c09fd91fc5f`** `chore(m4): restore P0 assets and prove the normalisation pipeline still reproduces` |
+| 报告提交 | **`cbada4c0b85af4cbb9d93da24f875d8bfd16a17f`** `docs(m4): M4-1 asset recovery and pipeline reproduction report` |
 | 远程 | 无，未推送 |
 | 工作区 | 提交后干净 |
 

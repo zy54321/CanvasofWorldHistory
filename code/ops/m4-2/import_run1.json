@@ -1,0 +1,95 @@
+{
+  "db": "canvas_history_m2check",
+  "run_at": "2026-11-04T03:47:32+00:00",
+  "derivation_version": "v2.1.1",
+  "dry_run": false,
+  "inject_fault": null,
+  "exit_code": 0,
+  "committed": true,
+  "counts_before": {
+    "source_record": 7,
+    "historical_place": 39,
+    "historical_place_name": 26,
+    "historical_place_location": 25,
+    "candidate_match": 0,
+    "data_quality_issue": 0,
+    "import_batch": 1,
+    "data_dataset": 3,
+    "data_source": 2
+  },
+  "counts_after": {
+    "source_record": 29398,
+    "historical_place": 19078,
+    "historical_place_name": 47525,
+    "historical_place_location": 18126,
+    "candidate_match": 53131,
+    "data_quality_issue": 12833,
+    "import_batch": 8,
+    "data_dataset": 10,
+    "data_source": 5
+  },
+  "assert_ok": true,
+  "staging_rows": {
+    "data_datasets": 7,
+    "source_records": 29391,
+    "historical_places": 19039,
+    "historical_place_names": 47503,
+    "historical_place_locations": 18103,
+    "candidate_matches": 53137,
+    "data_quality_issues": 12631
+  },
+  "excluded_csv": "ops/m4-2/excluded_run1.csv",
+  "quarantine_ids": [
+    "sr_0004941",
+    "sr_0004942",
+    "sr_0027175"
+  ],
+  "source_stat": {
+    "inserted": 29391,
+    "updated": 0,
+    "touched": 0,
+    "held": 0
+  },
+  "candidate_stat": {
+    "staging": 53137,
+    "inserted": 53131,
+    "self_ref": 2,
+    "c09": 4
+  },
+  "ledger_stat": {
+    "staging": 12631,
+    "dup": 5,
+    "mismatch": 197,
+    "places": 130,
+    "manual": 0
+  },
+  "time_changed": [
+    [
+      "name",
+      "nm_0045996",
+      "bounded",
+      "snapshot",
+      "1500",
+      "1500"
+    ],
+    [
+      "name",
+      "nm_0046197",
+      "bounded",
+      "snapshot",
+      "1500",
+      "1500"
+    ]
+  ],
+  "table_delta_inserted": {
+    "source_record": 29391,
+    "historical_place": 19039,
+    "historical_place_name": 47499,
+    "historical_place_location": 18101,
+    "candidate_match": 53131,
+    "data_quality_issue": 12833,
+    "import_batch": 7,
+    "data_dataset": 7,
+    "data_source": 3
+  }
+}

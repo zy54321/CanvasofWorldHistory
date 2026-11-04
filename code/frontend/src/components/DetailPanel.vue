@@ -224,7 +224,7 @@ function locate() {
           <strong>{{ detail.sourceName ?? detail.sourceId ?? '—' }}</strong>
           <span v-if="detail.datasetVersion" class="dim">· 版本 {{ detail.datasetVersion }}</span>
         </div>
-        <p v-if="detail.sourceLicenseNote" class="tiny dim lic">{{ detail.sourceLicenseNote }}</p>
+        <p v-if="detail.sourceNote" class="tiny dim lic">{{ detail.sourceNote }}</p>
         <table v-if="detail.sourceRecords.length" class="tbl">
           <thead>
             <tr><th>外部 ID</th><th>作用域</th><th>原始文件</th><th>状态</th></tr>

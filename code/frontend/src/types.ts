@@ -97,7 +97,7 @@ export interface PlaceDetail {
   sourceId: string | null
   sourceName: string | null
   sourceHomepage: string | null
-  sourceLicenseNote: string | null
+  sourceNote: string | null
   names: PlaceName[]
   locations: PlaceLocation[]
   sourceRecords: SourceRecordRef[]

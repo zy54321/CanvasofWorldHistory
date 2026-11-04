@@ -288,9 +288,9 @@ public class PlaceAdminService {
                         CASE WHEN :lon::double precision IS NULL OR :lat::double precision IS NULL
                              THEN NULL ELSE 'Point' END,
                         :lon, :lat,
-                        CASE WHEN :lon IS NULL THEN NULL ELSE :lon::text END,
-                        CASE WHEN :lat IS NULL THEN NULL ELSE :lat::text END,
-                        CASE WHEN :lon IS NULL THEN NULL ELSE 'EPSG:4326' END,
+                        CASE WHEN :lon::double precision IS NULL THEN NULL ELSE :lon::text END,
+                        CASE WHEN :lat::double precision IS NULL THEN NULL ELSE :lat::text END,
+                        CASE WHEN :lon::double precision IS NULL THEN NULL ELSE 'EPSG:4326' END,
                         :crs, false, :prec, :unc, :vf, :vt, :tbt, :notes, :status, 'manual', now(), now())
                 """, prm, keys, new String[]{"location_id"});
         return keys.getKey() == null ? -1L : keys.getKey().longValue();
@@ -307,9 +307,9 @@ public class PlaceAdminService {
                        geom_type = CASE WHEN :lon::double precision IS NULL
                                         THEN NULL ELSE 'Point' END,
                        representative_lon = :lon, representative_lat = :lat,
-                       original_x = CASE WHEN :lon IS NULL THEN NULL ELSE :lon::text END,
-                       original_y = CASE WHEN :lat IS NULL THEN NULL ELSE :lat::text END,
-                       original_crs = CASE WHEN :lon IS NULL THEN NULL ELSE 'EPSG:4326' END,
+                       original_x = CASE WHEN :lon::double precision IS NULL THEN NULL ELSE :lon::text END,
+                       original_y = CASE WHEN :lat::double precision IS NULL THEN NULL ELSE :lat::text END,
+                       original_crs = CASE WHEN :lon::double precision IS NULL THEN NULL ELSE 'EPSG:4326' END,
                        crs_confidence = :crs, location_precision = :prec, uncertainty_m = :unc,
                        valid_from_year_astro = :vf, valid_to_year_astro = :vt,
                        time_bound_type = :tbt, notes = :notes, record_status = :status

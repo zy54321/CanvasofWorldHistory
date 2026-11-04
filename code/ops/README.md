@@ -6,7 +6,6 @@
 | `flyway.sh` | Docker 内执行 Flyway（固定版本 13.12.0-alpine），凭证不进命令行 |
 | `verify_schema.py` | 把实际库结构与 `CORE_DATA_MODEL_V2.1.1` 逐项比对（表/列/类型/可空/约束/索引/视图/PostGIS） |
 | `verify_constraints.py` | 在事务内逐条触发 C01–C26 约束，证明它们真的拦得住；结束 ROLLBACK，不留数据 |
-| `verify_no_licence_gate.py` | 许可门禁不存在性审计：目录级 0 命中 + 发布路径无许可谓词 + 342 条台账写入全通 |
 | `verify_fingerprint.py` | `fn_issue_fingerprint` 的 IMMUTABLE 核验：元数据、跨会话确定性、生成列等价性 |
 | `IMPORT_VALIDATION_RULES.md` | 阶段三导入程序须自行校验、数据库不强制的规则（含 `notes` 必填） |
 | `import_staging.py` | **阶段三导入器**：七张暂存 CSV → 九表（单事务、可重复执行、失败整批回滚、**断言失败即回滚**） |
@@ -42,9 +41,6 @@ PYTHONPATH=./ops/.deps python ops/verify_schema.py canvas_history
 
 # 约束行为验证（全程事务内，结束回滚）
 PYTHONPATH=./ops/.deps python ops/verify_constraints.py canvas_history_migrationcheck
-
-# 许可门禁不存在性审计（结构层 + 发布路径 + 行为级正写）
-PYTHONPATH=./ops/.deps python ops/verify_no_licence_gate.py canvas_history
 
 # 指纹函数 IMMUTABLE 核验（19 个会话配置 × 8 组输入）
 PYTHONPATH=./ops/.deps python ops/verify_fingerprint.py canvas_history

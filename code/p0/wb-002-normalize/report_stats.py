@@ -389,7 +389,6 @@ def build_stats_payload(
     date_rules: DateRuleDictionary,
     field_quirks: Sequence[Any],
     mcgd_header_ok: bool,
-    mcgd_license_id: str,
     mcgd_rows: int,
     coordinate_dedup: Dict[str, int],
     time_inversion_denominator: Dict[str, int],
@@ -574,7 +573,6 @@ def build_stats_payload(
             "source_rows": mcgd_rows,
             "places": bundle_stats.get("place_counts", {}).get("mcgd", 0),
             "header_matches_expected": mcgd_header_ok,
-            "license_id": mcgd_license_id,
         },
         "cross_layer_disagreements": {
             **(dict(cross_layer_stats["totals"]) if cross_layer_stats else {}),
@@ -650,8 +648,6 @@ def build_stats_payload(
         "data_datasets": {
             "rows": bundle_stats.get("data_datasets_rows", 0),
             "dataset_ids": bundle_stats.get("data_datasets_ids", []),
-            "license_ids": bundle_stats.get("data_datasets_license_ids", {}),
-            "redistributable": bundle_stats.get("data_datasets_redistributable", {}),
         },
         "tables": bundle_stats,
     }

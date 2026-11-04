@@ -45,7 +45,6 @@ __all__ = [
     "union_field_order",
     "read_chgis_readme",
     "citation_from_readme",
-    "license_statement_from_readme",
     "mandatory_citation_from_eula",
 ]
 
@@ -383,14 +382,6 @@ def citation_from_readme(readme_text: str) -> Optional[str]:
             return stripped[len("citation:") :].strip()
     return None
 
-
-def license_statement_from_readme(readme_text: str) -> Optional[str]:
-    """Extract the verbatim ``License:`` sentence from the CHGIS README."""
-    for line in readme_text.splitlines():
-        stripped = line.strip()
-        if stripped.lower().startswith("license:"):
-            return stripped[len("license:") :].strip()
-    return None
 
 
 def mandatory_citation_from_eula(sample_dir: Path) -> Optional[str]:

@@ -862,6 +862,13 @@ V5   count(证据行 WHERE evidence_role='creator'
 | `rollback_conflict` | 0 | 回滚运行期产生 |
 
 > 暂存原始 12,631 行中有 2 行 `licence_unconfirmed`，按 Owner 决策 3 直接删除、不重新归类；因此上表 19 值的暂存命中数合计 **12,629**。7 个零命中值均明确保留其运行期/后续处理用途，不代表当前暂存中存在对应行。
+>
+> ⚠️ **上述「删除 2 行」的规定已被 Owner 后续决策取代（M4-2，2026-11-04）**：
+> 系统内不再建设许可门禁、许可审核流程或许可完整性检查，数据授权由 Owner 自行负责。
+> 这 2 行不再被剔除，其 `issue_type` 改为 `attribution_missing`（severity `info`，
+> `action_taken=retained_as_is`）并正常入库；暂存命中数合计因此变为 **12,631**。
+> 本节其余内容（19 值域、C10/C23/C24/C11 等约束）保持不变。现行口径以
+> `code/ops/IMPORT_VALIDATION_RULES.md` 与 `code/ops/reports/M4_2_IMPORT_RULES_REPORT.md` 为准。
 > ⛔ **禁止为凑满 20 值而新增替代类型**（Owner 决策 3 / V0.2.1 §2.8-C）。
 > **回滚阶段**产生的台账类型**只有** `rollback_conflict` 与 `manual_edit_conflict`；**`import_row_error` 属原导入阶段**，不计入 R2，改由 **R2c** 单独校验。
 

@@ -438,18 +438,18 @@ class Importer:
                 f"时间类型改判行与权威期望不符（期望恰 nm_0045996 / nm_0046197 两行）⇒ 整批中止：{changed}")
 
         # 台账 dataset_id（CORE §5.9.1：① 源记录 ② 图层键映射）
-        self.dq_v2, self.dropped_licence = [], []
+        #
+        # M4-2：Owner 已取消许可门禁、许可审核与许可完整性检查，数据授权由 Owner 自行负责。
+        #   导入器**不按 issue_type 丢弃任何行**，也不含任何许可判定分支——
+        #   台账逐行入库，行数恒等于「暂存行 + 导入器合成行」。
+        self.dq_v2 = []
         for r in self.dq_rows:
-            if r["issue_type"] == "licence_unconfirmed":
-                self.dropped_licence.append(r["issue_id"])
-                continue
             sid = (r["source_record_id"] or "").strip() or None
             ds = self.rec_by_sid[sid]["ds"] if sid else LAYER_MAP.get(r["source_dataset"])
             if ds is None:
                 raise DerivationError(f"台账 {r['issue_id']} 无法派生 dataset_id（source_dataset={r['source_dataset']}）")
             self.dq_v2.append((r, ds, sid))
-        print(f"  台账：{len(self.dq_rows):,} → 剔除 licence_unconfirmed {len(self.dropped_licence)} 行"
-              f"（{', '.join(self.dropped_licence)}）→ 保留 {len(self.dq_v2):,} 行")
+        print(f"  台账：暂存 {len(self.dq_rows):,} 行 → 全部入库 {len(self.dq_v2):,} 行（零丢弃、零许可过滤）")
 
     # ------------------------------------------------------------ 2. 写库
     TABLES = ("source_record", "historical_place", "historical_place_name",
@@ -1032,22 +1032,22 @@ class Importer:
         ok = True
         q = [
             ("F17a mask 分支两端相等却非 snapshot",
-             "SELECT count(*) FROM historical_place_name WHERE source_time_columns = %s"
+             "SELECT count(*) FROM historical_place_name WHERE created_by = 'import' AND source_time_columns = %s"
              " AND valid_from_year_astro = valid_to_year_astro AND time_bound_type <> 'snapshot'",
              (MASK_RULE,)),
             ("F17a' mask 分支两端不等却是 snapshot",
-             "SELECT count(*) FROM historical_place_name WHERE source_time_columns = %s"
+             "SELECT count(*) FROM historical_place_name WHERE created_by = 'import' AND source_time_columns = %s"
              " AND valid_from_year_astro <> valid_to_year_astro AND time_bound_type = 'snapshot'",
              (MASK_RULE,)),
             ("F17b 数字分支两端相等仍 bounded（期望 17）",
-             "SELECT count(*) FROM historical_place_name WHERE source_time_columns = ''"
+             "SELECT count(*) FROM historical_place_name WHERE created_by = 'import' AND source_time_columns = ''"
              " AND valid_from_year_astro = valid_to_year_astro"
              " AND time_bound_type = 'bounded'", ()),
             ("location 七值域外",
-             "SELECT count(*) FROM historical_place_location WHERE time_bound_type NOT IN"
+             "SELECT count(*) FROM historical_place_location WHERE created_by = 'import' AND time_bound_type NOT IN"
              " ('exact','bounded','exact_or_bounded','tpq_taq','derived_tpq_taq','snapshot','unknown')", ()),
             ("name 七值域外",
-             "SELECT count(*) FROM historical_place_name WHERE time_bound_type NOT IN"
+             "SELECT count(*) FROM historical_place_name WHERE created_by = 'import' AND time_bound_type NOT IN"
              " ('exact','bounded','exact_or_bounded','tpq_taq','derived_tpq_taq','snapshot','unknown')", ()),
         ]
         for label, sql, args in q:
@@ -1068,7 +1068,10 @@ class Importer:
                 if r["source_record_id"] in self.quarantine:
                     continue
                 exp[self.time_map[(tb, r[idcol])][0]] += 1
-            c.execute(f"SELECT time_bound_type, count(*) FROM {table} GROUP BY 1")
+            # 只看导入产生的行：测试库里可能已有管理界面手工录入的名称/位置，
+            # 它们不属于本次导入，不能用来判断映射分布。
+            c.execute(f"SELECT time_bound_type, count(*) FROM {table}"
+                      f" WHERE created_by = 'import' GROUP BY 1")
             db = dict(c.fetchall())
             diff = {k: (db.get(k, 0), exp.get(k, 0)) for k in set(db) | set(exp)
                     if db.get(k, 0) != exp.get(k, 0)}

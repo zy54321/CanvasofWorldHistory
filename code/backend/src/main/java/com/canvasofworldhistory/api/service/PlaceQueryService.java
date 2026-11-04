@@ -15,7 +15,10 @@ import java.util.Optional;
  * M1 只读查询：地点搜索 / 地点详情 / 地图 bbox 查询 / 概览统计。
  *
  * 口径（全部沿用既有数据模型，不另立规则）：
- *  · 只有 record_status &lt;&gt; 'rejected' 且所属 source_record 有效（is_active）的行参与展示；
+ *  · 只有 record_status &lt;&gt; 'rejected' 的行参与展示。**来源不是准入条件**（M4-2）：
+ *    有 source_record 时要求它 is_active（失效来源的衍生行不展示），
+ *    没有 source_record（人工录入）时照常展示 —— 因此关联一律 LEFT JOIN，
+ *    不得因为 source_record_id 为空把地点或名称排除在外；
  *  · 未知坐标系（crs_confidence = 'unknown'）的坐标行**不作为可信位置**输出（地图不返回、详情里标注）；
  *  · 每个地点在地图上只画一个点：坐标行按 location_id 定序取首行（与 v_place_evidence 的"有效证据优先"同思路）；
  *  · 名称检索覆盖 primary / alternate（别名）/ transliteration 三种 name_type，同名不同地点**不合并**。
@@ -59,10 +62,10 @@ public class PlaceQueryService {
                   FROM historical_place_name n
                   JOIN historical_place pl ON pl.place_id = n.place_id
                                          AND pl.merged_into_place_id IS NULL
-                  JOIN source_record sr ON sr.source_record_id = n.source_record_id
+                  LEFT JOIN source_record sr ON sr.source_record_id = n.source_record_id
                   CROSS JOIN param p
                  WHERE n.record_status <> 'rejected'
-                   AND sr.is_active
+                   AND (sr.source_record_id IS NULL OR sr.is_active)
                    AND n.name_text ILIKE '%' || p.kw || '%'
                    AND (p.yr IS NULL
                         OR ((n.valid_from_year_astro IS NULL OR n.valid_from_year_astro <= p.yr)
@@ -171,7 +174,7 @@ public class PlaceQueryService {
                        p.record_status, p.merged_into_place_id, p.dataset_id,
                        d.display_name AS dataset_name, d.dataset_version, d.source_id,
                        s.display_name AS source_name, s.homepage_url AS source_homepage,
-                       s.notes AS source_license_note,
+                       s.notes AS source_note,
                        v.liveness
                   FROM historical_place p
                   JOIN data_dataset d ON d.dataset_id = p.dataset_id
@@ -197,7 +200,7 @@ public class PlaceQueryService {
             m.put("sourceId", rs.getString("source_id"));
             m.put("sourceName", rs.getString("source_name"));
             m.put("sourceHomepage", rs.getString("source_homepage"));
-            m.put("sourceLicenseNote", rs.getString("source_license_note"));
+            m.put("sourceNote", rs.getString("source_note"));
             return m;
         });
         if (head.isEmpty()) {
@@ -304,7 +307,7 @@ public class PlaceQueryService {
                 (String) h.get("sourceId"),
                 (String) h.get("sourceName"),
                 (String) h.get("sourceHomepage"),
-                (String) h.get("sourceLicenseNote"),
+                (String) h.get("sourceNote"),
                 names, locations, records, issues, truncated));
     }
 
@@ -319,11 +322,11 @@ public class PlaceQueryService {
         Long total = jdbc.queryForObject("""
                 SELECT count(DISTINCT l.place_id)
                   FROM historical_place_location l
-                  JOIN source_record sr ON sr.source_record_id = l.source_record_id
+                  LEFT JOIN source_record sr ON sr.source_record_id = l.source_record_id
                  WHERE l.geom IS NOT NULL
                    AND l.crs_confidence <> 'unknown'
                    AND l.record_status <> 'rejected'
-                   AND sr.is_active
+                   AND (sr.source_record_id IS NULL OR sr.is_active)
                    AND ST_Intersects(l.geom, ST_MakeEnvelope(:w, :s, :e, :n, 4326))
                 """, prm, Long.class);
         long n = total == null ? 0 : total;
@@ -335,11 +338,11 @@ public class PlaceQueryService {
                            l.location_precision, l.uncertainty_m, l.crs_confidence,
                            l.valid_from_year_astro, l.valid_to_year_astro, l.time_bound_type
                       FROM historical_place_location l
-                      JOIN source_record sr ON sr.source_record_id = l.source_record_id
+                      LEFT JOIN source_record sr ON sr.source_record_id = l.source_record_id
                      WHERE l.geom IS NOT NULL
                        AND l.crs_confidence <> 'unknown'
                        AND l.record_status <> 'rejected'
-                       AND sr.is_active
+                       AND (sr.source_record_id IS NULL OR sr.is_active)
                        AND ST_Intersects(l.geom, ST_MakeEnvelope(:w, :s, :e, :n, 4326))
                      ORDER BY l.place_id, l.location_id
                 )

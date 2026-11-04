@@ -35,25 +35,32 @@ CSV_FILES = [
 ]
 
 # 开工前数据基线（设计资料/V2.1.1_正式交付/_build/STAGING_FIELD_BASELINE.md 行 29–35）
+# M4-2 基线：流水线升级到 wb-002-normalize/1.3.0（删除许可字段）后重新生成的四张表。
+# 未变的 3 张（names / locations / candidate）哈希与 M4-1 完全相同，证明改动没有波及坐标、
+# 名称与候选匹配。M4-1 的旧基线原样保留在 code/ops/m4/md5_baseline.txt（未被覆盖）。
 BASELINE_SHA256 = {
-    "data_datasets.csv": "fa44197e54b4da4a8af78b589d10a63a668184397f63dbdf842b5051a2ef636f",
-    "source_records.csv": "30fed0e40ba124960ba008b030948394398a418a9cc58b333095614469771c5d",
-    "historical_places.csv": "86db3ce6b94f9e31036a3785a55510d48eb43bd4ce998aaa5cad2f59b068533f",
+    "data_datasets.csv": "4b530673373005ccb1feaad5edc1c689d457139497a398399373c658bc624ed4",
+    "source_records.csv": "83bd11626964a21de4becf3a7cfc6ae99f022b48aafd40e1e70462c765d1c93e",
+    "historical_places.csv": "bfddd91c6fb2a502f063e64aa6b4b2c045d454b057bc56bd2a0d23ad7035fb94",
     "historical_place_names.csv": "80674c0ded553241c6f4745db0d6957d4dd6617acdfa7918d503128c1690ebbd",
     "historical_place_locations.csv": "9e987ba578e933ed9bdb11564487125783b22623abf348b9201a74d562d637a2",
     "candidate_matches.csv": "4e29c2ec64ebe263c325bab5f0eb70dc922116dd737542cf234373d86c98ab12",
-    "data_quality_issues.csv": "7a8ab3916e00dcb04308d89c816c7c8771c6f71ec598ee3e4188c6b643263602",
+    "data_quality_issues.csv": "7b9020ee41a1ad141dc7dd29529bd7e1202e98409aa3ef55371e5691b5a4a9c5",
 }
 
 RESULTS: list[tuple[str, str, str]] = []
 
-# 台账口径基线（Owner R1.1 明确）：暂存原始 12,631 行 → 目标 12,831 行
+# 台账口径基线（M4-2 重定：许可门禁取消后不再有任何“因许可被丢弃”的行）
+#   暂存 12,631 行全部入库 + 导入器合成的两类（duplicate_external_id / derived_value_mismatch）
+#   + manual_edit_conflict（本轮为 0）= 12,833。合成数量现场从库里取，不写死丢弃数。
 LEDGER_STAGED = 12631          # 暂存原始行数（必须与现场读到的 CSV 行数相等）
-LEDGER_DROPPED = 2             # licence_unconfirmed 两条明确剔除，不重归类
 LEDGER_SYNTH_DUP = 5           # duplicate_external_id 合成
 LEDGER_SYNTH_MIS = 197         # derived_value_mismatch 合成
-LEDGER_TARGET = LEDGER_STAGED - LEDGER_DROPPED + LEDGER_SYNTH_DUP + LEDGER_SYNTH_MIS   # 12,831
+LEDGER_TARGET = LEDGER_STAGED + LEDGER_SYNTH_DUP + LEDGER_SYNTH_MIS   # 12,833
 MISMATCH_PLACES = 130          # derived_value_mismatch 涉及的地点个数（字段级台账，非地点数）
+# 许可类台账行在 M4-2 一律转写为该类型，库中不得再出现任何 licence* 的 issue_type
+LICENCE_REMAP_TYPE = "attribution_missing"
+LICENCE_REMAP_ROWS = 2         # 历史 licence_unconfirmed 两条：dq_0007820 / dq_0007821
 
 
 def record(no: str, status: str, msg: str) -> None:
@@ -120,14 +127,17 @@ def v1_files(cur) -> None:
     print(f"\n    import_batch 共 {len(batches)} 个批次（逐条核对，不取 DISTINCT 首行）")
     if not batches:
         bad.append("import_batch 为空，批次指纹无从核对")
-    b_bad, b_null, b_nokey = [], [], []
+    b_bad, b_null, b_nokey, b_ext = [], [], [], []
     for bid, ds, fname, sha in batches:
+        # 非本导入器创建的批次（例如测试库里的 M3 演示数据 demo.json）不属于阶段三导入，
+        # 既不参与台账口径，也没有暂存 CSV 基线——单独列为 external，不判失败。
+        if fname not in BASELINE_SHA256:
+            b_ext.append(f"{bid}:{ds}:{fname}")
+            print(f"      batch {bid:>3}  {ds:32s}  {fname:24s}  {str(sha)[:16]}…  外部批次（跳过）")
+            continue
         if sha is None:
             b_null.append(bid)
             mark = "NULL ✗"
-        elif fname not in BASELINE_SHA256:
-            b_nokey.append(f"{bid}:{fname}")
-            mark = f"input_file {fname} 无基线 ✗"
         elif sha == BASELINE_SHA256[fname]:
             mark = f"= 基线 {fname}"
         else:
@@ -135,14 +145,15 @@ def v1_files(cur) -> None:
             mark = f"≠ 基线（{fname}）✗"
         print(f"      batch {bid:>3}  {ds:32s}  {fname:24s}  {str(sha)[:16]}…  {mark}")
 
-    distinct_sha = len({b[3] for b in batches})
-    print(f"    指纹集合：{distinct_sha} 种；NULL {len(b_null)} 条；无基线 input_file {len(b_nokey)} 条；"
-          f"与基线不符 {len(b_bad)} 条")
+    distinct_sha = len({b[3] for b in batches if b[2] in BASELINE_SHA256})
+    n_checked = len(batches) - len(b_ext)
+    print(f"    指纹集合：{distinct_sha} 种；外部批次 {len(b_ext)} 条（{'; '.join(b_ext) or '无'}）；"
+          f"NULL {len(b_null)} 条；与基线不符 {len(b_bad)} 条")
 
     if not bad and not b_bad and not b_null and not b_nokey:
         record("V1", "PASS",
-               f"7/7 文件指纹与基线逐字节相等；import_batch {len(batches)} 个批次逐条核对，"
-               f"全部 input_sha256 = 其 input_file 的基线值（NULL 0 条、不符 0 条）")
+               f"7/7 文件指纹与基线逐字节相等；import_batch {len(batches)} 个（其中外部批次 {len(b_ext)} 条不计）"
+               f"逐条核对 {n_checked} 条，全部 input_sha256 = 其 input_file 的基线值（NULL 0 条、不符 0 条）")
     else:
         record("V1", "FAIL",
                f"文件不符 {bad}；批次不符 {b_bad}、NULL {b_null}、无基线 {b_nokey}"
@@ -178,7 +189,13 @@ def v2_counts(cur, run_dir: Path) -> None:
                 ex_file = cand
                 break
     n_ex = len(list(csv.DictReader(io.open(ex_file, encoding="utf-8")))) if ex_file else None
-    n_lic = val(cur, "SELECT count(*) FROM data_quality_issue WHERE issue_type='licence_unconfirmed'")
+    # M4-2：库中不允许残留任何以许可为准入条件的 issue_type（转写后应为 0）
+    n_lic = val(cur, "SELECT count(*) FROM data_quality_issue WHERE strpos(lower(issue_type), 'licen') > 0")
+    # 合成台账行数按库内实际取值，不写死“丢弃数”这类门禁常量
+    n_dup = val(cur, "SELECT count(*) FROM data_quality_issue WHERE issue_type='duplicate_external_id'")
+    n_mis = val(cur, "SELECT count(*) FROM data_quality_issue WHERE issue_type='derived_value_mismatch'")
+    n_man = val(cur, "SELECT count(*) FROM data_quality_issue WHERE issue_type='manual_edit_conflict'")
+    ledger_expected = src["data_quality_issues.csv"] + n_dup + n_mis + n_man
 
     print(f"    source_records.csv          {src['source_records.csv']:>7,} → source_record          {sr:>7,}")
     print(f"    historical_places.csv       {src['historical_places.csv']:>7,} → historical_place       {hp:>7,}")
@@ -199,26 +216,27 @@ def v2_counts(cur, run_dir: Path) -> None:
         ("historical_place_name", nm, src["historical_place_names.csv"] - (nm_skip or 0)),
         ("historical_place_location", lc, src["historical_place_locations.csv"] - (lc_skip or 0)),
         ("candidate_match", cm, src["candidate_matches.csv"] - (n_ex or 0)),
-        # 台账：暂存 12,631 − 2(licence 剔除) + 5(duplicate_external_id) + 197(derived_value_mismatch)
-        ("data_quality_issue", dq,
-         src["data_quality_issues.csv"] - LEDGER_DROPPED + LEDGER_SYNTH_DUP + LEDGER_SYNTH_MIS),
+        # 台账：暂存全量（零丢弃）+ 导入器合成的三类（两数据类 + 人工冲突类）
+        ("data_quality_issue", dq, ledger_expected),
+        # 许可类台账行必须已全部转写（库中不得再有 licence*）
+        ("licence_issue_type", n_lic, 0),
     ]
     bad = [(t, a, e) for t, a, e in checks if a != e]
     print("    逐项等式：")
     for t, a, e in checks:
         print(f"      {t:26s} 实际 {a:>7,}  期望 {e:>7,}  {'✓' if a == e else '✗'}")
-    print(f"    台账口径：暂存原始 {src['data_quality_issues.csv']:,}（基线 {LEDGER_STAGED:,}）"
-          f" − {LEDGER_DROPPED} + {LEDGER_SYNTH_DUP} + {LEDGER_SYNTH_MIS} = {LEDGER_TARGET:,}；"
-          f"实际入库 {dq:,}")
-    if bad or src["data_quality_issues.csv"] != LEDGER_STAGED or dq != LEDGER_TARGET or len(qids) != inact:
+    print(f"    台账口径：暂存 {src['data_quality_issues.csv']:,}（基线 {LEDGER_STAGED:,}）+ "
+          f"dup {n_dup} + mismatch {n_mis} + manual_conflict {n_man} = {ledger_expected:,}；"
+          f"实际入库 {dq:,}；license* 残留 {n_lic} 行")
+    if (bad or src["data_quality_issues.csv"] != LEDGER_STAGED
+            or dq != LEDGER_TARGET or len(qids) != inact):
         record("V2", "FAIL",
                f"行数链不成立：{bad}；台账原始行 {src['data_quality_issues.csv']}（应为 {LEDGER_STAGED:,}）；"
                f"入库 {dq}（应为 {LEDGER_TARGET:,}）；隔离清单 {len(qids)} vs 库中失效 {inact}")
     else:
         record("V2", "PASS",
-               f"六张目标表行数全部等于「暂存行 − 结构性排除」的实际算式；台账 {src['data_quality_issues.csv']:,} "
-               f"− {LEDGER_DROPPED} + {LEDGER_SYNTH_DUP} + {LEDGER_SYNTH_MIS} = {dq:,}"
-               f"（目标 {LEDGER_TARGET:,}）；隔离 {inact} 行保留未删")
+               f"七项等式（含 license* 残留 0）全部成立；台账 {src['data_quality_issues.csv']:,}（零丢弃）"
+               f" + {n_dup} + {n_mis} + {n_man} = {dq:,}（目标 {LEDGER_TARGET:,}）；隔离 {inact} 行保留未删")
 
 
 # ------------------------------------------------------------------ V3
@@ -717,11 +735,13 @@ def v12_c27_c28(cur) -> None:
 
 # ------------------------------------------------------------------ V7
 def v7_ledger(cur) -> None:
-    head("V7  质量台账逐项核对（总数 / 类型数 / 偏差条数与地点数 / licence 为 0）")
-    staged_types = {r["issue_type"] for r in csv_rows("data_quality_issues.csv")}
-    n_staged = len(csv_rows("data_quality_issues.csv"))
-    # 期望类型数现场推算：暂存类型 − licence_unconfirmed + 2 个导入器合成类型
-    exp_types = len(staged_types - {"licence_unconfirmed"}) + 2
+    head("V7  质量台账逐项核对（总数 / 类型数 / 偏差条数与地点数 / 许可类已转写）")
+    staged_rows = csv_rows("data_quality_issues.csv")
+    staged_types = {r["issue_type"] for r in staged_rows}
+    n_staged = len(staged_rows)
+    # M4-2：许可门禁取消后台账零丢弃，许可类 issue_type 一一转写为 LICENCE_REMAP_TYPE，
+    # 因此类型数 = 暂存类型（转写后仍是一对一）+ 导入器合成的 2 类。
+    exp_types = len(staged_types) + 2
     cur.execute("""SELECT issue_type, count(*) FROM data_quality_issue GROUP BY 1 ORDER BY 2 DESC""")
     rows = cur.fetchall()
     tot = sum(c for _t, c in rows)
@@ -729,16 +749,19 @@ def v7_ledger(cur) -> None:
         print(f"    {it:34s} {c:>6,}")
     n_type = len(rows)
     print(f"    {'合计':34s} {tot:>6,}   类型数 {n_type}")
-    print(f"    类型数来源：暂存 {len(staged_types)} 种 − licence_unconfirmed 1 种 "
-          f"+ 导入器合成（duplicate_external_id / derived_value_mismatch）2 种 = {exp_types}")
-    lic = val(cur, "SELECT count(*) FROM data_quality_issue WHERE issue_type='licence_unconfirmed'")
+    print(f"    类型数来源：暂存 {len(staged_types)} 种（{LICENCE_REMAP_TYPE} 一对一承接许可类）"
+          f" + 导入器合成（duplicate_external_id / derived_value_mismatch）2 种 = {exp_types}")
+    lic = val(cur, "SELECT count(*) FROM data_quality_issue WHERE strpos(lower(issue_type), 'licen') > 0")
+    remapped = val(cur, "SELECT count(*) FROM data_quality_issue WHERE issue_type=%s",
+                   (LICENCE_REMAP_TYPE,))
     mis = val(cur, "SELECT count(*) FROM data_quality_issue WHERE issue_type='derived_value_mismatch'")
     mis_p = val(cur, """SELECT count(DISTINCT place_id) FROM data_quality_issue
                          WHERE issue_type='derived_value_mismatch'""")
     dup = val(cur, "SELECT count(*) FROM data_quality_issue WHERE issue_type='duplicate_external_id'")
-    print(f"    licence_unconfirmed {lic}（应为 0）；derived_value_mismatch {mis} 条 / {mis_p} 个地点；"
-          f"duplicate_external_id {dup} 条")
-    checks = [("总数", tot, LEDGER_TARGET), ("类型数", n_type, exp_types), ("licence", lic, 0),
+    print(f"    license* 残留 {lic}（应为 0）；{LICENCE_REMAP_TYPE} {remapped}（应为 {LICENCE_REMAP_ROWS}）；"
+          f"derived_value_mismatch {mis} 条 / {mis_p} 个地点；duplicate_external_id {dup} 条")
+    checks = [("总数", tot, LEDGER_TARGET), ("类型数", n_type, exp_types), ("license*", lic, 0),
+              ("许可类转写", remapped, LICENCE_REMAP_ROWS),
               ("偏差条数", mis, LEDGER_SYNTH_MIS), ("偏差地点", mis_p, MISMATCH_PLACES),
               ("duplicate_external_id", dup, LEDGER_SYNTH_DUP)]
     bad = [(k, a, e) for k, a, e in checks if a != e]
@@ -747,10 +770,10 @@ def v7_ledger(cur) -> None:
         record("V7", "FAIL", f"台账不符：{bad}")
     else:
         record("V7", "PASS",
-               f"{tot:,} 行（目标 {LEDGER_TARGET:,}）/ {n_type} 种 issue_type"
-               f"（暂存 {len(staged_types)} 种 − licence + 合成 2 = {exp_types}）/ "
+               f"{tot:,} 行（目标 {LEDGER_TARGET:,}，零丢弃）/ {n_type} 种 issue_type"
+               f"（暂存 {len(staged_types)} 种 + 合成 2 = {exp_types}）/ "
                f"derived_value_mismatch {mis} 条落在 {mis_p} 个地点 / duplicate_external_id {dup} / "
-               f"licence_unconfirmed 0")
+               f"license* 残留 0，许可类 {remapped} 行转写为 {LICENCE_REMAP_TYPE}")
 
 
 # ------------------------------------------------------------------ V8

@@ -50,7 +50,6 @@ from chgis_extract import (  # noqa: E402
     CHGIS_DATASETS,
     citation_from_readme,
     extract_all,
-    license_statement_from_readme,
     read_chgis_readme,
 )
 from chgis_migration import (  # noqa: E402
@@ -287,12 +286,11 @@ def run(
 
     readme = read_chgis_readme(sample_dir)
     chgis_citation = citation_from_readme(readme) or FALLBACK_CHGIS_CITATION
-    chgis_license_text = license_statement_from_readme(readme) or ""
-    timer.mark("read CHGIS README (license + citation)", chgis_citation[:60] + "...")
+    timer.mark("read CHGIS README (citation)", chgis_citation[:60] + "...")
 
     # --- 4. MCGD extraction ---------------------------------------------
     mcgd = extract_mcgd(sample_dir, project_root)
-    timer.mark("extract MCGD sample rows", f"rows={len(mcgd.records)}, license={mcgd.zenodo_license_id}")
+    timer.mark("extract MCGD sample rows", f"rows={len(mcgd.records)}")
 
     # --- 4b. Pleiades + WHG extraction -----------------------------------
     pleiades = extract_pleiades(project_root)
@@ -393,7 +391,6 @@ def run(
         chgis_attribution=chgis_citation,
         ingested_at=ingested_at,
         mcgd_csv_relative=mcgd.csv_path_relative,
-        mcgd_license_id=mcgd.zenodo_license_id,
         mcgd_doi=mcgd.zenodo_doi,
         field_quirks=field_quirks,
         migration_edges=migration.edges,
@@ -489,7 +486,6 @@ def run(
         date_rules=date_rules,
         field_quirks=field_quirks,
         mcgd_header_ok=mcgd.header_matches_expected,
-        mcgd_license_id=mcgd.zenodo_license_id,
         mcgd_rows=len(mcgd.records),
         coordinate_dedup=coordinate_dedup,
         time_inversion_denominator=inversion_denominator,
@@ -501,7 +497,6 @@ def run(
     )
     stats["provenance"] = {
         "chgis_citation": chgis_citation,
-        "chgis_license_statement": chgis_license_text,
         "chgis_encoding": dict(extraction.cpg_text),
         "chgis_prj": dict(extraction.prj_text),
         "mcgd_doi": mcgd.zenodo_doi,

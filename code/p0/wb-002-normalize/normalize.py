@@ -49,7 +49,6 @@ from datasets import (
     DATA_DATASETS_COLUMNS,
     MCGD_ATTRIBUTION as MCGD_DATASET_ATTRIBUTION,
     PLEIADES_ATTRIBUTION,
-    PLEIADES_LICENSE_ID,
     get_dataset,
     iter_datasets,
 )
@@ -88,7 +87,7 @@ __all__ = [
 ]
 
 #: Version stamp written into ``source_records.pipeline_version``.
-PIPELINE_VERSION = "wb-002-normalize/1.2.0"
+PIPELINE_VERSION = "wb-002-normalize/1.3.0"
 
 #: CHGIS layer -> registry dataset id, used for ``source_records.dataset_id``.
 CHGIS_DATASET_IDS: Dict[str, str] = {
@@ -166,7 +165,7 @@ TABLE_COLUMNS: Dict[str, Tuple[str, ...]] = {
     "source_records": (
         "source_record_id", "source_id", "source_dataset", "dataset_id",
         "external_id", "external_id_type", "raw_file", "raw_record_index",
-        "raw_payload_json", "license_status", "redistributable", "attribution_text",
+        "raw_payload_json", "attribution_text",
         "ingested_at", "pipeline_version",
     ),
     "data_quality_issues": (
@@ -584,7 +583,6 @@ def build_bundle(
     chgis_attribution: str,
     ingested_at: str,
     mcgd_csv_relative: str,
-    mcgd_license_id: str,
     mcgd_doi: str,
     field_quirks: Sequence[Any] = (),
     migration_edges: Sequence[Any] = (),
@@ -600,7 +598,6 @@ def build_bundle(
       chgis_attribution: Verbatim CHGIS citation line from the README.
       ingested_at: ISO-8601 UTC timestamp stamped onto every output row.
       mcgd_csv_relative: Project-relative path of the MCGD sample CSV.
-      mcgd_license_id: License id read from the cached Zenodo record.
       mcgd_doi: DOI read from the cached Zenodo record.
       field_quirks: Field-name deviations detected across the CHGIS layers.
       migration_edges: Rule-based adjacent-pair verdicts produced by
@@ -779,8 +776,6 @@ def build_bundle(
                 "raw_file": record.raw_zip,
                 "raw_record_index": str(record.record_index),
                 "raw_payload_json": payload,
-                "license_status": "restricted_academic_only",
-                "redistributable": "no",
                 "attribution_text": chgis_attribution,
                 "ingested_at": ingested_at,
                 "pipeline_version": PIPELINE_VERSION,
@@ -802,8 +797,6 @@ def build_bundle(
                 "raw_file": mcgd_csv_relative,
                 "raw_record_index": str(record.record_index),
                 "raw_payload_json": payload,
-                "license_status": mcgd_license_id or "cc-by-4.0",
-                "redistributable": "yes_with_attribution",
                 "attribution_text": MCGD_ATTRIBUTION,
                 "ingested_at": ingested_at,
                 "pipeline_version": PIPELINE_VERSION,
@@ -849,8 +842,6 @@ def build_bundle(
                     "raw_file": record.raw_file,
                     "raw_record_index": str(record.record_index),
                     "raw_payload_json": payload,
-                    "license_status": dataset.license_id,
-                    "redistributable": dataset.redistributable,
                     "attribution_text": dataset.attribution_text,
                     "ingested_at": ingested_at,
                     "pipeline_version": PIPELINE_VERSION,
@@ -912,10 +903,8 @@ def build_bundle(
             basis = "source_has_no_chgis_compatible_type_field"
             if primary is not None and primary.quality_flags:
                 note_parts.append("source_flags=" + "|".join(primary.quality_flags))
-                if "licence_unconfirmed" in primary.quality_flags:
-                    note_parts.append(
-                        "blocking_for_publication_licence_unconfirmed"
-                    )
+                if "attribution_missing" in primary.quality_flags:
+                    note_parts.append("attribution_missing")
         else:
             canonical_record = _pick_canonical_chgis_record(group.chgis_records)
             canonical_name = canonical_record.name_ch or canonical_record.name_py
@@ -1666,23 +1655,23 @@ def build_bundle(
         source_record_id = extra_source_record_ids.get(
             (group.source_dataset, group.external_id), ""
         )
-        if "licence_unconfirmed" in primary.quality_flags:
+        if "attribution_missing" in primary.quality_flags:
+            # M4-2：许可门禁已取消，本行不再是阻断项，只作为来源元数据缺失的观察保留。
             add_issue(
                 group.source_dataset,
                 source_record_id,
-                "licence_unconfirmed",
-                "blocking",
+                "attribution_missing",
+                "info",
                 "attribution",
-                "no attribution block; sources.json carries no SPDX field",
-                "every imported row must resolve to a documented licence before "
-                "publication",
-                "needs_manual_review",
-                "per-record licensing is available for the WHG JSON-LD samples but "
-                "absent for the flat HGIS records; redistributable is recorded as "
-                "'unconfirmed' rather than guessed from a neighbouring source",
+                "no attribution block in the source payload",
+                "attribution text is optional provenance, not an import gate",
+                "preserved_and_flagged",
+                "the flat HGIS records carry no per-record attribution; the row is "
+                "imported as-is (M4-2: licensing is the Owner's responsibility and "
+                "gates nothing)",
             )
         for flag in primary.quality_flags:
-            if flag in ("licence_unconfirmed",):
+            if flag in ("attribution_missing",):
                 continue
             add_issue(
                 group.source_dataset,
@@ -1786,12 +1775,6 @@ def build_bundle(
     dataset_rows = [dataset.as_row() for dataset in iter_datasets()]
     stats["data_datasets_rows"] = len(dataset_rows)
     stats["data_datasets_ids"] = [row["dataset_id"] for row in dataset_rows]
-    stats["data_datasets_license_ids"] = {
-        row["dataset_id"]: row["license_id"] for row in dataset_rows
-    }
-    stats["data_datasets_redistributable"] = {
-        row["dataset_id"]: row["redistributable"] for row in dataset_rows
-    }
 
     return NormalizedBundle(
         tables={

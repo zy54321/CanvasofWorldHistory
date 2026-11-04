@@ -112,7 +112,7 @@ public final class Dtos {
             String sourceId,
             String sourceName,
             String sourceHomepage,
-            String sourceLicenseNote,
+            String sourceNote,
             List<NameRow> names,
             List<LocationRow> locations,
             List<SourceRecordRow> sourceRecords,

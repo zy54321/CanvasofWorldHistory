@@ -230,7 +230,7 @@ def extract_whg(project_root: Path) -> ExtraExtraction:
 
     for record in records:
         if record.record_kind == "place" and record.dataset_id == _DEFAULT_DATASET_ID:
-            record.quality_flags.append("licence_unconfirmed")
+            record.quality_flags.append("attribution_missing")
 
     place_count = sum(1 for r in records if r.record_kind == "place")
     name_count = sum(1 for r in records if r.record_kind == "name")
@@ -297,7 +297,7 @@ def _build_jsonld(
     if lon is None or lat is None:
         flags.append("missing_coordinate")
     if not attribution:
-        flags.append("licence_unconfirmed")
+        flags.append("attribution_missing")
 
     records: List[ExtraRecord] = []
     records.append(
@@ -452,7 +452,7 @@ def _build_flat(
     ]
     geoms = payload.get("geoms") or []
 
-    flags: List[str] = ["licence_unconfirmed"]
+    flags: List[str] = ["attribution_missing"]
     records: List[ExtraRecord] = []
     records.append(
         ExtraRecord(

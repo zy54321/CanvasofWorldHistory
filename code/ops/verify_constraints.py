@@ -339,7 +339,7 @@ def main() -> int:
              insert_dq, (None, sr1, place1, "unknown_crs", "warning", "", "y", "preserved_and_flagged"))
     # 注意：此处验证的是「枚举值域校验」，与许可无关。issue_type 的设计值域为 19 值（V2.1.1 §5.9），
     #       任何不在值域内的字符串都会被 ck_data_quality_issue_issue_type 拒绝，这是枚举完整性，
-    #       不是许可门禁。许可门禁的不存在性由 ops/verify_no_licence_gate.py 单独证明。
+    #       不是许可门禁；M4-2 起系统内已不存在任何许可概念（审计脚本随之删除）。
     p.reject("issue_type 写入值域外的任意字符串被枚举拒绝",
              insert_dq, ("ds_a", sr1, place1, "not_a_designed_issue_type", "warning", "", "z", "preserved_and_flagged"))
     p.reject("C23 occurrence_count = 0",

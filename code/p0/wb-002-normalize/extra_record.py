@@ -143,8 +143,8 @@ class ExtraExtraction:
         ``stats.json``.
       slice_files: One ``{file, bytes, header_columns, parsed_rows,
         discarded_rows, sha256}`` dict per physical file read.
-      attribution_note: Optional human note about licensing that the report
-        needs verbatim, e.g. the WHG per-record licence switch.
+      attribution_note: Optional human note about the source's attribution block
+        that the report needs verbatim, e.g. the WHG per-record citation.
     """
 
     source_id: str

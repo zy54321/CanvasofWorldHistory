@@ -2,10 +2,14 @@
 
 Every row of ``source_records.csv`` carries a ``dataset_id`` that resolves to one
 row here.  A *source* is an organisation or project (CHGIS, MCGD, Pleiades,
-WHG); a *dataset* is one concrete file set with its own licence terms.  CHGIS
-ships two independent layers with the same licence, so it contributes two
-dataset rows; the WHG sample mixes three upstream gazetteers whose licences
-differ, so it contributes three.
+WHG); a *dataset* is one concrete file set obtained and imported as a unit.
+CHGIS ships two independent layers, so it contributes two dataset rows; the WHG
+sample mixes three upstream gazetteers, so it contributes three.
+
+M4-2：本模块不再记录许可字段（license_id / license_url / redistributable /
+attribution_text 已从 ``data_datasets.csv`` 删除）。系统不建设许可门禁、许可审核
+或任何许可完整性检查，数据授权由 Owner 自行负责；``attribution_text`` 只作为
+引用串写入 ``source_records``，不参与任何准入判定。
 
 Nothing in this module is inferred at run time: every string below was read from
 a file in the read-only sample tree and the ``evidence`` column names where.
@@ -19,10 +23,8 @@ from typing import Dict, List, Sequence, Tuple
 __all__ = [
     "DatasetInfo",
     "PLEIADES_ATTRIBUTION",
-    "PLEIADES_LICENSE_ID",
     "MCGD_ATTRIBUTION",
     "CHGIS_CITATION_README",
-    "CHGIS_CITATION_EULA",
     "DATASET_IDS",
     "DATASETS",
     "DATA_DATASETS_COLUMNS",
@@ -31,15 +33,13 @@ __all__ = [
 ]
 
 #: Column order of ``data_datasets.csv``, fixed by the WB-002 specification.
+#: M4-2：``license_id`` / ``license_url`` / ``redistributable`` / ``attribution_text`` 四列已按
+#: Owner 决策删除（系统不建设许可门禁、不做许可完整性检查；授权由 Owner 自行负责）。
 DATA_DATASETS_COLUMNS: Sequence[str] = (
     "dataset_id",
     "source_id",
     "dataset_name",
     "homepage",
-    "license_id",
-    "license_url",
-    "redistributable",
-    "attribution_text",
     "acquisition_method",
     "evidence",
     "notes",
@@ -55,15 +55,12 @@ class DatasetInfo:
       source_id: Owning source, matching ``source_records.source_id``.
       dataset_name: Human name of the concrete file set.
       homepage: Canonical human-facing URL.
-      license_id: SPDX identifier or a verbatim ``unconfirmed``-style marker.
-      license_url: Licence deed URL, empty when no licence text was located.
-      redistributable: ``yes`` / ``yes_with_attribution`` / ``no`` /
-        ``unconfirmed``.
-      attribution_text: Verbatim attribution string that must travel with any
-        redistribution.
+      attribution_text: Verbatim citation string carried with each record in
+        ``source_records.attribution_text``. Retained as provenance; it is not a
+        licence assertion and gates nothing (M4-2).
       acquisition_method: How the bytes were obtained, e.g. HTTP Range slice.
       evidence: Project-relative path (and field path or line range) proving the
-        licence and attribution values.
+        acquisition method and values.
       notes: Caveats a reviewer must not miss.
     """
 
@@ -71,9 +68,6 @@ class DatasetInfo:
     source_id: str
     dataset_name: str
     homepage: str
-    license_id: str
-    license_url: str
-    redistributable: str
     attribution_text: str
     acquisition_method: str
     evidence: str
@@ -86,33 +80,22 @@ class DatasetInfo:
             "source_id": self.source_id,
             "dataset_name": self.dataset_name,
             "homepage": self.homepage,
-            "license_id": self.license_id,
-            "license_url": self.license_url,
-            "redistributable": self.redistributable,
-            "attribution_text": self.attribution_text,
             "acquisition_method": self.acquisition_method,
             "evidence": self.evidence,
             "notes": self.notes,
         }
 
 
-#: The two conflicting official CHGIS citation strings.  Both are recorded
-#: because the pipeline must not silently pick a winner.
+#: Official CHGIS citation string, carried verbatim into
+#: ``source_records.attribution_text``. M4-2 removed the EULA/SPDX bookkeeping:
+#: licensing is the Owner's responsibility and gates nothing here.
 CHGIS_CITATION_README = (
     'CHGIS, Version: 6. (c) Fairbank Center for Chinese Studies of Harvard '
     "University and the Center for Historical Geographical Studies at Fudan "
     "University, 2016."
 )
-CHGIS_CITATION_EULA = (
-    '"CHGIS Version 6." (c) Fairbank Center for Chinese Studies and the '
-    "Institute for Chinese Historical Geography at Fudan University, Dec 2016."
-)
 
-#: Pleiades licence identifier and attribution.  ``CC-BY-3.0`` comes from
-#: ``datasets_docs/LICENSE_CC-BY-3.0.txt`` ("Attribution 3.0 Unported") and the
-#: repository README statement "All content is distributed under the terms of a
-#: Creative Commons Attribution license (cc-by)".
-PLEIADES_LICENSE_ID = "CC-BY-3.0"
+#: Pleiades attribution, carried verbatim into ``source_records.attribution_text``.
 PLEIADES_ATTRIBUTION = (
     "Pleiades: A community-built gazetteer and graph of ancient places. "
     "Copyright (c) Institute for the Study of the Ancient World. "
@@ -137,26 +120,19 @@ DATASETS: Tuple[DatasetInfo, ...] = (
         source_id="chgis",
         dataset_name="CHGIS V6 time_pref_pts (prefecture-level point layer)",
         homepage="https://sites.fas.harvard.edu/~chgis/",
-        license_id="no_spdx_academic_noncommercial",
-        license_url="https://doi.org/10.7910/DVN/FDLFJ3",
-        redistributable="no",
         attribution_text=CHGIS_CITATION_README,
         acquisition_method="full DBF + sidecars read from the shipped V6 zip",
         evidence=(
-            "sample_data/chgis/api/dataset_FDLFJ3_EULA.json -> termsOfUse clause (3) "
-            "forbids redistribution and clause (4) mandates the citation string; "
-            "data.latestVersion.license is null (no SPDX identifier exists); "
-            "sample_data/chgis/CHGIS_V6_README.txt line 'Citation:' supplies a "
-            "second, differently worded citation"
+            "sample_data/chgis/CHGIS_V6_README.txt line 'Citation:' supplies the "
+            "verbatim citation string carried into source_records.attribution_text"
         ),
         notes=(
-            "The README citation and the EULA mandatory citation disagree on three "
-            "points (punctuation of 'Version 6', 'Center for Historical "
-            "Geographical Studies' vs 'Institute for Chinese Historical "
-            "Geography', and '2016' vs 'Dec 2016'). Both are recorded verbatim: "
-            "source_records.attribution_text keeps the README form because that is "
-            "what the shipped file says, and data_datasets.csv records the "
-            "conflict. Local analysis only; never redistribute."
+            "The V6 zip's own EULA carries a second, differently worded citation "
+            "(differences in the punctuation of 'Version 6', 'Center for Historical "
+            "Geographical Studies' vs 'Institute for Chinese Historical Geography', "
+            "and '2016' vs 'Dec 2016'). Only the README form is emitted, because that "
+            "is what ships with the point layers this dataset is built from. "
+            "Licensing is the Owner's responsibility (M4-2); nothing here gates import."
         ),
     ),
     DatasetInfo(
@@ -164,9 +140,6 @@ DATASETS: Tuple[DatasetInfo, ...] = (
         source_id="chgis",
         dataset_name="CHGIS V6 time_cnty_pts (county-level point layer)",
         homepage="https://sites.fas.harvard.edu/~chgis/",
-        license_id="no_spdx_academic_noncommercial",
-        license_url="https://doi.org/10.7910/DVN/FDLFJ3",
-        redistributable="no",
         attribution_text=CHGIS_CITATION_README,
         acquisition_method="full DBF + sidecars read from the shipped V6 zip",
         evidence=(
@@ -184,9 +157,6 @@ DATASETS: Tuple[DatasetInfo, ...] = (
         source_id="mcgd",
         dataset_name="MCGD (Modern China Geospatial Database) 2026-08-25, first 960 rows",
         homepage="https://doi.org/10.5281/zenodo.22094815",
-        license_id="CC-BY-4.0",
-        license_url="https://creativecommons.org/licenses/by/4.0/",
-        redistributable="yes_with_attribution",
         attribution_text=MCGD_ATTRIBUTION,
         acquisition_method="head slice of the CSV, 960 data rows, taken upstream",
         evidence=(
@@ -203,9 +173,6 @@ DATASETS: Tuple[DatasetInfo, ...] = (
         source_id="pleiades",
         dataset_name="Pleiades GIS CSV export (data/gis), 1 MB head slices",
         homepage="https://pleiades.stoa.org/",
-        license_id="CC-BY-3.0",
-        license_url="https://creativecommons.org/licenses/by/3.0/",
-        redistributable="yes_with_attribution",
         attribution_text=PLEIADES_ATTRIBUTION,
         acquisition_method="from_slice=1MB_head; HTTP Range bytes=0-1048575 per file",
         evidence=(
@@ -230,9 +197,6 @@ DATASETS: Tuple[DatasetInfo, ...] = (
         source_id="whg",
         dataset_name="WHG API place records, GeoNames (gn) namespace sample",
         homepage="https://whgazetteer.org/",
-        license_id="CC-BY-4.0",
-        license_url="https://creativecommons.org/licenses/by/4.0/",
-        redistributable="yes_with_attribution",
         attribution_text=WHG_GN_ATTRIBUTION,
         acquisition_method="whg_api_single_record_get (/entity/place:gn:<id>/api)",
         evidence=(
@@ -252,9 +216,6 @@ DATASETS: Tuple[DatasetInfo, ...] = (
         source_id="whg",
         dataset_name="WHG API place records, Getty TGN (tgn) namespace sample",
         homepage="https://whgazetteer.org/",
-        license_id="ODC-By-1.0",
-        license_url="https://opendatacommons.org/licenses/by/1-0/",
-        redistributable="yes_with_attribution",
         attribution_text=WHG_TGN_ATTRIBUTION,
         acquisition_method="whg_api_single_record_get (/entity/place:tgn:<id>/api)",
         evidence=(
@@ -274,9 +235,6 @@ DATASETS: Tuple[DatasetInfo, ...] = (
         source_id="whg",
         dataset_name="WHG API place records, HGIS de las Indias (hgis) dataset sample",
         homepage="https://www.hgis-indias.net/",
-        license_id="unconfirmed",
-        license_url="",
-        redistributable="unconfirmed",
         attribution_text="",
         acquisition_method="whg_api_single_record_get (/entity/place:<id>/api)",
         evidence=(
@@ -289,11 +247,12 @@ DATASETS: Tuple[DatasetInfo, ...] = (
             "SPDX or licence field for any of its 28 namespaces."
         ),
         notes=(
-            "BLOCKING FOR PUBLICATION: 'can be redistributed' is confirmed, 'under "
-            "which licence' is not. Rows are imported for local analysis with "
-            "redistributable='unconfirmed'; they must not be published until the "
-            "dataset's own licence is obtained. dates come from minmax, not from a "
-            "documented time field."
+            "No attribution block: the flat HGIS records carry no 'attribution' key. "
+            "Per-record attribution is therefore empty and the two records surface as "
+            "issue_type='attribution_missing' (severity info) in the quality ledger — "
+            "this does not gate import (M4-2: attribution is optional provenance, "
+            "licensing is the Owner's responsibility). dates come from minmax, not "
+            "from a documented time field."
         ),
     ),
 )

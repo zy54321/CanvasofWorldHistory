@@ -34,7 +34,7 @@ import io
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
-from datasets import PLEIADES_ATTRIBUTION, PLEIADES_LICENSE_ID
+from datasets import PLEIADES_ATTRIBUTION
 from extra_record import ExtraExtraction, ExtraRecord, parse_wkt_point, wkt_has_z
 from time_semantics import parse_signed_year
 
@@ -43,7 +43,6 @@ __all__ = [
     "PLEIADES_SOURCE_DATASET",
     "PLEIADES_DATASET_ID",
     "PLEIADES_ATTRIBUTION",
-    "PLEIADES_LICENSE_ID",
     "PLEIADES_SLICE_DIR",
     "SLICE_FILES",
     "extract_pleiades",

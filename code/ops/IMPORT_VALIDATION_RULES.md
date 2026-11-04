@@ -24,18 +24,21 @@
 
 | 列 | 设计原文 | 落地方式 |
 |---|---|---|
-| `historical_place_name.source_record_id` / `historical_place_location.source_record_id` | 「导入创建时必填」 | `CHECK (source_record_id IS NOT NULL OR created_by='manual')`，已落库并已验证 |
+| `historical_place_name.source_record_id` / `historical_place_location.source_record_id` | 「导入创建时必填；人工录入可空」 | `CHECK (source_record_id IS NOT NULL OR created_by='manual')`。M4-2 澄清：来源信息不是准入条件，人工录入的地点/名称/位置**一律允许为空**，该 CHECK 只约束 `created_by='import'` 的导入行（导入行必然来自某条 source_record） |
 
-## 与许可相关的两条口径（阶段三必须遵守）
+## 与许可相关的口径（M4-2 起：已全部取消）
 
-1. **`issue_type` 值域为 19 值**，`licence_unconfirmed` 已按 V2.1.1 §5.9 删除。
-   暂存原始 12,631 行台账中有 **2 行**该类型：按 Owner 决策 3 **直接剔除、不重新归类**
-   （依据：`CORE_DATA_MODEL_V2.1.1` §5.9 / `IMPORT_RULES_V2.1.1` R-11）。
-   剔除是**导入程序的数据处置**，不是数据库拒绝——数据库中不存在任何以许可为条件的写入约束。
-2. 系统**不做**授权 / 许可 / 再分发判断；`data_source`（2 列）与 `data_dataset`（9 列）
-   的许可相关列已在模型中删除，导入程序**不得**为暂存中的 `license_status` / `license_url` 等列寻找落脚点。
+> **本节已按 Owner 决策重写。** 旧版要求「2 行 `licence_unconfirmed` 台账直接剔除、不重新归类」，
+> 该规定自 M4-2 起废止：系统内不建设许可门禁、许可审核流程或许可完整性检查，数据授权由 Owner 自行负责。
 
-> 不存在的门禁已在阶段二收尾用 `ops/verify_no_licence_gate.py` 逐项证明（目录级 0 命中 + 342 条台账写入全通）。
+1. **许可信息不影响数据准入。** 导入器不按 `issue_type` 丢弃任何行，台账行数恒等于
+   「暂存行 + 导入器合成行」。历史 `licence_unconfirmed` 两行已改判为
+   `attribution_missing`（severity `info`、`action_taken=retained_as_is`）并正常入库。
+2. 系统**不做**授权 / 许可 / 再分发判断；`data_source`、`data_dataset` 中不存在任何许可列，
+   `data_datasets.csv` / `source_records.csv` 的许可字段也已删除（流水线 1.3.0）。
+   `source_records.attribution_text` 仅作为引用串保留，不参与任何判定。
+3. 原 `ops/verify_no_licence_gate.py`（证明「没有许可门禁」的审计脚本）已删除——
+   门禁与许可概念一并退出系统，无需再审计其不存在性。
 
 ---
 

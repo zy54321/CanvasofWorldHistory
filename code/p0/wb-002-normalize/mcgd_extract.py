@@ -117,7 +117,6 @@ class McgdExtraction:
     records: List[McgdRecord]
     csv_path_relative: str
     csv_sha256: str
-    zenodo_license_id: str
     zenodo_title: str
     zenodo_doi: str
     header: List[str]
@@ -205,7 +204,6 @@ def extract_mcgd(sample_dir: Path, project_root: Path) -> McgdExtraction:
         records=records,
         csv_path_relative=rel_csv,
         csv_sha256=_sha256(csv_path),
-        zenodo_license_id=meta["license_id"],
         zenodo_title=meta["title"],
         zenodo_doi=meta["doi"],
         header=header,
