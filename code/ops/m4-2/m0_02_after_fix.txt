@@ -1,0 +1,22 @@
+### M0-02 单项（E2E_ONLY=M0-02）
+PASS M0-02 四种样式可用 — 切换 4 次，样式名互异 4 种：Streets / Satellite / Satellite Hybrid / Outdoor；Satellite/Hybrid 含栅格影像层（raster 0/1/1/0）；每步点层 400/400/400/400 点；轮询就绪耗时 Streets 3931ms / Satellite 1676ms / Hybrid 1696ms / Outdoor 5848ms（均 ≤ 8s，全部就绪）
+（统计口径：仅 M0-02；另有 14 项已执行但未计入，其中失败 0 项）
+=== 合计 1 项，PASS 1，FAIL 0 ===
+
+### M0/M1 完整回归
+PASS M0-01 地图加载 / 默认全球视野 — canvas=true loaded=true center=20,20 zoom=1.4 layers=119
+PASS M0-05 凭证不泄漏 / 不硬编码 — HTML 中无 key 参数=true；已检测到 API key
+PASS M0-02 四种样式可用 — 切换 4 次，样式名互异 4 种：Streets / Satellite / Satellite Hybrid / Outdoor；Satellite/Hybrid 含栅格影像层（raster 0/1/1/0）；每步点层 400/400/400/400 点；轮询就绪耗时 Streets 1327ms / Satellite 1286ms / Hybrid 856ms / Outdoor 1132ms（均 ≤ 8s，全部就绪）
+PASS M0-03 视野保持 — 切换前 116.4,39.9 z6.2；四次切换后相机完全一致，漂移 0
+PASS M0-04 四区域测试 — 中国@108,32 z3.8 视野400点 | 欧洲@14,49 z3.9 视野400点 | 北美@-98,42 z3.2 视野?点 | 中东@45,29 z4.2 视野400点
+PASS M1-01 地点搜索命中真实记录 — 共 8 条· 第 1 / 1 页；前几条 长安县、长安县、长安县、长安县、长安县、长安县
+PASS M1-01b 同名不同地点不合并 — 首屏 6 条各自 id 唯一：#29931 #29933 #29934 #29935 #29936 #33473
+PASS M1-01c 别名搜索 — 搜“桂林縣”（别名写法）→ 桂林縣；正名 桂林县 · 县级治所 · 590 – 665
+PASS M1-01d 年代筛选（名称有效期） — 洛阳：不限年代 5 条 / year=1200 1 条 / year=-500 0 条（筛选生效且有序）
+PASS M1-01e 分页 — 分页器 1 / 444 → 2 / 444
+PASS M1-04 搜索结果 → 地图定位 — 点击前 z1.4@20,20 → 点击后 z7@110.4075,18.8006；高亮环 1 个
+PASS M1-02 地点详情（名称/位置/来源/精度） — 万县 ｜ 坐标 110.40747, 18.80063 ; 定位精度 unknown ; 数据集 CHGIS V6 time_cnty_pts (county-level point layer) ; 来源 China Historical GIS ｜ 页签 名称 3 位置 1 来源记录 1 质量提示 0
+PASS M1-03 bbox 空间查询返回 GeoJSON — HTTP 200 type=FeatureCollection features=50 首点 [114.414981,23.089792] meta={"bbox":[108,20,122,32],"totalInBbox":4905,"returned":50,"limit":50,"truncated":true}
+PASS M1-03b 返回数量上限 — 全球 bbox 请求 limit=99999 → 服务端钳制为 2000 并实际返回 2000 条（上限 2000 生效），truncated=true，totalInBbox=17326
+PASS CLEAN 浏览器控制台 — 无 JS 错误、无真实失败请求（另有 67 个因样式切换被浏览器取消的瓦片请求，属正常）
+=== 合计 15 项，PASS 15，FAIL 0 ===

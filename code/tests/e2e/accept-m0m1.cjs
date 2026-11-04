@@ -8,8 +8,26 @@ const fs = require('node:fs')
 const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe'
 const URL = 'http://127.0.0.1:5180/'
 const OUT = process.argv[2] || './shots'
+
+/**
+ * 单项统计过滤（仅供单项复跑时看数）：E2E_ONLY=M0-02
+ *
+ * 注意：这是**统计口径**过滤，不是跳过执行。整脚本仍逐步跑完（保证单项在与其他项
+ * 相同的前置状态下被执行），只是未被点名的项不计入 results / 退出码。没有指定时行为不变。
+ */
+const ONLY = (process.env.E2E_ONLY || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean)
+
 const results = []
+const skipped = []
 const rec = (id, name, ok, detail) => {
+  if (ONLY.length && !ONLY.includes(id)) {
+    skipped.push({ id, name, ok, detail })
+    console.log(`  ·  ${id} ${name} — ${ok ? 'PASS' : 'FAIL'}（本次未计入统计）`)
+    return
+  }
   results.push({ id, name, ok, detail })
   console.log(`${ok ? 'PASS' : 'FAIL'} ${id} ${name} — ${detail}`)
 }
@@ -92,6 +110,74 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms))
   )
 
   // ---------- M0-02 / M0-03 样式切换 + 视野保持 ----------
+  /**
+   * 样式就绪轮询（替代历史上的固定 wait(1500)）。
+   *
+   * 固定等待的问题：setStyle 之后要等 style.json → sprite/glyphs → 瓦片，机器负载高时
+   * 1.5s 常常不够，会读到 name=undefined、places=0 而误报失败。实测同机负载下
+   * Streets 约 3.4s、Outdoor 约 5.8s 才真正就绪。
+   *
+   * 就绪判据（四项同时成立，缺一不可）：
+   *   1. 样式名匹配目标样式；
+   *   2. map.isStyleLoaded() —— 样式本身已加载完；
+   *   3. map.loaded() —— 源与瓦片已停（真实底图模式下必须，避免「样式名到了但图还没出来」）；
+   *   4. 地点图层已恢复：places 源存在、places-dot 图层存在且可见、要素数 > 0。
+   *
+   * 只看样式名是不够的：setStyle 会把自定义图层全部清掉，由 style.load 里的 ensureLayers
+   * 重建，期间图层可能短暂缺失。所以「点层恢复」是独立且必要的判据。
+   */
+  const STYLE_TIMEOUT = 8000
+  const STYLE_POLL = 200
+  // Hybrid 的官方 name 是「Satellite Hybrid」；若 Satellite 只判 /satellite/，切到 Hybrid 时
+  // 会把尚未切换的上一个样式（Satellite）误认成已就绪，因此 Satellite 必须排除 hybrid。
+  const nameMatches = (label, name) => {
+    const n = String(name || '').toLowerCase()
+    if (label === 'Satellite') return n.includes('satellite') && !n.includes('hybrid')
+    return n.includes(label.toLowerCase())
+  }
+  const styleState = () =>
+    page.evaluate(() => {
+      const m = window.__map
+      const st = m.getStyle() || {}
+      const dot = m.getLayer('places-dot')
+      const src = m.getSource('places')
+      return {
+        name: st.name ?? null,
+        layers: (st.layers || []).length,
+        raster: (st.layers || []).filter((l) => l.type === 'raster').length,
+        styleLoaded: m.isStyleLoaded(),
+        mapLoaded: m.loaded(),
+        hasPlacesSource: !!src,
+        hasPlacesLayer: !!dot,
+        placesVisible: !!dot && (dot.layout?.visibility ?? 'visible') !== 'none',
+        places: (src?._data?.features || []).length,
+      }
+    })
+  async function waitStyleReady(label) {
+    const t0 = Date.now()
+    let s = await styleState()
+    let reason = ''
+    while (Date.now() - t0 < STYLE_TIMEOUT) {
+      s = await styleState()
+      const nameOk = HAS_KEY ? nameMatches(label, s.name) : s.name === 'offline-graticule'
+      const layerOk = s.hasPlacesSource && s.hasPlacesLayer && s.placesVisible && s.places > 0
+      if (nameOk && layerOk && s.styleLoaded && s.mapLoaded) {
+        return { ok: true, ms: Date.now() - t0, state: s }
+      }
+      const why = []
+      if (!nameOk) why.push(`样式名「${s.name ?? 'null'}」未匹配 ${label}`)
+      if (!s.styleLoaded) why.push('isStyleLoaded=false')
+      if (!s.mapLoaded) why.push('loaded=false（瓦片仍在加载）')
+      if (!s.hasPlacesSource) why.push('places 源缺失')
+      if (!s.hasPlacesLayer) why.push('places-dot 图层缺失')
+      else if (!s.placesVisible) why.push('places-dot 被隐藏')
+      if (s.places === 0) why.push('places 要素数为 0')
+      reason = why.join('；')
+      await wait(STYLE_POLL)
+    }
+    return { ok: false, ms: Date.now() - t0, state: s, reason: reason || '未进入判据' }
+  }
+
   await page.evaluate(() => window.__map.jumpTo({ center: [116.4, 39.9], zoom: 6.2 }))
   await wait(900)
   const before = await cam()
@@ -105,11 +191,22 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms))
         break
       }
     }
-    await wait(1500)
+    const ready = await waitStyleReady(label)
     const info = await styleInfo()
     const c = await cam()
     seen.push({ label, bg: info.bg, name: info.name, raster: info.raster,
-                zoom: c.zoom, lng: c.lng, lat: c.lat, places: info.places })
+                zoom: c.zoom, lng: c.lng, lat: c.lat, places: info.places,
+                ready: ready.ok, ms: ready.ms, reason: ready.reason || '' })
+    if (!ready.ok) {
+      console.log(
+        `   ⚠ ${label} 在 ${ready.ms}ms 内未就绪，失败原因：${ready.reason}` +
+          `｜当前样式名 ${JSON.stringify(ready.state.name)}、图层 ${ready.state.layers} 个` +
+          `（raster ${ready.state.raster}）、places 源=${ready.state.hasPlacesSource}` +
+          `、places-dot=${ready.state.hasPlacesLayer}` +
+          `（可见=${ready.state.placesVisible}）、要素 ${ready.state.places}` +
+          `、styleLoaded=${ready.state.styleLoaded}、loaded=${ready.state.mapLoaded}`,
+      )
+    }
     await page.screenshot({ path: `${OUT}/M0-02_style_${label}.png` })
   }
   const drift = seen.filter(
@@ -120,14 +217,33 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms))
   )
   const distinctKey = new Set(seen.map((s) => (HAS_KEY ? String(s.name) : String(s.bg)))).size
   const rasterOk = HAS_KEY ? seen.some((s) => s.raster > 0) : true
+  // 影像类底图必须真的有栅格层，否则「样式名对了但影像没出来」也会被判通过
+  const rasterPair = HAS_KEY
+    ? ['Satellite', 'Hybrid'].every((l) => {
+        const s = seen.find((x) => x.label === l)
+        return !!s && s.raster > 0
+      })
+    : true
+  const notReady = seen.filter((s) => s.ready !== true)
   rec(
     'M0-02',
     '四种样式可用',
-    seen.length === 4 && distinctKey >= 4 && rasterOk && seen.every((s) => s.places > 0),
-    HAS_KEY
+    seen.length === 4 &&
+      notReady.length === 0 &&
+      distinctKey >= 4 &&
+      rasterOk &&
+      rasterPair &&
+      seen.every((s) => s.places > 0),
+    (HAS_KEY
       ? `切换 4 次，样式名互异 ${distinctKey} 种：${seen.map((s) => s.name).join(' / ')}；` +
-        `Satellite/Hybrid 含栅格影像层（raster ${seen.map((s) => s.raster).join('/')}）；每步点层 ${seen.map((s) => s.places).join('/')} 点`
-      : `切换 4 次；离线底色互不相同 ${distinctKey} 种；每步点层 ${seen.map((s) => s.places).join('/')} 点`,
+        `Satellite/Hybrid 含栅格影像层（raster ${seen.map((s) => s.raster).join('/')}）；` +
+        `每步点层 ${seen.map((s) => s.places).join('/')} 点；`
+      : `切换 4 次；离线底色互不相同 ${distinctKey} 种；` +
+        `每步点层 ${seen.map((s) => s.places).join('/')} 点；`) +
+      `轮询就绪耗时 ${seen.map((s) => `${s.label} ${s.ms}ms`).join(' / ')}` +
+      (notReady.length
+        ? `；未就绪：${notReady.map((s) => `${s.label}（${s.reason}）`).join('，')}`
+        : '（均 ≤ 8s，全部就绪）'),
   )
   rec(
     'M0-03',
@@ -388,8 +504,17 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms))
 
   await browser.close()
 
-  fs.writeFileSync(`${OUT}/e2e_result.json`, JSON.stringify({ results, errors }, null, 2))
+  fs.writeFileSync(
+    `${OUT}/e2e_result.json`,
+    JSON.stringify({ results, skipped, errors, only: ONLY }, null, 2),
+  )
   const fail = results.filter((r) => !r.ok)
+  if (ONLY.length) {
+    console.log(
+      `\n（统计口径：仅 ${ONLY.join(',')}；另有 ${skipped.length} 项已执行但未计入，` +
+        `其中失败 ${skipped.filter((r) => !r.ok).length} 项）`,
+    )
+  }
   console.log(`\n=== 合计 ${results.length} 项，PASS ${results.length - fail.length}，FAIL ${fail.length} ===`)
   process.exit(fail.length ? 1 : 0)
 })().catch((e) => {
