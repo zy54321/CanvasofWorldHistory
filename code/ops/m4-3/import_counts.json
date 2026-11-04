@@ -1,4 +1,9 @@
 {
+  "decisions": {
+    "representative_points": "A2 — 合成独立 Point 位置行（OWNER CONFIRMED）",
+    "attested_form": "不补成名称行（OWNER CONFIRMED）",
+    "place_without_geometry": "不写质量台账，只作验收查询（OWNER CONFIRMED）"
+  },
   "sets": {
     "places_all": 41480,
     "slice_places": 2643,
@@ -229,9 +234,36 @@
   "source_record_delta": {
     "places": 38928,
     "names": 37055,
-    "locations": 32374,
+    "locations_from_files": 32374,
+    "locations_representative_points": 3317,
+    "locations_total": 35691,
     "connections": 13603,
     "inactive_overlap_places": 2552,
-    "total": 124512
+    "total_adopted_A2": 127829,
+    "expected_total_A2": 157220,
+    "total_reference_A1": 124512,
+    "expected_total_A1": 153903
+  },
+  "ledger_estimate": {
+    "note": "只列可预测项；归一化产出的部分必须 M4-4a 实测后冻结。unknown_time_bound_type 对 Pleiades **不会触发**，见 evidence",
+    "missing_coordinate": 7200,
+    "coordinate_out_of_range": 0,
+    "parent_place_not_in_sample": 0,
+    "truncated_slice_tail": 0,
+    "unknown_time_bound_type": 0,
+    "geometry_invalid_repaired": 4,
+    "connection_endpoint_missing": 28,
+    "accuracy_unknown_sentinel": 728,
+    "predictable_total": 7960,
+    "importer_synthesised": [
+      "duplicate_external_id",
+      "derived_value_mismatch",
+      "manual_edit_conflict"
+    ],
+    "evidence": {
+      "unknown_time_bound_type": "normalize.py:615 rule_basis_available=date_rules.loaded；normalize.py:621 起是 for record in chgis_records；normalize.py:1509-1523 只在该循环内、且 BEG_RULE/END_RULE 不在 CHGIS date-rule 工作簿时开票。Pleiades 不在 chgis_records 里，故恒为 0。",
+      "missing_coordinate": "pleiades_extract.py:328 在 place 记录上置 flag；normalize.py:1685-1695 只遍历 group.primary.quality_flags，故每个无坐标地点 1 行。",
+      "child_flags_not_emitted": "normalize.py:1683 起 only primary.quality_flags；子行（名称/位置）的 empty_name / missing_coordinate / z_ordinate_discarded 不单独开票，仅 parent_place_not_in_sample 例外（normalize.py:1704-1720）。"
+    }
   }
 }

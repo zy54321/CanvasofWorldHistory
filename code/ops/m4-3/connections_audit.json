@@ -1,0 +1,480 @@
+{
+  "source_rows": 13603,
+  "place_ids": 41480,
+  "classes": {
+    "A_both_ends_ok": 13575,
+    "A1_resolvable_self_loop": 1,
+    "A2_normal_pairs": 13574,
+    "B_dangling": 28,
+    "B1_blank_row": 1,
+    "B2_one_side_dangling": 27,
+    "B2a_of_which_errata_target": 3,
+    "B3_both_sides_dangling": 0
+  },
+  "self_loops_real": 1,
+  "self_loops_counted_by_equality": 2,
+  "dangling_records_total": 28,
+  "dangling_endpoint_sides": {
+    "connects_to": 28,
+    "place_id": 1
+  },
+  "dangling_sides_sum": 29,
+  "candidate": {
+    "pairs_before_dedup": 13574,
+    "distinct_ordered_pairs": 13553,
+    "dropped_by_pair_dedup": 21,
+    "duplicate_pairs": {
+      "98909->20469": 2,
+      "614870->609500": 2,
+      "639139->639116": 2,
+      "1001927->1001135": 2,
+      "167919->982258": 2,
+      "168254096->832255771": 2,
+      "894126->893951": 2,
+      "491660->491678": 2,
+      "408700256->299219557": 2,
+      "462506->462492": 2,
+      "423077->356966898": 2,
+      "373786->373778": 2,
+      "373780->716589": 2,
+      "299219557->893945": 2,
+      "599799->48050879": 2,
+      "599612->35475912": 2,
+      "570598->570102": 2,
+      "568355929->893951": 2,
+      "541137->541081": 2,
+      "529700371->423025": 2,
+      "552768118->246510": 2
+    },
+    "duplicate_triples": {
+      "98909->20469|connection": 2,
+      "639139->639116|connection": 2,
+      "1001927->1001135|part_of_analytical": 2,
+      "462506->462492|connection": 2,
+      "423077->356966898|on": 2,
+      "299219557->893945|at": 2,
+      "599799->48050879|member": 2,
+      "570598->570102|connection": 2,
+      "552768118->246510|at": 2
+    },
+    "final_rows": 13553,
+    "unique_key": "uq_candidate_match_c09 (relation_type, place_id_a, place_id_b)",
+    "excluded_by_check": "ck_candidate_match_distinct_places 拒绝 a = b"
+  },
+  "ids": {
+    "A1_resolvable_self_loop": [
+      {
+        "connection_id": "lydia-byzantine-province",
+        "uri": "https://pleiades.stoa.org/places/1001909/lydia-byzantine-province",
+        "place_id": "1001909",
+        "connects_to": "1001909",
+        "connection_type": "succeeds"
+      }
+    ],
+    "B1_blank_row": [
+      {
+        "connection_id": "",
+        "uri": "",
+        "place_id": "",
+        "connects_to": "",
+        "connection_type": "",
+        "sides": "both"
+      }
+    ],
+    "B2_one_side_dangling": [
+      {
+        "connection_id": "altar-of-the-eudamenoi",
+        "uri": "https://pleiades.stoa.org/places/999238742/altar-of-the-eudamenoi",
+        "place_id": "999238742",
+        "connects_to": "368305523",
+        "connection_type": "near",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "lucania",
+        "uri": "https://pleiades.stoa.org/places/991362/lucania",
+        "place_id": "991362",
+        "connects_to": "487529761",
+        "connection_type": "succeeds",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "kummuhu-kingdom",
+        "uri": "https://pleiades.stoa.org/places/998821004/kummuhu-kingdom",
+        "place_id": "998821004",
+        "connects_to": "424616150",
+        "connection_type": "near",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "bit-agusi-kingdom",
+        "uri": "https://pleiades.stoa.org/places/998821004/bit-agusi-kingdom",
+        "place_id": "998821004",
+        "connects_to": "802922078",
+        "connection_type": "part_of_admin",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "bit-adini-kingdom",
+        "uri": "https://pleiades.stoa.org/places/998821004/bit-adini-kingdom",
+        "place_id": "998821004",
+        "connects_to": "744211055",
+        "connection_type": "part_of_admin",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "bit-agusi-kingdom",
+        "uri": "https://pleiades.stoa.org/places/998821003/bit-agusi-kingdom",
+        "place_id": "998821003",
+        "connects_to": "802922078",
+        "connection_type": "near",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "991384",
+        "uri": "https://pleiades.stoa.org/places/1001914/991384",
+        "place_id": "1001914",
+        "connects_to": "https://pleiades.stoa.org/errata/991384",
+        "connection_type": "succeeds",
+        "sides": "b",
+        "target_kind": "errata"
+      },
+      {
+        "connection_id": "kummuhu-kingdom",
+        "uri": "https://pleiades.stoa.org/places/168815529/kummuhu-kingdom",
+        "place_id": "168815529",
+        "connects_to": "424616150",
+        "connection_type": "abuts",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "bit-agusi-kingdom",
+        "uri": "https://pleiades.stoa.org/places/168815529/bit-agusi-kingdom",
+        "place_id": "168815529",
+        "connects_to": "802922078",
+        "connection_type": "part_of_admin",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "bit-adini-kingdom",
+        "uri": "https://pleiades.stoa.org/places/168815529/bit-adini-kingdom",
+        "place_id": "168815529",
+        "connects_to": "744211055",
+        "connection_type": "part_of_admin",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "874325",
+        "uri": "https://pleiades.stoa.org/places/874316/874325",
+        "place_id": "874316",
+        "connects_to": "https://pleiades.stoa.org/errata/874325",
+        "connection_type": "connection",
+        "sides": "b",
+        "target_kind": "errata"
+      },
+      {
+        "connection_id": "via-delle-gallie",
+        "uri": "https://pleiades.stoa.org/places/849308046/via-delle-gallie",
+        "place_id": "849308046",
+        "connects_to": "571200449",
+        "connection_type": "part_of_analytical",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "chalcidean-league",
+        "uri": "https://pleiades.stoa.org/places/491701/chalcidean-league",
+        "place_id": "491701",
+        "connects_to": "585841736",
+        "connection_type": "member",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "chalcidean-league",
+        "uri": "https://pleiades.stoa.org/places/491678/chalcidean-league",
+        "place_id": "491678",
+        "connects_to": "585841736",
+        "connection_type": "capital",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "991353",
+        "uri": "https://pleiades.stoa.org/places/462503/991353",
+        "place_id": "462503",
+        "connects_to": "https://pleiades.stoa.org/errata/991353",
+        "connection_type": "connection",
+        "sides": "b",
+        "target_kind": "errata"
+      },
+      {
+        "connection_id": "1523064470",
+        "uri": "https://pleiades.stoa.org/places/456339119/1523064470",
+        "place_id": "456339119",
+        "connects_to": "324782842",
+        "connection_type": "at",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "kummuhu-kingdom",
+        "uri": "https://pleiades.stoa.org/places/319432673/kummuhu-kingdom",
+        "place_id": "319432673",
+        "connects_to": "424616150",
+        "connection_type": "abuts",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "0957846214",
+        "uri": "https://pleiades.stoa.org/places/354841590/0957846214",
+        "place_id": "354841590",
+        "connects_to": "324782842",
+        "connection_type": "at",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "province-of-the-commander-in-chief-on-the-left",
+        "uri": "https://pleiades.stoa.org/places/270123727/province-of-the-commander-in-chief-on-the-left",
+        "place_id": "270123727",
+        "connects_to": "3456694",
+        "connection_type": "abuts",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "chalcidean-league",
+        "uri": "https://pleiades.stoa.org/places/501605/chalcidean-league",
+        "place_id": "501605",
+        "connects_to": "585841736",
+        "connection_type": "member",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "chalcidean-league",
+        "uri": "https://pleiades.stoa.org/places/501646/chalcidean-league",
+        "place_id": "501646",
+        "connects_to": "585841736",
+        "connection_type": "member",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "chalcidean-league",
+        "uri": "https://pleiades.stoa.org/places/501627/chalcidean-league",
+        "place_id": "501627",
+        "connects_to": "585841736",
+        "connection_type": "member",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "chalcidean-league",
+        "uri": "https://pleiades.stoa.org/places/501363/chalcidean-league",
+        "place_id": "501363",
+        "connects_to": "585841736",
+        "connection_type": "member",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "1212628995",
+        "uri": "https://pleiades.stoa.org/places/546393278/1212628995",
+        "place_id": "546393278",
+        "connects_to": "324782842",
+        "connection_type": "at",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "mosyli",
+        "uri": "https://pleiades.stoa.org/places/530210687/mosyli",
+        "place_id": "530210687",
+        "connects_to": "780842255",
+        "connection_type": "connection",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "4170842001",
+        "uri": "https://pleiades.stoa.org/places/523458668/4170842001",
+        "place_id": "523458668",
+        "connects_to": "523458667",
+        "connection_type": "at",
+        "sides": "b",
+        "target_kind": "place_missing"
+      },
+      {
+        "connection_id": "nashteban",
+        "uri": "https://pleiades.stoa.org/places/553026715/nashteban",
+        "place_id": "553026715",
+        "connects_to": "150531241",
+        "connection_type": "near",
+        "sides": "b",
+        "target_kind": "place_missing"
+      }
+    ],
+    "B3_both_sides_dangling": [],
+    "dropped_by_pair_dedup": [
+      {
+        "connection_id": "20469",
+        "uri": "https://pleiades.stoa.org/places/98909/20469",
+        "place_id": "98909",
+        "connects_to": "20469",
+        "connection_type": "connection"
+      },
+      {
+        "connection_id": "pessinous-iustinianoupolis-1",
+        "uri": "https://pleiades.stoa.org/places/614870/pessinous-iustinianoupolis-1",
+        "place_id": "614870",
+        "connects_to": "609500",
+        "connection_type": "route_next"
+      },
+      {
+        "connection_id": "639116",
+        "uri": "https://pleiades.stoa.org/places/639139/639116",
+        "place_id": "639139",
+        "connects_to": "639116",
+        "connection_type": "connection"
+      },
+      {
+        "connection_id": "pontike-1",
+        "uri": "https://pleiades.stoa.org/places/1001927/pontike-1",
+        "place_id": "1001927",
+        "connects_to": "1001135",
+        "connection_type": "part_of_analytical"
+      },
+      {
+        "connection_id": "copy_of_982258",
+        "uri": "https://pleiades.stoa.org/places/167919/copy_of_982258",
+        "place_id": "167919",
+        "connects_to": "982258",
+        "connection_type": "capital"
+      },
+      {
+        "connection_id": "older-parthenon-1",
+        "uri": "https://pleiades.stoa.org/places/168254096/older-parthenon-1",
+        "place_id": "168254096",
+        "connects_to": "832255771",
+        "connection_type": "material_source"
+      },
+      {
+        "connection_id": "copy_of_893951",
+        "uri": "https://pleiades.stoa.org/places/894126/copy_of_893951",
+        "place_id": "894126",
+        "connects_to": "893951",
+        "connection_type": "part_of_physical"
+      },
+      {
+        "connection_id": "olynthos-1",
+        "uri": "https://pleiades.stoa.org/places/491660/olynthos-1",
+        "place_id": "491660",
+        "connects_to": "491678",
+        "connection_type": "port_of"
+      },
+      {
+        "connection_id": "temple-of-ishtar-at-assur-1",
+        "uri": "https://pleiades.stoa.org/places/408700256/temple-of-ishtar-at-assur-1",
+        "place_id": "408700256",
+        "connects_to": "299219557",
+        "connection_type": "succeeds"
+      },
+      {
+        "connection_id": "462492",
+        "uri": "https://pleiades.stoa.org/places/462506/462492",
+        "place_id": "462506",
+        "connects_to": "462492",
+        "connection_type": "connection"
+      },
+      {
+        "connection_id": "via-appia",
+        "uri": "https://pleiades.stoa.org/places/423077/via-appia",
+        "place_id": "423077",
+        "connects_to": "356966898",
+        "connection_type": "on"
+      },
+      {
+        "connection_id": "cyrene-1",
+        "uri": "https://pleiades.stoa.org/places/373786/cyrene-1",
+        "place_id": "373786",
+        "connects_to": "373778",
+        "connection_type": "part_of_admin"
+      },
+      {
+        "connection_id": "libya-inferior-region",
+        "uri": "https://pleiades.stoa.org/places/373780/libya-inferior-region",
+        "place_id": "373780",
+        "connects_to": "716589",
+        "connection_type": "capital"
+      },
+      {
+        "connection_id": "copy_of_ashur-2018lamban2019-2018liba-nai-2019",
+        "uri": "https://pleiades.stoa.org/places/299219557/copy_of_ashur-2018lamban2019-2018liba-nai-2019",
+        "place_id": "299219557",
+        "connects_to": "893945",
+        "connection_type": "at"
+      },
+      {
+        "connection_id": "delian-league-1",
+        "uri": "https://pleiades.stoa.org/places/599799/delian-league-1",
+        "place_id": "599799",
+        "connects_to": "48050879",
+        "connection_type": "member"
+      },
+      {
+        "connection_id": "arzawa-1",
+        "uri": "https://pleiades.stoa.org/places/599612/arzawa-1",
+        "place_id": "599612",
+        "connects_to": "35475912",
+        "connection_type": "part_of_regional"
+      },
+      {
+        "connection_id": "570102",
+        "uri": "https://pleiades.stoa.org/places/570598/570102",
+        "place_id": "570598",
+        "connects_to": "570102",
+        "connection_type": "connection"
+      },
+      {
+        "connection_id": "copy_of_babylon",
+        "uri": "https://pleiades.stoa.org/places/568355929/copy_of_babylon",
+        "place_id": "568355929",
+        "connects_to": "893951",
+        "connection_type": "at"
+      },
+      {
+        "connection_id": "pyrasos-1",
+        "uri": "https://pleiades.stoa.org/places/541137/pyrasos-1",
+        "place_id": "541137",
+        "connects_to": "541081",
+        "connection_type": "sympoliteia"
+      },
+      {
+        "connection_id": "roma-1",
+        "uri": "https://pleiades.stoa.org/places/529700371/roma-1",
+        "place_id": "529700371",
+        "connects_to": "423025",
+        "connection_type": "bounds"
+      },
+      {
+        "connection_id": "copy_of_6331219945",
+        "uri": "https://pleiades.stoa.org/places/552768118/copy_of_6331219945",
+        "place_id": "552768118",
+        "connects_to": "246510",
+        "connection_type": "at"
+      }
+    ]
+  }
+}

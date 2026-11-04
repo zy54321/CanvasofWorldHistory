@@ -274,9 +274,17 @@ def main() -> int:
     # ---------- 汇总 ----------
     loc_new_rows = sum(g["rows_new"] for g in loc.values())
     overlap = len(all_ids & slice_ids)
-    source_delta = len(new_ids) + names_new + loc_new_rows + conn_total + overlap
+    rep_only_n = len(rep_only_ids)
+    # OWNER CONFIRMED：代表点合成（A2）为正式口径；A1 仅作对照
+    delta_a1 = len(new_ids) + names_new + loc_new_rows + conn_total + overlap
+    delta_a2 = delta_a1 + rep_only_n
 
     out = {
+        "decisions": {
+            "representative_points": "A2 — 合成独立 Point 位置行（OWNER CONFIRMED）",
+            "attested_form": "不补成名称行（OWNER CONFIRMED）",
+            "place_without_geometry": "不写质量台账，只作验收查询（OWNER CONFIRMED）",
+        },
         "sets": {
             "places_all": len(all_ids),
             "slice_places": len(slice_ids),
@@ -344,10 +352,46 @@ def main() -> int:
         "source_record_delta": {
             "places": len(new_ids),
             "names": names_new,
-            "locations": loc_new_rows,
+            "locations_from_files": loc_new_rows,
+            "locations_representative_points": rep_only_n,
+            "locations_total": loc_new_rows + rep_only_n,
             "connections": conn_total,
             "inactive_overlap_places": overlap,
-            "total": source_delta,
+            "total_adopted_A2": delta_a2,
+            "expected_total_A2": 29391 + delta_a2,
+            "total_reference_A1": delta_a1,
+            "expected_total_A1": 29391 + delta_a1,
+        },
+        "ledger_estimate": {
+            "note": ("只列可预测项；归一化产出的部分必须 M4-4a 实测后冻结。"
+                     "unknown_time_bound_type 对 Pleiades **不会触发**，见 evidence"),
+            "missing_coordinate": len(new_ids) - cov_new["with_rep_point"],
+            "coordinate_out_of_range": 0,
+            "parent_place_not_in_sample": 0,
+            "truncated_slice_tail": 0,
+            "unknown_time_bound_type": 0,
+            "geometry_invalid_repaired": invalid_new,
+            "connection_endpoint_missing": 28,
+            "accuracy_unknown_sentinel": rep_only_prec.get("rough", 0),
+            "predictable_total": ((len(new_ids) - cov_new["with_rep_point"]) + invalid_new
+                                  + 28 + rep_only_prec.get("rough", 0)),
+            "importer_synthesised": ["duplicate_external_id", "derived_value_mismatch",
+                                     "manual_edit_conflict"],
+            "evidence": {
+                "unknown_time_bound_type": (
+                    "normalize.py:615 rule_basis_available=date_rules.loaded；"
+                    "normalize.py:621 起是 for record in chgis_records；"
+                    "normalize.py:1509-1523 只在该循环内、且 BEG_RULE/END_RULE 不在 CHGIS "
+                    "date-rule 工作簿时开票。Pleiades 不在 chgis_records 里，故恒为 0。"),
+                "missing_coordinate": (
+                    "pleiades_extract.py:328 在 place 记录上置 flag；"
+                    "normalize.py:1685-1695 只遍历 group.primary.quality_flags，"
+                    "故每个无坐标地点 1 行。"),
+                "child_flags_not_emitted": (
+                    "normalize.py:1683 起 only primary.quality_flags；子行（名称/位置）的 "
+                    "empty_name / missing_coordinate / z_ordinate_discarded 不单独开票，"
+                    "仅 parent_place_not_in_sample 例外（normalize.py:1704-1720）。"),
+            },
         },
     }
 
@@ -396,9 +440,14 @@ def main() -> int:
           f"{out['languages']['distinct_used_new']} 种，不在词表 {out['languages']['used_not_in_vocab']}")
     print("== 精度哨兵 ==", out["placement_accuracy"])
     print("== 无效多边形 ==", {k: v for k, v in out["geometry_invalid"].items() if k != "examples"})
-    print("== source_record 增量 ==")
+    print("== source_record 增量（采纳 A2）==")
     for k, v in out["source_record_delta"].items():
-        print(f"  {k:26s} {v:,}")
+        print(f"  {k:34s} {v:,}")
+    print("== 台账可预测项 ==")
+    for k, v in out["ledger_estimate"].items():
+        if k in ("note", "evidence", "importer_synthesised"):
+            continue
+        print(f"  {k:32s} {v:,}")
     print(f"\nJSON -> {args.json}")
     return 0
 
