@@ -89,6 +89,14 @@ DATASETS = {
         external_id_nature="source_declared",
         grain_evidence="12,445 条 = place 2,643 + name 4,579 + location 2,460 + edge 2,763；"
                        "仅 place 记录建点（2,643），name/location 经 raw_payload.place_id 挂到已存在地点 ⇒ per_record。"),
+    "pleiades_gis_4_1": dict(
+        source_id="pleiades", display_name="Pleiades Datasets v4.1 — GIS CSV (complete package)",
+        dataset_version="4.1", record_scopes=["place", "name", "location", "edge"],
+        place_grain="per_record", location_grain="per_record", occurrence_key_rule="parent_ordinal",
+        external_id_nature="source_declared",
+        grain_evidence="127,829 条 = place 41,480 + name 37,055 + location 35,691（含 3,317 条 A2 合成代表点）"
+                       "+ edge 13,603；其中 2,552 条 place 记录的同 grain_key 已由 pleiades_gis_4_1_slice "
+                       "建点，本批写 is_active=false 不重复建点 ⇒ 实际建点 38,928，per_record。"),
     "whg_geoname_s_gn_sample": dict(
         source_id="whg", display_name="WHG geonames sample",
         dataset_version=None, record_scopes=["place", "name", "location"], place_grain="per_record",
@@ -115,6 +123,13 @@ SCOPE_MAP = {
     ("pleiades_gis_4_1_slice", "pleiades_name_id"): "name",
     ("pleiades_gis_4_1_slice", "pleiades_location_id"): "location",
     ("pleiades_gis_4_1_slice", "pleiades_connection_id"): "edge",
+    # M4-4a：v4.1 全量。代表点是 A2 合成的独立位置行，作用域与 location 相同，
+    # 但保留独立的 external_id_type 以便逐条追溯"哪些位置行是合成的"。
+    ("pleiades_gis_4_1", "pleiades_place_id"): "place",
+    ("pleiades_gis_4_1", "pleiades_name_id"): "name",
+    ("pleiades_gis_4_1", "pleiades_location_id"): "location",
+    ("pleiades_gis_4_1", "pleiades_representative_point"): "location",
+    ("pleiades_gis_4_1", "pleiades_connection_id"): "edge",
     ("whg_geoname_s_gn_sample", "whg_source_id"): "place",
     ("whg_geoname_s_gn_sample", "whg_place_name_index"): "name",
     ("whg_geoname_s_gn_sample", "whg_geometry"): "location",
@@ -131,7 +146,37 @@ LAYER_MAP = {
     "chgis_cnty": "chgis_v6_county_points",
     "mcgd_zenodo_22094815_head960": "mcgd_zenodo_22094815_head960",
     "pleiades_gis_4_1_slice": "pleiades_gis_4_1_slice",
+    "pleiades_gis_4_1": "pleiades_gis_4_1",
 }
+
+#: M4-4a：重叠地点源记录的失效原因。
+#: 语义 = 同一 grain_key 已由既有切片快照建点，本行来自更新的快照，仅为追溯保留。
+#: 该值由 V9 的 ck_source_record_c19 扩宽后合法（V9-D1，见迁移文件头）。
+#: 若 Owner 不追认 V9-D1，把这里改成 'source_absent' 即可运行，但语义会不准确。
+SUPERSEDED_INACTIVE_REASON = "superseded_by_newer_snapshot"
+
+#: 与切片快照比对、用来判定"重叠地点"的数据集对。
+ALIAS_BASE_DATASET = "pleiades_gis_4_1_slice"
+ALIAS_NEW_DATASET = "pleiades_gis_4_1"
+
+#: ``historical_place_location.geom_type`` 的合法值（V9 之后 4 个）。
+GEOM_TYPES = {"Point", "Polygon", "MultiPolygon", "LineString"}
+
+#: ``location_precision`` 的合法值。
+LOCATION_PRECISIONS = {"precise", "approximate", "rough", "unknown"}
+
+
+def normalize_location_precision(value: str) -> str:
+    """把暂存精度词映射到 §5.6 的四值域。
+
+    M4-4a 之前这里写成 ``'precise' if v == 'precise' else 'unknown'``，把 Pleiades
+    的 ``rough`` 全部压成 ``unknown``。V9 之后 ``rough`` 是合法值，源值必须直传：
+    精度是数据本身的性质，不是可以向下取整的展示选项。
+    ``'point'``（CHGIS/MCGD 的几何类型词写在了精度列）继续映射为 ``unknown``，
+    与既有 18,103 行完全一致。
+    """
+    text = (value or "").strip().lower()
+    return text if text in LOCATION_PRECISIONS else "unknown"
 
 VALID_SCOPES = {"place", "name", "location", "edge"}
 SENTINEL_PARENT = "-"
@@ -380,9 +425,33 @@ class Importer:
         print(f"  隔离 {len(self.quarantine)} 条：{', '.join(sorted(self.quarantine))}")
 
         # 地点装配键（CORE §5.5.3 / §5.5.4）
+        #
+        # M4-4a：先算出"重叠地点"集合 —— v4.1 里那些同 grain_key 已由切片快照建过点的
+        # 地点。它们的源记录照常插入（is_active=false），但**不得**进入 place_keys，
+        # 否则「源记录派生的地点键」会比「暂存 places 行」多 2,552 个，
+        # 下面的一致性校验会（正确地）整批中止。
+        slice_place_ext = {
+            x["ext"]
+            for x in self.records
+            if x["ds"] == ALIAS_BASE_DATASET and x["scope"] == "place"
+        }
+        self.superseded_sids = {
+            x["sid"]
+            for x in self.records
+            if x["ds"] == ALIAS_NEW_DATASET
+            and x["scope"] == "place"
+            and x["ext"] in slice_place_ext
+        }
+        self.slice_place_ext = slice_place_ext
+        print(f"  重叠地点：v4.1 有 {sum(1 for x in self.records if x['ds'] == ALIAS_NEW_DATASET and x['scope'] == 'place'):,} "
+              f"条 place 源记录，其中 {len(self.superseded_sids):,} 条与切片快照同 grain_key "
+              f"⇒ is_active=false（{SUPERSEDED_INACTIVE_REASON}）")
+
         self.place_keys: dict[tuple, dict] = {}
         for x in self.records:
             if x["sid"] in self.quarantine:
+                continue
+            if x["sid"] in self.superseded_sids:
                 continue
             if x["scope"] == "place":
                 self.place_keys[(x["ds"], x["ext"])] = x
@@ -434,9 +503,28 @@ class Importer:
             f"{t}/{i}: {a}→{b}（{f}={t2}）" for t, i, a, b, f, t2 in changed) or "无"))
         self.time_changed = changed
         self.time_stat = dict(tstat)
-        if len(changed) != 2 or {c[1] for c in changed} != {"nm_0045996", "nm_0046197"}:
+        # 改判必须是"规则推导出的集合"，不能是写死的行号清单。
+        # M4-2 收尾时已把验证器里的固定数量断言改成独立复算，这条同理：
+        # 期望集合 = 暂存里所有 mask 分支 + 两端相等 + 暂存值不是 snapshot 的行。
+        # M4-4a 之前它恰好是 2 行（Boxar / Catife），并入 v4.1 全量后是 7 行；
+        # 数量变了不是回归，是数据集变大了 —— 规则本身一个字都没改。
+        expected_changed = {
+            (table, r[idcol])
+            for table, rows, idcol in (("name", self.name_rows, "name_id"),
+                                       ("location", self.loc_rows, "location_id"))
+            for r in rows
+            if (r["time_rule_code"] or "").strip() == MASK_RULE
+            and to_int(r["valid_from_year_astro"]) is not None
+            and to_int(r["valid_from_year_astro"]) == to_int(r["valid_to_year_astro"])
+            and (r["time_bound_type"] or "").strip() != "snapshot"
+        }
+        actual_changed = {(t, i) for t, i, *_rest in changed}
+        if actual_changed != expected_changed:
             raise DerivationError(
-                f"时间类型改判行与权威期望不符（期望恰 nm_0045996 / nm_0046197 两行）⇒ 整批中止：{changed}")
+                "时间类型改判行与规则推导集合不符 ⇒ 整批中止："
+                f"多改 {sorted(actual_changed - expected_changed)[:5]}；"
+                f"漏改 {sorted(expected_changed - actual_changed)[:5]}")
+        print(f"  改判集合 = 规则推导集合（{len(expected_changed)} 行）  ✓")
 
         # 台账 dataset_id（CORE §5.9.1：① 源记录 ② 图层键映射）
         #
@@ -588,10 +676,20 @@ class Importer:
         for x in to_insert:
             bid = self.batch_ids[x["ds"]]
             q = x["sid"] in self.quarantine
+            superseded = x["sid"] in self.superseded_sids
+            # M4-4a：重叠地点的 v4.1 源记录入库即失效——C03/C18 要求
+            # is_active=false 必须有原因，C21/C22 要求原因与 inactive_at /
+            # inactive_in_batch_id 同时出现或同时为空。
+            active = not (q or superseded)
+            reason = None
+            if q:
+                reason = "duplicate_quarantine"
+            elif superseded:
+                reason = SUPERSEDED_INACTIVE_REASON
             rows.append((x["ds"], x["scope"], x["ext"], x["parent"], x["ord"], x["raw_file"], x["idx"],
-                         Json(x["payload"]), x["hash"], bid, bid, not q,
-                         "duplicate_quarantine" if q else None, started if q else None,
-                         bid if q else None, x["ingested_at"]))
+                         Json(x["payload"]), x["hash"], bid, bid, active,
+                         reason, started if reason else None,
+                         bid if reason else None, x["ingested_at"]))
         if rows:
             execute_values(self.cur,
                 """INSERT INTO source_record
@@ -606,8 +704,11 @@ class Importer:
             """SELECT dataset_id, record_scope, parent_external_id, external_id, duplicate_ordinal,
                       source_record_id FROM source_record""")
         self.sr_map = {r[:5]: r[5] for r in self.cur.fetchall()}
-        self.src_stat = dict(inserted=len(rows), updated=upd, touched=touch, held=hold)
-        print(f"  新增 {len(rows):,} / 内容变更 {upd} / 仅触 last_batch_id {touch:,} / 隔离保持 {hold}；"
+        self.src_stat = dict(inserted=len(rows), updated=upd, touched=touch, held=hold,
+                             superseded=sum(1 for r in rows if not r[11]
+                                            and r[12] == SUPERSEDED_INACTIVE_REASON))
+        print(f"  新增 {len(rows):,}（其中重叠地点失效 {self.src_stat['superseded']:,}）"
+              f" / 内容变更 {upd} / 仅触 last_batch_id {touch:,} / 隔离保持 {hold}；"
               f"库中合计 {len(self.sr_map):,}")
 
     def _anchor_id(self, x) -> int:
@@ -636,6 +737,13 @@ class Importer:
                 note = basis
             elif ds.startswith("mcgd"):
                 pts, note = "source_code_unconfirmed", "code_meaning_unconfirmed"
+            elif ds == ALIAS_NEW_DATASET:
+                # 192 键类型词表无法整体映射到 5 值域；逐行关系不在库里（承载矩阵 §四），
+                # 只把汇总文本写进 place_type_basis_note，至少可读、可审查。
+                pts = "unknown"
+                found = re.search(r"pleiades_place_types=([^;]*)", r["notes"])
+                types = (found.group(1).strip() if found else "")
+                note = f"pleiades_place_types={types}" if types else "pleiades_place_types=(none)"
             else:
                 pts, note = "unknown", None
             if (ds, grain) in existing:
@@ -734,7 +842,10 @@ class Importer:
         print("\n### 3.6 historical_place_location")
         self.cur.execute("SELECT source_record_id FROM historical_place_location WHERE source_record_id IS NOT NULL")
         have = {r[0] for r in self.cur.fetchall()}
-        rows, skip, crs_fix = [], 0, Counter()
+        point_rows, shape_rows = [], []
+        skip, crs_fix = 0, Counter()
+        geom_stat: Counter = Counter()
+        precision_fix: Counter = Counter()
         for r in self.loc_rows:
             if r["source_record_id"] in self.quarantine:
                 skip += 1
@@ -751,13 +862,42 @@ class Importer:
             mask, beg, end = split_time_rule_code(r["time_rule_code"])
             unc = to_float(r["uncertainty_m"])
             ttype, _branch = self.time_map[("location", r["location_id"])]
-            rows.append((self.hp2place[r["place_id"]], srid, lon, lat, r["original_x"], r["original_y"],
-                         oc or None, derived, to_bool(r["axis_order_verified"]),
-                         "precise" if r["location_precision"] == "precise" else "unknown",
-                         int(round(unc)) if unc is not None else None,
-                         to_int(r["valid_from_year_astro"]), to_int(r["valid_to_year_astro"]),
-                         ttype, beg, end, mask, r["notes"], started, started))
-        if rows:
+
+            geom_type = (r.get("geom_type") or "").strip() or "Point"
+            if geom_type not in GEOM_TYPES:
+                raise DerivationError(
+                    f"location_id={r['location_id']} geom_type 越界：{geom_type}")
+            precision = normalize_location_precision(r["location_precision"])
+            if precision != r["location_precision"]:
+                precision_fix[f"{r['location_precision']}→{precision}"] += 1
+            geom_stat[geom_type] += 1
+
+            common = (
+                self.hp2place[r["place_id"]], srid, lon, lat, r["original_x"], r["original_y"],
+                oc or None, derived, to_bool(r["axis_order_verified"]),
+                precision,
+                int(round(unc)) if unc is not None else None,
+                to_int(r["valid_from_year_astro"]), to_int(r["valid_to_year_astro"]),
+                ttype, beg, end, mask, r["notes"], started, started,
+            )
+            if geom_type == "Point":
+                # 点：沿用既有路径（geom 由 ST_MakePoint 从代表坐标生成），
+                # 与 M0–M3 已验收的 18,103 行逐字节一致。
+                point_rows.append(common)
+            else:
+                # 面 / 线：暂存里没有 geom 列，WKT 只存在于 CSV，所以必须在
+                # INSERT 语句内直接构造几何。SRID 固定 4326（PLEIADES 声明的坐标系）。
+                wkt = (r.get("geom_wkt") or "").strip()
+                if not wkt:
+                    raise DerivationError(
+                        f"location_id={r['location_id']} geom_type={geom_type} 但没有 geom_wkt")
+                # WKT 在模板里出现 3 次（判有效 / 直接用 / 兜底修复），
+                # execute_values 是逐位置替换，所以元组里也必须重复 3 次。
+                shape_rows.append(
+                    (common[0], common[1], wkt, wkt, wkt, geom_type) + common[2:]
+                )
+
+        if point_rows:
             execute_values(self.cur,
                 """INSERT INTO historical_place_location
                      (place_id, source_record_id, representative_lon, representative_lat,
@@ -765,14 +905,38 @@ class Importer:
                       location_precision, uncertainty_m, valid_from_year_astro, valid_to_year_astro,
                       time_bound_type, source_beg_rule, source_end_rule, source_time_columns,
                       notes, created_at, updated_at)
-                   VALUES %s""", rows, page_size=1000)
+                   VALUES %s""", point_rows, page_size=1000)
             self.cur.execute(
                 """UPDATE historical_place_location
                       SET geom=ST_SetSRID(ST_MakePoint(representative_lon, representative_lat),4326),
                           geom_type='Point'
                     WHERE geom IS NULL AND representative_lon IS NOT NULL
-                      AND representative_lat IS NOT NULL AND source_record_id IS NOT NULL""")
-        print(f"  新增 {len(rows):,}；隔离源跳过 {skip}；crs_confidence 由 original_crs 重派 {dict(crs_fix)}")
+                      AND representative_lat IS NOT NULL AND source_record_id IS NOT NULL
+                      AND geom_type='Point'""")
+        if shape_rows:
+            # 顺序固定「点 → 线 → 面」由暂存行序保证；这里只负责把 WKT 交给 PostGIS。
+            # 几何有效性在流水线里已用 GEOS MakeValid 修好（台账 geometry_invalid_repaired），
+            # 这里再加一层 ST_MakeValid 兜底：万一还有无效几何，宁可修也不要写进去。
+            execute_values(self.cur,
+                """INSERT INTO historical_place_location
+                     (place_id, source_record_id, geom, geom_type, representative_lon, representative_lat,
+                      original_x, original_y, original_crs, crs_confidence, axis_order_verified,
+                      location_precision, uncertainty_m, valid_from_year_astro, valid_to_year_astro,
+                      time_bound_type, source_beg_rule, source_end_rule, source_time_columns,
+                      notes, created_at, updated_at)
+                   VALUES %s""", shape_rows, page_size=500,
+                template=(
+                    "(%s,%s,"
+                    "CASE WHEN ST_IsValid(ST_GeomFromText(%s,4326)) "
+                    "THEN ST_GeomFromText(%s,4326) "
+                    "ELSE ST_CollectionExtract(ST_MakeValid(ST_GeomFromText(%s,4326)),3) END,"
+                    "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                ))
+        self.geom_stat = dict(geom_stat)
+        print(f"  新增 {len(point_rows) + len(shape_rows):,}（几何 "
+              f"{dict(sorted(geom_stat.items()))}）；隔离源跳过 {skip}；"
+              f"crs_confidence 由 original_crs 重派 {dict(crs_fix)}")
+        print(f"  location_precision 源值直传（仅越界值回落 unknown）：{dict(precision_fix) or '无变化'}")
 
     def write_candidates(self, started) -> None:
         print("\n### 3.7 candidate_match")
@@ -991,16 +1155,24 @@ class Importer:
             a5 = c.fetchone()[0]
             c.execute("SELECT count(*) FROM source_record WHERE first_batch_id=%s AND NOT is_active", (bid,))
             a6 = c.fetchone()[0]
+            # M4-4a：重叠地点源记录是"插入了但按设计失效"的行，既不是 quarantine，
+            # 也不是 noop；G1 必须单独给它们一列，否则恒等式会差 2,552。
+            c.execute("""SELECT count(*) FROM source_record WHERE first_batch_id=%s
+                          AND NOT is_active AND inactive_reason=%s""",
+                      (bid, SUPERSEDED_INACTIVE_REASON))
+            n_super = c.fetchone()[0]
             ok = (a3 == 0 and a789 == 0 and a5 == n_fail and act + inact == n_in and a1 <= n_in)
-            # G1：input_row_count = N_fail_import + N_quar + N_inserted + N_updated + N_noop + N_blocked
-            g1_rhs = n_fail + n_quar + n_ins + n_upd + n_noop + n_block
+            # G1：input_row_count = N_fail_import + N_quar + N_inserted + N_superseded
+            #                          + N_updated + N_noop + N_blocked
+            g1_rhs = n_fail + n_quar + n_ins + n_super + n_upd + n_noop + n_block
             g1 = g1_rhs == n_in
             a1v = a1 == n_ins_arr          # A1：数组长度 == 该批落库行数
             ok = ok and g1 and a1v
             all_ok &= ok
             print(f"  {'✓' if ok else '✗'} {ds:34s} A1 {a1:>6,}/{n_in:<6,}"
-                  f" G1 {n_in:,} = 失败{n_fail} + 隔离{n_quar} + 新增{n_ins:,} + 更新{n_upd}"
-                  f" + 无变化{n_noop:,} + 跳过{n_block}"
+                  f" G1 {n_in:,} = 失败{n_fail} + 隔离{n_quar} + 新增{n_ins:,}"
+                  f"{f' + 重叠失效{n_super:,}' if n_super else ''}"
+                  f" + 更新{n_upd} + 无变化{n_noop:,} + 跳过{n_block}"
                   f" → {'平衡' if g1 else f'不平衡({g1_rhs})'}"
                   f"{'' if a1v else ' ✗A1数组'}")
             if a3 or a789:
@@ -1015,12 +1187,15 @@ class Importer:
             src_ok = False
 
         time_ok = self.assert_time_types()
-        self.assert_ok = src_ok and time_ok
+        geom_ok = self.assert_geometry()
+        self.assert_ok = src_ok and time_ok and geom_ok
         print(f"\n  批次断言 {'✓ 通过' if src_ok else '✗ 失败'}"
-              f"；时间类型断言 {'✓ 通过' if time_ok else '✗ 失败'}")
+              f"；时间类型断言 {'✓ 通过' if time_ok else '✗ 失败'}"
+              f"；几何断言 {'✓ 通过' if geom_ok else '✗ 失败'}")
         if not self.assert_ok:
             raise AssertionFailure(
-                f"断言未全部通过（批次={src_ok}, 时间类型={time_ok}）⇒ 整批回滚，不得提交")
+                f"断言未全部通过（批次={src_ok}, 时间类型={time_ok}, 几何={geom_ok}）"
+                "⇒ 整批回滚，不得提交")
 
     def _name_of(self, name_id: str) -> str:
         for r in self.name_rows:
@@ -1104,6 +1279,51 @@ class Importer:
                   f"notes={'非空' if notes else '空'}")
             ok = bool(ok) and bool(good)
         return bool(ok)
+
+    def assert_geometry(self) -> bool:
+        """A11：几何断言（M4-4a）。
+
+        四条，全部是"几何写进去以后还能不能用地展示"的问题：
+          G-1 无越界 geom_type（V9 之后 4 值域）；
+          G-2 ``geom IS NOT NULL`` 的行必须与 geom_type 一致（LineString 也成立）；
+          G-3 非点几何必须有代表点，否则地图查询（要求 representative_* 非空）看不到；
+          G-4 导入的几何必须 ST_IsValid=true。
+        """
+        print("\n### 3.9c 几何断言 A11（V9 值域 / 几何-类型一致 / 代表点 / 有效性）")
+        c = self.cur
+        checks = [
+            ("G-1 geom_type 越界",
+             "SELECT count(*) FROM historical_place_location WHERE geom_type IS NOT NULL"
+             " AND geom_type NOT IN ('Point','Polygon','MultiPolygon','LineString')"),
+            ("G-2 几何与 geom_type 不一致",
+             "SELECT count(*) FROM historical_place_location WHERE geom IS NOT NULL"
+             " AND st_geometrytype(geom) <> ('ST_' || geom_type)"),
+            ("G-3 面/线缺代表点",
+             "SELECT count(*) FROM historical_place_location WHERE geom_type <> 'Point'"
+             " AND geom IS NOT NULL"
+             " AND (representative_lon IS NULL OR representative_lat IS NULL)"),
+            ("G-4 导入几何 ST_IsValid=false",
+             "SELECT count(*) FROM historical_place_location WHERE created_by='import'"
+             " AND geom IS NOT NULL AND NOT ST_IsValid(geom)"),
+        ]
+        ok = True
+        for label, sql in checks:
+            c.execute(sql)
+            n = c.fetchone()[0]
+            print(f"  {label:34s} {n}")
+            if n:
+                ok = False
+        # 分布取数：打印而不是断言，因为形状由源数据决定，写死会变成"为通过而通过"
+        c.execute("SELECT geom_type, count(*) FROM historical_place_location"
+                  " WHERE created_by='import' GROUP BY 1 ORDER BY 2 DESC")
+        dist = dict(c.fetchall())
+        print(f"  几何分布（import）              {dist}")
+        c.execute("SELECT location_precision, count(*) FROM historical_place_location"
+                  " WHERE created_by='import' GROUP BY 1 ORDER BY 2 DESC")
+        prec = dict(c.fetchall())
+        print(f"  精度分布（import）              {prec}")
+        self.geom_assert = dict(dist=dist, precision=prec)
+        return ok
 
     def finish_batches(self) -> None:
         print("\n### 3.10 批次收尾（六列计数按 G1 各集合独立取数）")

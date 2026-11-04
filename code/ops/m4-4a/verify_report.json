@@ -1,0 +1,511 @@
+{
+  "generated_at": "2026-11-04T10:48:22+00:00",
+  "ok": true,
+  "checks": 79,
+  "failures": 0,
+  "counts": {
+    "old": {
+      "historical_places": 19039,
+      "historical_place_names": 47503,
+      "historical_place_locations": 18103,
+      "source_records": 29391,
+      "data_quality_issues": 12631,
+      "candidate_matches": 53137,
+      "data_datasets": 7
+    },
+    "new": {
+      "historical_places": 57967,
+      "historical_place_names": 84558,
+      "historical_place_locations": 53794,
+      "source_records": 157220,
+      "data_quality_issues": 20591,
+      "candidate_matches": 66711,
+      "data_datasets": 8
+    },
+    "delta": {
+      "places": 38928,
+      "names": 37055,
+      "locations": 35691,
+      "source_records": 127829,
+      "issues": 7960,
+      "candidates": 13574,
+      "datasets": 1
+    }
+  },
+  "items": [
+    {
+      "section": "S1",
+      "name": "historical_places.csv 表头与既有暂存一致",
+      "ok": true,
+      "detail": "15 列"
+    },
+    {
+      "section": "S1",
+      "name": "historical_place_names.csv 表头与既有暂存一致",
+      "ok": true,
+      "detail": "13 列"
+    },
+    {
+      "section": "S1",
+      "name": "historical_place_locations.csv 表头与既有暂存一致",
+      "ok": true,
+      "detail": "22 列"
+    },
+    {
+      "section": "S1",
+      "name": "source_records.csv 表头与既有暂存一致",
+      "ok": true,
+      "detail": "12 列"
+    },
+    {
+      "section": "S1",
+      "name": "data_quality_issues.csv 表头与既有暂存一致",
+      "ok": true,
+      "detail": "11 列"
+    },
+    {
+      "section": "S1",
+      "name": "candidate_matches.csv 表头与既有暂存一致",
+      "ok": true,
+      "detail": "19 列"
+    },
+    {
+      "section": "S1",
+      "name": "data_datasets.csv 表头与既有暂存一致",
+      "ok": true,
+      "detail": "7 列"
+    },
+    {
+      "section": "S1",
+      "name": "地点净增",
+      "ok": true,
+      "detail": "实际=38928 期望=38928"
+    },
+    {
+      "section": "S1",
+      "name": "名称净增",
+      "ok": true,
+      "detail": "实际=37055 期望=37055"
+    },
+    {
+      "section": "S1",
+      "name": "位置净增",
+      "ok": true,
+      "detail": "实际=35691 期望=35691"
+    },
+    {
+      "section": "S1",
+      "name": "source_record 净增",
+      "ok": true,
+      "detail": "实际=127829 期望=127829"
+    },
+    {
+      "section": "S1",
+      "name": "source_record 总量",
+      "ok": true,
+      "detail": "实际=157220 期望=157220"
+    },
+    {
+      "section": "S1",
+      "name": "data_datasets 净增",
+      "ok": true,
+      "detail": "实际=1 期望=1"
+    },
+    {
+      "section": "S2",
+      "name": "historical_places 行数 = 唯一 place_id 数",
+      "ok": true,
+      "detail": "实际=57967 期望=57967"
+    },
+    {
+      "section": "S2",
+      "name": "place_id 重复",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "S2",
+      "name": "(source_dataset, primary_external_id) 重复",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "S2",
+      "name": "name_id 重复",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "S2",
+      "name": "名称行 place_id 全部可解析",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "S2",
+      "name": "location_id 重复",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "S2",
+      "name": "location.source_record_id 重复（C07）",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "S2",
+      "name": "位置行 place_id 全部可解析",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "S2",
+      "name": "source_record_id 唯一",
+      "ok": true,
+      "detail": "实际=157220 期望=157220"
+    },
+    {
+      "section": "S2",
+      "name": "source_records 中 pleiades_gis_4_1 行数",
+      "ok": true,
+      "detail": "实际=127829 期望=127829"
+    },
+    {
+      "section": "S2",
+      "name": "名称/位置行 source_record_id 全部可解析",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "S3",
+      "name": "v4.1 几何总数",
+      "ok": true,
+      "detail": "实际=35691 期望=35691"
+    },
+    {
+      "section": "S3",
+      "name": "v4.1 Point（含 3,317 合成）",
+      "ok": true,
+      "detail": "实际=26684 期望=26684"
+    },
+    {
+      "section": "S3",
+      "name": "v4.1 Polygon + MultiPolygon",
+      "ok": true,
+      "detail": "实际=4114 期望=4114"
+    },
+    {
+      "section": "S3",
+      "name": "v4.1 LineString",
+      "ok": true,
+      "detail": "实际=4893 期望=4893"
+    },
+    {
+      "section": "S3",
+      "name": "全表 geom_wkt 为空的行（应为既有 CHGIS 10 行）",
+      "ok": true,
+      "detail": "实际=10 期望=10"
+    },
+    {
+      "section": "S3",
+      "name": "面/线缺代表点",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "S3",
+      "name": "v4.1 位置行数",
+      "ok": true,
+      "detail": "实际=35691 期望=35691"
+    },
+    {
+      "section": "S3",
+      "name": "源文件重判：整包无效面",
+      "ok": true,
+      "detail": "实际=5 期望=5"
+    },
+    {
+      "section": "S3",
+      "name": "源文件重判：修复后仍为面/多面",
+      "ok": true,
+      "detail": "实际=['MultiPolygon', 'MultiPolygon', 'Polygon', 'Polygon', 'Polygon'] 期望=['MultiPolygon', 'MultiPolygon', 'Polygon', 'Polygon', 'Polygon']"
+    },
+    {
+      "section": "S3",
+      "name": "台账 geometry_invalid_repaired",
+      "ok": true,
+      "detail": "实际=4 期望=4"
+    },
+    {
+      "section": "S3",
+      "name": "修复行全部属于 v4.1",
+      "ok": true,
+      "detail": "实际=4 期望=4"
+    },
+    {
+      "section": "S4",
+      "name": "v4.1 位置 precise",
+      "ok": true,
+      "detail": "实际=31223 期望=31223"
+    },
+    {
+      "section": "S4",
+      "name": "v4.1 位置 rough",
+      "ok": true,
+      "detail": "实际=4468 期望=4468"
+    },
+    {
+      "section": "S4",
+      "name": "v4.1 位置精度取值全在四值域",
+      "ok": true,
+      "detail": "实际=True 期望=True"
+    },
+    {
+      "section": "S4",
+      "name": "v4.1 地点级 precise",
+      "ok": true,
+      "detail": "实际=27418 期望=27418"
+    },
+    {
+      "section": "S4",
+      "name": "v4.1 地点级 rough",
+      "ok": true,
+      "detail": "实际=11510 期望=11510"
+    },
+    {
+      "section": "S5",
+      "name": "time_bound_type 越出七值域",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "S5",
+      "name": "valid_from > valid_to",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "S5",
+      "name": "v4.1 不含 exact 之外的越界类型",
+      "ok": true,
+      "detail": "['bounded', 'tpq_taq', 'unknown']"
+    },
+    {
+      "section": "S6",
+      "name": "v4.1 经纬度越界",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "S6",
+      "name": "v4.1 位置行缺代表坐标",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "S6",
+      "name": "全表缺代表坐标（应为既有 CHGIS 10 行）",
+      "ok": true,
+      "detail": "实际=10 期望=10"
+    },
+    {
+      "section": "S6",
+      "name": "全表越界（应为既有 MCGD 1 行）",
+      "ok": true,
+      "detail": "实际=1 期望=1"
+    },
+    {
+      "section": "S7",
+      "name": "合成代表点行数",
+      "ok": true,
+      "detail": "实际=3317 期望=3317"
+    },
+    {
+      "section": "S7",
+      "name": "代表点坐标与 places.csv 不一致",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "S7",
+      "name": "合成行 raw_file 不是 places.csv",
+      "ok": true,
+      "detail": "实际=0 期望=0"
+    },
+    {
+      "section": "S7",
+      "name": "合成行 precise",
+      "ok": true,
+      "detail": "实际=2589 期望=2589"
+    },
+    {
+      "section": "S7",
+      "name": "合成行 rough",
+      "ok": true,
+      "detail": "实际=728 期望=728"
+    },
+    {
+      "section": "S7",
+      "name": "合成行 uncertainty_m 为空（-1 哨兵）",
+      "ok": true,
+      "detail": "实际=728 期望=728"
+    },
+    {
+      "section": "S8",
+      "name": "v4.1 地点源记录",
+      "ok": true,
+      "detail": "实际=41480 期望=41480"
+    },
+    {
+      "section": "S8",
+      "name": "切片地点源记录",
+      "ok": true,
+      "detail": "实际=2643 期望=2643"
+    },
+    {
+      "section": "S8",
+      "name": "重叠集合大小",
+      "ok": true,
+      "detail": "实际=2552 期望=2552"
+    },
+    {
+      "section": "S8",
+      "name": "非重叠（新建地点）",
+      "ok": true,
+      "detail": "实际=38928 期望=38928"
+    },
+    {
+      "section": "S8",
+      "name": "导入器判定为重叠的源记录数",
+      "ok": true,
+      "detail": "实际=2552 期望=2552"
+    },
+    {
+      "section": "S8",
+      "name": "导入器地点键数（应等于暂存 places 行数）",
+      "ok": true,
+      "detail": "实际=57967 期望=57967"
+    },
+    {
+      "section": "S9",
+      "name": "v4.1 连接源记录",
+      "ok": true,
+      "detail": "实际=13603 期望=13603"
+    },
+    {
+      "section": "S9",
+      "name": "切片连接候选行",
+      "ok": true,
+      "detail": "实际=390 期望=390"
+    },
+    {
+      "section": "S9",
+      "name": "v4.1 连接候选行（按记录）",
+      "ok": true,
+      "detail": "实际=13574 期望=13574"
+    },
+    {
+      "section": "S9",
+      "name": "v4.1 唯一有序对",
+      "ok": true,
+      "detail": "实际=13553 期望=13553"
+    },
+    {
+      "section": "S9",
+      "name": "与切片候选同有序对（入库按 C09 收敛）",
+      "ok": true,
+      "detail": "实际=373 期望=373"
+    },
+    {
+      "section": "S10",
+      "name": "missing_coordinate 净增",
+      "ok": true,
+      "detail": "实际=7200 期望=7200"
+    },
+    {
+      "section": "S10",
+      "name": "geometry_invalid_repaired 净增",
+      "ok": true,
+      "detail": "实际=4 期望=4"
+    },
+    {
+      "section": "S10",
+      "name": "connection_endpoint_missing 净增",
+      "ok": true,
+      "detail": "实际=28 期望=28"
+    },
+    {
+      "section": "S10",
+      "name": "accuracy_unknown_sentinel 净增",
+      "ok": true,
+      "detail": "实际=728 期望=728"
+    },
+    {
+      "section": "S10",
+      "name": "可预测台账合计",
+      "ok": true,
+      "detail": "实际=7960 期望=7960"
+    },
+    {
+      "section": "S10",
+      "name": "台账总净增",
+      "ok": true,
+      "detail": "实际=7960 期望=7960"
+    },
+    {
+      "section": "S10",
+      "name": "v4.1 台账行数",
+      "ok": true,
+      "detail": "实际=7960 期望=7960"
+    },
+    {
+      "section": "S10",
+      "name": "7,960 行全部追加在既有 12,631 行之后（既有 dq_ 编号不移位）",
+      "ok": true,
+      "detail": "追加段数据集 {'pleiades_gis_4_1': 7960}"
+    },
+    {
+      "section": "S11",
+      "name": "historical_places.csv 前 19,039 行与旧暂存一致（忽略时间戳列）",
+      "ok": true,
+      "detail": "差异 0"
+    },
+    {
+      "section": "S11",
+      "name": "historical_place_names.csv 前 47,503 行与旧暂存一致（忽略时间戳列）",
+      "ok": true,
+      "detail": "差异 0"
+    },
+    {
+      "section": "S11",
+      "name": "historical_place_locations.csv 前 18,103 行与旧暂存一致（忽略时间戳列）",
+      "ok": true,
+      "detail": "差异 0"
+    },
+    {
+      "section": "S11",
+      "name": "source_records.csv 前 29,391 行与旧暂存一致（忽略时间戳列）",
+      "ok": true,
+      "detail": "差异 0"
+    },
+    {
+      "section": "S11",
+      "name": "data_quality_issues.csv 前 12,631 行与旧暂存一致（忽略时间戳列）",
+      "ok": true,
+      "detail": "差异 0"
+    },
+    {
+      "section": "S11",
+      "name": "candidate_matches.csv 前 53,137 行与旧暂存一致（忽略时间戳列）",
+      "ok": true,
+      "detail": "差异 0"
+    },
+    {
+      "section": "S11",
+      "name": "data_datasets.csv 前 7 行与旧暂存一致（忽略时间戳列）",
+      "ok": true,
+      "detail": "差异 0"
+    }
+  ]
+}

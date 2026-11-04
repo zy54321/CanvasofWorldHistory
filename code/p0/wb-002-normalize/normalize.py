@@ -100,19 +100,28 @@ CHGIS_DATASET_IDS: Dict[str, str] = {
 SOURCE_ID_PLEIADES = "pleiades"
 SOURCE_ID_WHG = "whg"
 
+#: M4-4a：Pleiades GIS 4.1 全量数据集。与 ``pleiades_gis_4_1_slice`` 是同一来源的
+#: 两个快照，前者是 1 MB 头切片，后者是完整 19 文件包。
+PLEIADES_FULL_SOURCE_DATASET = "pleiades_gis_4_1"
+
 #: Every non-CHGIS ``source_dataset`` whose place rows this module groups.
 EXTRA_SOURCE_DATASETS: Tuple[str, ...] = (
     "pleiades_gis_4_1_slice",
     "whg_api_sample",
+    PLEIADES_FULL_SOURCE_DATASET,
 )
 
 #: Sources in the fixed order used for stable ``place_id`` allocation.
+#: The full v4.1 dataset is **appended last** on purpose: every place id that
+#: already exists in ``code/data/staging`` then keeps its exact value, so the
+#: union staging can be diffed row by row against the previous one.
 DATASET_ORDER: Tuple[str, ...] = (
     "chgis_pref",
     "chgis_cnty",
     MCGD_SOURCE_DATASET,
     "pleiades_gis_4_1_slice",
     "whg_api_sample",
+    PLEIADES_FULL_SOURCE_DATASET,
 )
 
 #: ``LEV_RANK`` -> controlled place-type vocabulary.
@@ -563,11 +572,37 @@ def _source_id_for_dataset(source_dataset: str) -> str:
     """Map a ``source_dataset`` value onto its owning ``source_id``."""
     if source_dataset == MCGD_SOURCE_DATASET:
         return SOURCE_ID_MCGD
-    if source_dataset == "pleiades_gis_4_1_slice":
+    if source_dataset in ("pleiades_gis_4_1_slice", PLEIADES_FULL_SOURCE_DATASET):
         return SOURCE_ID_PLEIADES
     if source_dataset == "whg_api_sample":
         return SOURCE_ID_WHG
     return SOURCE_ID_CHGIS
+
+
+#: ``geometry_wkt`` prefix -> the controlled ``historical_place_location.geom_type``
+#: value.  The prefix is read instead of adding a field to :class:`ExtraRecord`,
+#: because the WKT already is the authoritative statement of the row's geometry.
+_GEOM_TYPE_BY_WKT_PREFIX: Tuple[Tuple[str, str], ...] = (
+    ("MULTIPOLYGON", "MultiPolygon"),
+    ("POLYGON", "Polygon"),
+    ("MULTILINESTRING", "MultiLineString"),
+    ("LINESTRING", "LineString"),
+    ("POINT", "Point"),
+)
+
+
+def _geom_type_of_wkt(wkt: str) -> str:
+    """Return the ``geom_type`` implied by a WKT string's first token.
+
+    Point rows and rows whose WKT failed to parse fall back to ``Point``: every
+    non-point row in this pipeline is produced from a WKT that parsed, so the
+    fallback can only ever describe a genuine point.
+    """
+    text = (wkt or "").strip().upper()
+    for prefix, value in _GEOM_TYPE_BY_WKT_PREFIX:
+        if text.startswith(prefix):
+            return value
+    return "Point"
 
 
 def _extra_name_lang(record: ExtraRecord) -> str:
@@ -645,12 +680,25 @@ def build_bundle(
     # Non-CHGIS places: one group per ``(source_dataset, external_id)``.  Child
     # rows (names, locations, connections) are kept on the extraction and looked
     # up by ``parent_external_id``; only ``place`` rows create groups.
+    #
+    # M4-4a: the v4.1 package carries 2,552 places that the older slice snapshot
+    # already imported.  Those place rows still become ``source_records`` (so all
+    # 41,480 rows stay traceable) but they never become a ``PlaceGroup``: the
+    # increment plan keeps the existing place untouched instead of creating a
+    # duplicate, and their children are not part of the increment either.
+    superseded_keys: set = set()
+    for extraction in extra_extractions:
+        for external_id in extraction.stats.get("superseded_place_ids", []) or []:
+            superseded_keys.add((extraction.source_dataset, external_id))
+
     extra_groups: Dict[Tuple[str, str], PlaceGroup] = {}
     extra_children: Dict[str, List[ExtraRecord]] = defaultdict(list)
     for extraction in extra_extractions:
         for record in extraction.records:
             if record.record_kind == "place":
                 key = (record.source_dataset, record.external_id)
+                if key in superseded_keys:
+                    continue
                 group = extra_groups.get(key)
                 if group is None:
                     group = PlaceGroup(
@@ -664,6 +712,7 @@ def build_bundle(
                 extra_children[f"{record.source_dataset}:{record.parent_external_id}"].append(
                     record
                 )
+    stats["superseded_place_groups_skipped"] = len(superseded_keys)
 
     ordered_groups: List[PlaceGroup] = []
     for dataset in DATASET_ORDER:
@@ -684,6 +733,21 @@ def build_bundle(
     for group in ordered_groups:
         group.place_id = place_ids.next()
 
+    # M4-4a：重叠地点的别名映射。某个 v4.1 地点若已由切片快照建点，指向它的连接
+    # （以及指向它的候选关系另一端）必须解析到**既有**的 place_id，否则会造出一条
+    # 指向不存在地点的候选记录。映射只在内存里构造，不改任何表结构。
+    alias_place_ids: Dict[Tuple[str, str], str] = {}
+    for source_dataset, external_id in sorted(superseded_keys):
+        slice_group = extra_groups.get(("pleiades_gis_4_1_slice", external_id))
+        if slice_group is not None:
+            alias_place_ids[(source_dataset, external_id)] = slice_group.place_id
+    stats["superseded_place_alias_resolved"] = len(alias_place_ids)
+    stats["superseded_place_alias_unresolved"] = sorted(
+        f"{dataset}:{external_id}"
+        for dataset, external_id in superseded_keys
+        if (dataset, external_id) not in alias_place_ids
+    )
+
     # Fast lookups used when emitting names/locations/candidates.
     place_of_chgis_record: Dict[Tuple[str, int], str] = {}
     for group in ordered_groups:
@@ -700,6 +764,9 @@ def build_bundle(
         "chgis_cnty": sum(1 for g in ordered_groups if g.source_dataset == "chgis_cnty"),
         "mcgd": sum(1 for g in ordered_groups if g.source_dataset == MCGD_SOURCE_DATASET),
         "pleiades": sum(1 for g in ordered_groups if g.source_dataset == "pleiades_gis_4_1_slice"),
+        "pleiades_gis_4_1": sum(
+            1 for g in ordered_groups if g.source_dataset == PLEIADES_FULL_SOURCE_DATASET
+        ),
         "whg": sum(1 for g in ordered_groups if g.source_dataset == "whg_api_sample"),
     }
     stats["place_counts_per_source_dataset"] = dict(
@@ -884,13 +951,32 @@ def build_bundle(
             primary = group.primary_extra
             canonical_record = primary
             canonical_name = (primary.name if primary else "") or group.external_id
-            if group.source_dataset == "pleiades_gis_4_1_slice":
+            if group.source_dataset == PLEIADES_FULL_SOURCE_DATASET:
+                name_lang = "und"
+                # place_type 只有 5 值域，Pleiades 的 192 键类型词表无法整体映射；
+                # 唯一有数据依据的映射是 settlement。多值关系写进汇总文本，
+                # 逐行关系留在归档（承载矩阵 §四）。
+                place_type = (primary.place_type if primary else "") or "unknown"
+                if place_type not in ("settlement", "unknown"):
+                    place_type = "unknown"
+                basis = "pleiades_settlement_only"
+                note_parts = [
+                    f"pleiades_place_id={group.external_id}",
+                    "canonical_name_source=places.csv title",
+                    "name_language_not_stated_by_source_so_und",
+                    f"place_type_basis={basis}",
+                ]
+                if primary is not None and (primary.notes or "").strip():
+                    note_parts.append(primary.notes.strip())
+            elif group.source_dataset == "pleiades_gis_4_1_slice":
                 name_lang = "und"
                 note_parts = [
                     f"pleiades_place_id={group.external_id}",
                     "canonical_name_source=places.csv title",
                     "name_language_not_stated_by_source_so_und",
                 ]
+                place_type = "unknown"
+                basis = "source_has_no_chgis_compatible_type_field"
             else:
                 name_lang = "und"
                 note_parts = [
@@ -899,12 +985,13 @@ def build_bundle(
                     "canonical_name_source=WHG title",
                     "name_language_not_stated_by_source_so_und",
                 ]
-            place_type = "unknown"
-            basis = "source_has_no_chgis_compatible_type_field"
-            if primary is not None and primary.quality_flags:
-                note_parts.append("source_flags=" + "|".join(primary.quality_flags))
-                if "attribution_missing" in primary.quality_flags:
-                    note_parts.append("attribution_missing")
+                place_type = "unknown"
+                basis = "source_has_no_chgis_compatible_type_field"
+            if group.source_dataset != PLEIADES_FULL_SOURCE_DATASET:
+                if primary is not None and primary.quality_flags:
+                    note_parts.append("source_flags=" + "|".join(primary.quality_flags))
+                    if "attribution_missing" in primary.quality_flags:
+                        note_parts.append("attribution_missing")
         else:
             canonical_record = _pick_canonical_chgis_record(group.chgis_records)
             canonical_name = canonical_record.name_ch or canonical_record.name_py
@@ -977,6 +1064,7 @@ def build_bundle(
 
     quality_flag_counts: Counter = Counter()
     crs_confidence_counts: Counter = Counter()
+    geometry_type_counts: Counter = Counter()
     time_bound_type_counts: Counter = Counter()
     # Denominator bookkeeping for ``time_bound_type_counts``: the counter is fed
     # from three different loops, so the total cannot be reconstructed from any
@@ -1213,18 +1301,24 @@ def build_bundle(
                     row_flags = list(record.quality_flags)
                     if row_crs_confidence == "unknown" and "crs_unknown" not in row_flags:
                         row_flags.append("crs_unknown")
+                    # M4-4a：几何类型由 WKT 首词决定，不再一律写 Point。
+                    # 面/线的 representative_lon/lat 已在抽取阶段用
+                    # ST_PointOnSurface / ST_LineInterpolatePoint 等价算法算好，
+                    # 否则地图查询（要求 representative_* 非空）看不到这些地点。
+                    row_geom_type = _geom_type_of_wkt(record.geom_wkt)
+                    row_is_point = row_geom_type == "Point"
                     locations.append(
                         {
                             "location_id": loc_ids.next(),
                             "place_id": group.place_id,
-                            "geom_type": "Point",
+                            "geom_type": row_geom_type,
                             "lon": format_number(record.lon),
                             "lat": format_number(record.lat),
                             "geom_wkt": record.geom_wkt,
                             "representative_lon": format_number(record.lon),
                             "representative_lat": format_number(record.lat),
-                            "original_x": record.lon_text,
-                            "original_y": record.lat_text,
+                            "original_x": record.lon_text if row_is_point else "",
+                            "original_y": record.lat_text if row_is_point else "",
                             "original_crs": row_original_crs,
                             "crs_confidence": row_crs_confidence,
                             "axis_order_verified": "true",
@@ -1239,6 +1333,7 @@ def build_bundle(
                             "notes": record.notes,
                         }
                     )
+                    geometry_type_counts[row_geom_type] += 1
                     crs_confidence_counts[f"{record.source_id}:{row_crs_confidence}"] += 1
                     # ``record.quality_flags`` was already folded into
                     # ``quality_flag_counts`` by the child loop above; only the flag
@@ -1571,6 +1666,7 @@ def build_bundle(
         )
 
     stats["quality_flag_counts"] = dict(sorted(quality_flag_counts.items()))
+    stats["location_geometry_type_counts"] = dict(sorted(geometry_type_counts.items()))
     stats["crs_confidence_counts"] = dict(sorted(crs_confidence_counts.items()))
     stats["crs_confidence_rule"] = {
         "vocabulary": list(CRS_CONFIDENCE_VALUES),
@@ -1649,6 +1745,12 @@ def build_bundle(
     for group in ordered_groups:
         if group.source_dataset not in EXTRA_SOURCE_DATASETS:
             continue
+        if group.source_dataset == PLEIADES_FULL_SOURCE_DATASET:
+            # v4.1 全量分支的台账在下面单独追加（见 "v4.1 全量台账"），
+            # 因为它多了 geometry_invalid_repaired / connection_endpoint_missing /
+            # accuracy_unknown_sentinel 三类，而且必须排在所有既有 dq_ 行之后，
+            # 这样既有暂存的台账 id 一个都不会移位。
+            continue
         primary = group.primary_extra
         if primary is None:
             continue
@@ -1716,6 +1818,149 @@ def build_bundle(
     stats["extra_orphan_child_rows"] = orphan_count
 
     # ------------------------------------------------------------------
+    # 5b. Pleiades v4.1 全量台账（追加在最后，既有 dq_ 编号不动）
+    # ------------------------------------------------------------------
+    # 四类，全部由抽取阶段写在记录上的 quality_flag 决定，不在这里重新判断：
+    #   missing_coordinate          7,200  地点行没有代表点（place 级 flag）
+    #   geometry_invalid_repaired       4  面 WKT 无效、已修复
+    #   connection_endpoint_missing    28  连接至少一端解析不到 place_id
+    #   accuracy_unknown_sentinel     728  合成代表点的 min_accuracy_meters = -1
+    # 另有两类**明确不开票**，写在这里是为了让"为什么没有"也可审计：
+    #   z_ordinate_discarded       Z 序降维是表示层处理，不构成数据缺陷
+    #   parent_place_not_in_sample 全量包无孤儿（切片时代才有 4,810 条）
+    full_issues: List[Dict[str, str]] = []
+
+    def add_full_issue(
+        source_dataset: str,
+        source_record_id: str,
+        issue_type: str,
+        severity: str,
+        field_name: str,
+        observed_value: str,
+        expected_rule: str,
+        action_taken: str,
+        notes: str,
+    ) -> None:
+        """Append one v4.1 ledger row to the deferred list."""
+        full_issues.append(
+            {
+                "issue_id": issue_ids.next(),
+                "source_id": _source_id_for_dataset(source_dataset),
+                "source_dataset": source_dataset,
+                "source_record_id": source_record_id,
+                "issue_type": issue_type,
+                "severity": severity,
+                "field_name": field_name,
+                "observed_value": observed_value,
+                "expected_rule": expected_rule,
+                "action_taken": action_taken,
+                "notes": notes,
+            }
+        )
+
+    full_issue_counts: Counter = Counter()
+    for group in ordered_groups:
+        if group.source_dataset != PLEIADES_FULL_SOURCE_DATASET:
+            continue
+        primary = group.primary_extra
+        if primary is None:
+            continue
+        source_record_id = extra_source_record_ids.get(
+            (group.source_dataset, group.external_id), ""
+        )
+        for flag in primary.quality_flags:
+            if flag == "missing_coordinate":
+                add_full_issue(
+                    group.source_dataset,
+                    source_record_id,
+                    "missing_coordinate",
+                    "blocking",
+                    "representative_lat/lon",
+                    primary.coord_key or "",
+                    "a place row should carry a parseable coordinate",
+                    "preserved_and_flagged",
+                    "places.csv 该行没有 representative_latitude/longitude，"
+                    "也没有任何 location 行；地点仍建，地图不显示（验收指标 "
+                    "place_without_geometry = 7,200，按 Owner 决策不另开第二类台账）",
+                )
+                full_issue_counts["missing_coordinate"] += 1
+            elif flag == "coordinate_out_of_range":
+                add_full_issue(
+                    group.source_dataset,
+                    source_record_id,
+                    "coordinate_out_of_range",
+                    "blocking",
+                    "representative_lat/lon",
+                    primary.coord_key or "",
+                    "lon in [-180,180], lat in [-90,90]",
+                    "preserved_and_flagged",
+                    "坐标越界；值原样保留，未做任何夹取",
+                )
+                full_issue_counts["coordinate_out_of_range"] += 1
+
+    # 子行三类：位置（修复 / 哨兵）与连接（悬空）
+    for extraction in extra_extractions:
+        if extraction.source_dataset != PLEIADES_FULL_SOURCE_DATASET:
+            continue
+        for record in extraction.records:
+            if record.record_kind == "location":
+                source_record_id = extra_child_source_record_ids.get(
+                    (record.source_dataset, record.raw_file, record.record_index), ""
+                )
+                if "geometry_invalid_repaired" in record.quality_flags:
+                    add_full_issue(
+                        record.source_dataset,
+                        source_record_id,
+                        "geometry_invalid_repaired",
+                        "warning",
+                        "geometry_wkt",
+                        record.geom_wkt[:200],
+                        "入库几何必须 ST_IsValid=true",
+                        "repaired",
+                        f"{record.raw_file} 第 {record.record_index} 行：源 WKT 无效，"
+                        "经 GEOS MakeValid + 只取面片修复后入库；原始 WKT 保留在 raw_payload",
+                    )
+                    full_issue_counts["geometry_invalid_repaired"] += 1
+                if "accuracy_unknown_sentinel" in record.quality_flags:
+                    add_full_issue(
+                        record.source_dataset,
+                        source_record_id,
+                        "accuracy_unknown_sentinel",
+                        "info",
+                        "uncertainty_m",
+                        "-1",
+                        "horizontal accuracy in metres, or NULL when unknown",
+                        "null_written",
+                        "places_accuracy.min_accuracy_meters = -1 是「未知」哨兵，"
+                        "不能当 -1 米写库：uncertainty_m 写 NULL 并记本行",
+                    )
+                    full_issue_counts["accuracy_unknown_sentinel"] += 1
+            elif record.record_kind == "connection":
+                if "connection_endpoint_missing" not in record.quality_flags:
+                    continue
+                source_record_id = extra_child_source_record_ids.get(
+                    (record.source_dataset, record.raw_file, record.record_index), ""
+                )
+                add_full_issue(
+                    record.source_dataset,
+                    source_record_id,
+                    "connection_endpoint_missing",
+                    "warning",
+                    "connects_to/place_id",
+                    f"{record.parent_external_id or '<blank>'} -> "
+                    f"{record.connects_to_external_id or '<blank>'}",
+                    "both endpoints must resolve to a place in places.csv",
+                    "preserved_and_flagged",
+                    f"connections.csv 第 {record.record_index} 行：至少一端不是 v4.1 的地点；"
+                    "源记录照常入库，不生成候选关系（不虚构端点）",
+                )
+                full_issue_counts["connection_endpoint_missing"] += 1
+
+    issues.extend(full_issues)
+    stats["pleiades_full_issue_counts"] = dict(sorted(full_issue_counts.items()))
+    stats["pleiades_full_issue_rows"] = len(full_issues)
+
+    # ------------------------------------------------------------------
     # 5. candidate_matches
     # ------------------------------------------------------------------
     candidates = _build_candidates(
@@ -1751,6 +1996,7 @@ def build_bundle(
             key: group.place_id
             for key, group in extra_groups.items()
         },
+        alias_place_ids,
     )
     candidates.extend(connection_candidates)
     stats["pleiades_connection_candidates"] = connection_stats
@@ -1799,13 +2045,22 @@ def _build_pleiades_connection_candidates(
     place_source_record_ids: Dict[Tuple[str, str], str],
     child_source_record_ids: Dict[Tuple[str, str, int], str],
     place_ids: Dict[Tuple[str, str], str],
+    alias_place_ids: Optional[Dict[Tuple[str, str], str]] = None,
 ) -> Tuple[List[Dict[str, str]], Dict[str, int]]:
     """Turn in-sample Pleiades connections into ``candidate_matches`` rows.
 
-    Only connections whose *target* place is also inside the slice are emitted,
-    because a ``candidate_matches`` row must name two ``place_id`` values and a
-    place outside the slice never got one.  The rest stay visible in
-    ``source_records`` with ``parent_place_not_in_sample`` where applicable.
+    A ``candidate_matches`` row must name two real ``place_id`` values, so a
+    connection is emitted only when *both* endpoints resolve:
+
+      * the endpoint is a place grouped in this run -> its own ``place_id``;
+      * the endpoint is a v4.1 place already carried by the slice snapshot ->
+        the slice's ``place_id`` through ``alias_place_ids`` (M4-4a).  Without
+        this alias 1,358 connections would look dangling even though both ends
+        are perfectly well known places.
+
+    Endpoints that are not places at all (``/errata/`` ids, an all-blank row,
+    ids absent from ``places.csv``) stay in ``source_records`` with
+    ``connection_endpoint_missing`` and never become candidates.
 
     Args:
       extra_extractions: The Pleiades and WHG extractions.
@@ -1814,18 +2069,39 @@ def _build_pleiades_connection_candidates(
       child_source_record_ids: ``(source_dataset, raw_file, record_index)`` ->
         ``sr_`` id of the child row.
       place_ids: ``(source_dataset, external_id)`` -> ``hp_`` id.
+      alias_place_ids: ``(source_dataset, external_id)`` -> ``hp_`` id of an
+        already-existing place that carries the same real-world entity.
 
     Returns:
       ``(rows, stats)``.
     """
+    alias_place_ids = alias_place_ids or {}
     rows: List[Dict[str, str]] = []
     place_names: Dict[Tuple[str, str], str] = {}
     for extraction in extra_extractions:
         for record in extraction.records:
             if record.record_kind == "place":
                 place_names[(record.source_dataset, record.external_id)] = record.name
+
+    def resolve_place(key: Tuple[str, str]) -> str:
+        """Place id for one connection endpoint, or ``""`` when unresolvable."""
+        found = place_ids.get(key)
+        if found:
+            return found
+        return alias_place_ids.get(key, "")
+
+    def resolve_source_record(key: Tuple[str, str]) -> str:
+        """``sr_`` id of the record that owns the endpoint's place row."""
+        found = place_source_record_ids.get(key)
+        if found:
+            return found
+        return place_source_record_ids.get(("pleiades_gis_4_1_slice", key[1]), "")
+
     total = 0
     emitted = 0
+    dangling = 0
+    aliased = 0
+    self_after_alias = 0
     for extraction in extra_extractions:
         for record in extraction.records:
             if record.record_kind != "connection":
@@ -1833,24 +2109,33 @@ def _build_pleiades_connection_candidates(
             total += 1
             key_a = (record.source_dataset, record.parent_external_id)
             key_b = (record.source_dataset, record.connects_to_external_id)
-            if key_a not in place_names or key_b not in place_names:
+            place_a = resolve_place(key_a)
+            place_b = resolve_place(key_b)
+            if not place_a or not place_b:
+                dangling += 1
                 continue
-            if key_a == key_b:
+            if place_a == place_b:
+                # A self-loop survives alias resolution as the same place; the
+                # table forbids a == b, and the fact is already carried by the
+                # source record's note.
+                self_after_alias += 1
                 continue
+            if key_a not in place_ids or key_b not in place_ids:
+                aliased += 1
             emitted += 1
             rows.append(
                 {
                     "candidate_id": f"cm_pcn_{emitted:07d}",
                     "relation_type": "pleiades_connection",
-                    "place_id_a": place_ids.get(key_a, ""),
+                    "place_id_a": place_a,
                     "source_record_id_a": child_source_record_ids.get(
                         (record.source_dataset, record.raw_file, record.record_index), ""
                     ),
                     "name_a": place_names.get(key_a, ""),
                     "lon_a": "",
                     "lat_a": "",
-                    "place_id_b": place_ids.get(key_b, ""),
-                    "source_record_id_b": place_source_record_ids.get(key_b, ""),
+                    "place_id_b": place_b,
+                    "source_record_id_b": resolve_source_record(key_b),
                     "name_b": place_names.get(key_b, ""),
                     "lon_b": "",
                     "lat_b": "",
@@ -1870,7 +2155,10 @@ def _build_pleiades_connection_candidates(
     stats = {
         "connection_rows_total": total,
         "connection_rows_with_both_ends_in_sample": emitted,
-        "connection_rows_dropped_target_outside_sample": total - emitted,
+        "connection_rows_dropped_target_outside_sample": total - emitted - self_after_alias,
+        "connection_rows_self_loop_after_alias": self_after_alias,
+        "connection_rows_resolved_through_alias": aliased,
+        "connection_rows_unresolvable": dangling,
     }
     return rows, stats
 

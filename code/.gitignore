@@ -7,6 +7,11 @@
 # ---- 原始数据（体积大、含第三方数据，不入库）----
 data/staging/*
 !data/staging/.gitkeep
+# M4-4a：全量暂存（七张 CSV 合计约 260 MB），按同一约定不入库；
+# 只保留可审计的两份清单（运行 manifest 与 SHA256 清单），它们能证明库里缺的那些文件是什么。
+data/staging_m4_3/*
+!data/staging_m4_3/manifest.json
+!data/staging_m4_3/SHA256SUMS.txt
 data/backup/
 *.dump
 *.backup

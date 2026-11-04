@@ -1,0 +1,2646 @@
+{
+  "generated_from": "E:\\01_Work\\01_PersonalProjects\\014-CanvasofWorldHistory\\code\\data\\staging_m4_3\\data_quality_issues.csv",
+  "staging_rows_total": 20591,
+  "legacy_rows_total": 12631,
+  "delta_total": 7960,
+  "A_normalization": {
+    "note": "本阶段真实生成，数字已由 verify_staging_m4_3.py 的 S10 组逐项核对",
+    "predicted_7960_breakdown": {
+      "missing_coordinate": 7200,
+      "geometry_invalid_repaired": 4,
+      "connection_endpoint_missing": 28,
+      "accuracy_unknown_sentinel": 728
+    },
+    "predicted_7960_sum": 7960,
+    "types": [
+      {
+        "issue_type": "accuracy_unknown_sentinel",
+        "total_rows": 728,
+        "legacy_rows": 0,
+        "delta_rows": 728,
+        "by_dataset": {
+          "pleiades_gis_4_1": 728
+        },
+        "severity": {
+          "info": 728
+        },
+        "action_taken": {
+          "null_written": 728
+        },
+        "rule": {
+          "stage": "归一化",
+          "where": "pleiades_extract.extract_pleiades_full（A2 代表点段）",
+          "rule": "places_accuracy.min_accuracy_meters = -1（未知哨兵）→ uncertainty_m 写 NULL 并开票；只对 3,317 条合成行判定"
+        },
+        "samples": [
+          {
+            "issue_id": "dq_0019832",
+            "source_record_id": "sr_0131296",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "954023893-representative",
+            "raw_file": "places.csv",
+            "raw_record_index": "2612",
+            "observed_value": "-1"
+          },
+          {
+            "issue_id": "dq_0019833",
+            "source_record_id": "sr_0131298",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "952093-representative",
+            "raw_file": "places.csv",
+            "raw_record_index": "2641",
+            "observed_value": "-1"
+          },
+          {
+            "issue_id": "dq_0019834",
+            "source_record_id": "sr_0131300",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "766-representative",
+            "raw_file": "places.csv",
+            "raw_record_index": "2680",
+            "observed_value": "-1"
+          },
+          {
+            "issue_id": "dq_0019835",
+            "source_record_id": "sr_0131301",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "799895152-representative",
+            "raw_file": "places.csv",
+            "raw_record_index": "2690",
+            "observed_value": "-1"
+          },
+          {
+            "issue_id": "dq_0019836",
+            "source_record_id": "sr_0131308",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "797229144-representative",
+            "raw_file": "places.csv",
+            "raw_record_index": "2777",
+            "observed_value": "-1"
+          },
+          {
+            "issue_id": "dq_0019837",
+            "source_record_id": "sr_0131321",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "796289136-representative",
+            "raw_file": "places.csv",
+            "raw_record_index": "2869",
+            "observed_value": "-1"
+          },
+          {
+            "issue_id": "dq_0019838",
+            "source_record_id": "sr_0131322",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "798037-representative",
+            "raw_file": "places.csv",
+            "raw_record_index": "2920",
+            "observed_value": "-1"
+          },
+          {
+            "issue_id": "dq_0019839",
+            "source_record_id": "sr_0131323",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "798812624-representative",
+            "raw_file": "places.csv",
+            "raw_record_index": "2946",
+            "observed_value": "-1"
+          },
+          {
+            "issue_id": "dq_0019840",
+            "source_record_id": "sr_0131334",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "794388243-representative",
+            "raw_file": "places.csv",
+            "raw_record_index": "3042",
+            "observed_value": "-1"
+          },
+          {
+            "issue_id": "dq_0019841",
+            "source_record_id": "sr_0131343",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "79269910-representative",
+            "raw_file": "places.csv",
+            "raw_record_index": "3165",
+            "observed_value": "-1"
+          },
+          {
+            "issue_id": "dq_0019842",
+            "source_record_id": "sr_0131359",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "7091375-representative",
+            "raw_file": "places.csv",
+            "raw_record_index": "3364",
+            "observed_value": "-1"
+          },
+          {
+            "issue_id": "dq_0019843",
+            "source_record_id": "sr_0131360",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "700525086-representative",
+            "raw_file": "places.csv",
+            "raw_record_index": "3374",
+            "observed_value": "-1"
+          },
+          {
+            "issue_id": "dq_0019844",
+            "source_record_id": "sr_0131362",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "707840687-representative",
+            "raw_file": "places.csv",
+            "raw_record_index": "3414",
+            "observed_value": "-1"
+          },
+          {
+            "issue_id": "dq_0019845",
+            "source_record_id": "sr_0131364",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "707498-representative",
+            "raw_file": "places.csv",
+            "raw_record_index": "3446",
+            "observed_value": "-1"
+          },
+          {
+            "issue_id": "dq_0019846",
+            "source_record_id": "sr_0131368",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "708667982-representative",
+            "raw_file": "places.csv",
+            "raw_record_index": "3572",
+            "observed_value": "-1"
+          },
+          {
+            "issue_id": "dq_0019847",
+            "source_record_id": "sr_0131369",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "70217-representative",
+            "raw_file": "places.csv",
+            "raw_record_index": "3608",
+            "observed_value": "-1"
+          },
+          {
+            "issue_id": "dq_0019848",
+            "source_record_id": "sr_0131370",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "702604147-representative",
+            "raw_file": "places.csv",
+            "raw_record_index": "3611",
+            "observed_value": "-1"
+          },
+          {
+            "issue_id": "dq_0019849",
+            "source_record_id": "sr_0131371",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "770901484-representative",
+            "raw_file": "places.csv",
+            "raw_record_index": "3633",
+            "observed_value": "-1"
+          },
+          {
+            "issue_id": "dq_0019850",
+            "source_record_id": "sr_0131372",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "776172-representative",
+            "raw_file": "places.csv",
+            "raw_record_index": "3676",
+            "observed_value": "-1"
+          },
+          {
+            "issue_id": "dq_0019851",
+            "source_record_id": "sr_0131373",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "776196-representative",
+            "raw_file": "places.csv",
+            "raw_record_index": "3696",
+            "observed_value": "-1"
+          }
+        ]
+      },
+      {
+        "issue_type": "attribution_missing",
+        "total_rows": 2,
+        "legacy_rows": 2,
+        "delta_rows": 0,
+        "by_dataset": {
+          "whg_hgis_de_las_indias_sample": 2
+        },
+        "severity": {
+          "info": 2
+        },
+        "action_taken": {
+          "preserved_and_flagged": 2
+        },
+        "rule": {},
+        "samples": [
+          {
+            "issue_id": "dq_0007820",
+            "source_record_id": "sr_0029159",
+            "dataset_id": "whg_hgis_de_las_indias_sample",
+            "external_id": "169687",
+            "raw_file": "sample_data/whg/api/place/169687.json",
+            "raw_record_index": "1",
+            "observed_value": "no attribution block in the source payload"
+          },
+          {
+            "issue_id": "dq_0007821",
+            "source_record_id": "sr_0029154",
+            "dataset_id": "whg_hgis_de_las_indias_sample",
+            "external_id": "169687-169688",
+            "raw_file": "sample_data/whg/api/place/169687-169688.json",
+            "raw_record_index": "1",
+            "observed_value": "no attribution block in the source payload"
+          }
+        ],
+        "all_keys": [
+          {
+            "issue_id": "dq_0007820",
+            "source_record_id": "sr_0029159",
+            "external_id": "169687",
+            "raw_file": "sample_data/whg/api/place/169687.json",
+            "raw_record_index": "1"
+          },
+          {
+            "issue_id": "dq_0007821",
+            "source_record_id": "sr_0029154",
+            "external_id": "169687-169688",
+            "raw_file": "sample_data/whg/api/place/169687-169688.json",
+            "raw_record_index": "1"
+          }
+        ]
+      },
+      {
+        "issue_type": "beg_eq_end",
+        "total_rows": 341,
+        "legacy_rows": 341,
+        "delta_rows": 0,
+        "by_dataset": {
+          "chgis_v6_county_points": 166,
+          "chgis_v6_prefecture_points": 175
+        },
+        "severity": {
+          "info": 341
+        },
+        "action_taken": {
+          "preserved_and_flagged": 341
+        },
+        "rule": {},
+        "samples": [
+          {
+            "issue_id": "dq_0000002",
+            "source_record_id": "sr_0003610",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "32031",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3610",
+            "observed_value": "BEG_YR=1887;END_YR=1887"
+          },
+          {
+            "issue_id": "dq_0000003",
+            "source_record_id": "sr_0003623",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "32049",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3623",
+            "observed_value": "BEG_YR=606;END_YR=606"
+          },
+          {
+            "issue_id": "dq_0000004",
+            "source_record_id": "sr_0003639",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "32080",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3639",
+            "observed_value": "BEG_YR=699;END_YR=699"
+          },
+          {
+            "issue_id": "dq_0000005",
+            "source_record_id": "sr_0003873",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "32085",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3873",
+            "observed_value": "BEG_YR=624;END_YR=624"
+          },
+          {
+            "issue_id": "dq_0000006",
+            "source_record_id": "sr_0003670",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "32145",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3670",
+            "observed_value": "BEG_YR=758;END_YR=758"
+          },
+          {
+            "issue_id": "dq_0000007",
+            "source_record_id": "sr_0003681",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "32162",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3681",
+            "observed_value": "BEG_YR=1359;END_YR=1359"
+          },
+          {
+            "issue_id": "dq_0000008",
+            "source_record_id": "sr_0003691",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "32172",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3691",
+            "observed_value": "BEG_YR=1358;END_YR=1358"
+          },
+          {
+            "issue_id": "dq_0000009",
+            "source_record_id": "sr_0003695",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "32178",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3695",
+            "observed_value": "BEG_YR=1359;END_YR=1359"
+          },
+          {
+            "issue_id": "dq_0000010",
+            "source_record_id": "sr_0003709",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "32199",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3709",
+            "observed_value": "BEG_YR=624;END_YR=624"
+          },
+          {
+            "issue_id": "dq_0000011",
+            "source_record_id": "sr_0003730",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "32230",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3730",
+            "observed_value": "BEG_YR=621;END_YR=621"
+          },
+          {
+            "issue_id": "dq_0000012",
+            "source_record_id": "sr_0003738",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "32239",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3738",
+            "observed_value": "BEG_YR=621;END_YR=621"
+          },
+          {
+            "issue_id": "dq_0000013",
+            "source_record_id": "sr_0004833",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "32248",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "4833",
+            "observed_value": "BEG_YR=625;END_YR=625"
+          },
+          {
+            "issue_id": "dq_0000015",
+            "source_record_id": "sr_0003754",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "32262",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3754",
+            "observed_value": "BEG_YR=257;END_YR=257"
+          },
+          {
+            "issue_id": "dq_0000016",
+            "source_record_id": "sr_0003781",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "32308",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3781",
+            "observed_value": "BEG_YR=757;END_YR=757"
+          },
+          {
+            "issue_id": "dq_0000017",
+            "source_record_id": "sr_0003790",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "32323",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3790",
+            "observed_value": "BEG_YR=624;END_YR=624"
+          },
+          {
+            "issue_id": "dq_0000018",
+            "source_record_id": "sr_0003807",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "32345",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3807",
+            "observed_value": "BEG_YR=624;END_YR=624"
+          },
+          {
+            "issue_id": "dq_0000019",
+            "source_record_id": "sr_0003822",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "32360",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3822",
+            "observed_value": "BEG_YR=323;END_YR=323"
+          },
+          {
+            "issue_id": "dq_0000020",
+            "source_record_id": "sr_0003852",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "32405",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3852",
+            "observed_value": "BEG_YR=1364;END_YR=1364"
+          },
+          {
+            "issue_id": "dq_0000021",
+            "source_record_id": "sr_0003856",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "32413",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3856",
+            "observed_value": "BEG_YR=549;END_YR=549"
+          },
+          {
+            "issue_id": "dq_0000022",
+            "source_record_id": "sr_0003867",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "32430",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3867",
+            "observed_value": "BEG_YR=1356;END_YR=1356"
+          }
+        ]
+      },
+      {
+        "issue_type": "beg_gt_end",
+        "total_rows": 28,
+        "legacy_rows": 28,
+        "delta_rows": 0,
+        "by_dataset": {
+          "chgis_v6_county_points": 19,
+          "chgis_v6_prefecture_points": 9
+        },
+        "severity": {
+          "blocking": 28
+        },
+        "action_taken": {
+          "preserved_and_flagged": 28
+        },
+        "rule": {},
+        "samples": [
+          {
+            "issue_id": "dq_0000190",
+            "source_record_id": "sr_0000826",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "210479",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "826",
+            "observed_value": "BEG_YR=1376;END_YR=1278"
+          },
+          {
+            "issue_id": "dq_0000192",
+            "source_record_id": "sr_0000842",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "210492",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "842",
+            "observed_value": "BEG_YR=-110;END_YR=-118"
+          },
+          {
+            "issue_id": "dq_0000196",
+            "source_record_id": "sr_0000965",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "210583",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "965",
+            "observed_value": "BEG_YR=-34;END_YR=-44"
+          },
+          {
+            "issue_id": "dq_0000216",
+            "source_record_id": "sr_0001080",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "210673",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "1080",
+            "observed_value": "BEG_YR=2151;END_YR=1259"
+          },
+          {
+            "issue_id": "dq_0000252",
+            "source_record_id": "sr_0001584",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "211067",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "1584",
+            "observed_value": "BEG_YR=559;END_YR=558"
+          },
+          {
+            "issue_id": "dq_0000262",
+            "source_record_id": "sr_0001988",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "211357",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "1988",
+            "observed_value": "BEG_YR=571;END_YR=570"
+          },
+          {
+            "issue_id": "dq_0000376",
+            "source_record_id": "sr_0002602",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "211843",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "2602",
+            "observed_value": "BEG_YR=526;END_YR=525"
+          },
+          {
+            "issue_id": "dq_0000377",
+            "source_record_id": "sr_0002617",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "211858",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "2617",
+            "observed_value": "BEG_YR=1379;END_YR=1369"
+          },
+          {
+            "issue_id": "dq_0000385",
+            "source_record_id": "sr_0003446",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "212085",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3446",
+            "observed_value": "BEG_YR=977;END_YR=741"
+          },
+          {
+            "issue_id": "dq_0001422",
+            "source_record_id": "sr_0012588",
+            "dataset_id": "chgis_v6_county_points",
+            "external_id": "44136",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "7362",
+            "observed_value": "BEG_YR=1387;END_YR=1377"
+          },
+          {
+            "issue_id": "dq_0002057",
+            "source_record_id": "sr_0006266",
+            "dataset_id": "chgis_v6_county_points",
+            "external_id": "44968",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "1040",
+            "observed_value": "BEG_YR=650;END_YR=585"
+          },
+          {
+            "issue_id": "dq_0002224",
+            "source_record_id": "sr_0006936",
+            "dataset_id": "chgis_v6_county_points",
+            "external_id": "45149",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "1710",
+            "observed_value": "BEG_YR=-104;END_YR=-118"
+          },
+          {
+            "issue_id": "dq_0002641",
+            "source_record_id": "sr_0011153",
+            "dataset_id": "chgis_v6_county_points",
+            "external_id": "45669",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "5927",
+            "observed_value": "BEG_YR=116;END_YR=33"
+          },
+          {
+            "issue_id": "dq_0002694",
+            "source_record_id": "sr_0011205",
+            "dataset_id": "chgis_v6_county_points",
+            "external_id": "45721",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "5979",
+            "observed_value": "BEG_YR=272;END_YR=-187"
+          },
+          {
+            "issue_id": "dq_0003493",
+            "source_record_id": "sr_0009180",
+            "dataset_id": "chgis_v6_county_points",
+            "external_id": "70644",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "3954",
+            "observed_value": "BEG_YR=171;END_YR=13"
+          },
+          {
+            "issue_id": "dq_0004253",
+            "source_record_id": "sr_0008268",
+            "dataset_id": "chgis_v6_county_points",
+            "external_id": "82460",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "3042",
+            "observed_value": "BEG_YR=616;END_YR=605"
+          },
+          {
+            "issue_id": "dq_0004442",
+            "source_record_id": "sr_0008447",
+            "dataset_id": "chgis_v6_county_points",
+            "external_id": "82639",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "3221",
+            "observed_value": "BEG_YR=705;END_YR=704"
+          },
+          {
+            "issue_id": "dq_0004508",
+            "source_record_id": "sr_0008509",
+            "dataset_id": "chgis_v6_county_points",
+            "external_id": "82701",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "3283",
+            "observed_value": "BEG_YR=621;END_YR=2"
+          },
+          {
+            "issue_id": "dq_0004514",
+            "source_record_id": "sr_0008514",
+            "dataset_id": "chgis_v6_county_points",
+            "external_id": "82706",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "3288",
+            "observed_value": "BEG_YR=23;END_YR=9"
+          },
+          {
+            "issue_id": "dq_0004649",
+            "source_record_id": "sr_0008643",
+            "dataset_id": "chgis_v6_county_points",
+            "external_id": "82863",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "3417",
+            "observed_value": "BEG_YR=1044;END_YR=1042"
+          }
+        ],
+        "all_keys": [
+          {
+            "issue_id": "dq_0000190",
+            "source_record_id": "sr_0000826",
+            "external_id": "210479",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "826"
+          },
+          {
+            "issue_id": "dq_0000192",
+            "source_record_id": "sr_0000842",
+            "external_id": "210492",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "842"
+          },
+          {
+            "issue_id": "dq_0000196",
+            "source_record_id": "sr_0000965",
+            "external_id": "210583",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "965"
+          },
+          {
+            "issue_id": "dq_0000216",
+            "source_record_id": "sr_0001080",
+            "external_id": "210673",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "1080"
+          },
+          {
+            "issue_id": "dq_0000252",
+            "source_record_id": "sr_0001584",
+            "external_id": "211067",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "1584"
+          },
+          {
+            "issue_id": "dq_0000262",
+            "source_record_id": "sr_0001988",
+            "external_id": "211357",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "1988"
+          },
+          {
+            "issue_id": "dq_0000376",
+            "source_record_id": "sr_0002602",
+            "external_id": "211843",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "2602"
+          },
+          {
+            "issue_id": "dq_0000377",
+            "source_record_id": "sr_0002617",
+            "external_id": "211858",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "2617"
+          },
+          {
+            "issue_id": "dq_0000385",
+            "source_record_id": "sr_0003446",
+            "external_id": "212085",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3446"
+          },
+          {
+            "issue_id": "dq_0001422",
+            "source_record_id": "sr_0012588",
+            "external_id": "44136",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "7362"
+          },
+          {
+            "issue_id": "dq_0002057",
+            "source_record_id": "sr_0006266",
+            "external_id": "44968",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "1040"
+          },
+          {
+            "issue_id": "dq_0002224",
+            "source_record_id": "sr_0006936",
+            "external_id": "45149",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "1710"
+          },
+          {
+            "issue_id": "dq_0002641",
+            "source_record_id": "sr_0011153",
+            "external_id": "45669",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "5927"
+          },
+          {
+            "issue_id": "dq_0002694",
+            "source_record_id": "sr_0011205",
+            "external_id": "45721",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "5979"
+          },
+          {
+            "issue_id": "dq_0003493",
+            "source_record_id": "sr_0009180",
+            "external_id": "70644",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "3954"
+          },
+          {
+            "issue_id": "dq_0004253",
+            "source_record_id": "sr_0008268",
+            "external_id": "82460",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "3042"
+          },
+          {
+            "issue_id": "dq_0004442",
+            "source_record_id": "sr_0008447",
+            "external_id": "82639",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "3221"
+          },
+          {
+            "issue_id": "dq_0004508",
+            "source_record_id": "sr_0008509",
+            "external_id": "82701",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "3283"
+          },
+          {
+            "issue_id": "dq_0004514",
+            "source_record_id": "sr_0008514",
+            "external_id": "82706",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "3288"
+          },
+          {
+            "issue_id": "dq_0004649",
+            "source_record_id": "sr_0008643",
+            "external_id": "82863",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "3417"
+          },
+          {
+            "issue_id": "dq_0004673",
+            "source_record_id": "sr_0008666",
+            "external_id": "82888",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "3440"
+          },
+          {
+            "issue_id": "dq_0004750",
+            "source_record_id": "sr_0008739",
+            "external_id": "82965",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "3513"
+          },
+          {
+            "issue_id": "dq_0004767",
+            "source_record_id": "sr_0008755",
+            "external_id": "82981",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "3529"
+          },
+          {
+            "issue_id": "dq_0005550",
+            "source_record_id": "sr_0007703",
+            "external_id": "85598",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "2477"
+          },
+          {
+            "issue_id": "dq_0005558",
+            "source_record_id": "sr_0007710",
+            "external_id": "85605",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "2484"
+          },
+          {
+            "issue_id": "dq_0006073",
+            "source_record_id": "sr_0006523",
+            "external_id": "87502",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "1297"
+          },
+          {
+            "issue_id": "dq_0006804",
+            "source_record_id": "sr_0011681",
+            "external_id": "200213",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "6455"
+          },
+          {
+            "issue_id": "dq_0006813",
+            "source_record_id": "sr_0012029",
+            "external_id": "200308",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "6803"
+          }
+        ]
+      },
+      {
+        "issue_type": "connection_endpoint_missing",
+        "total_rows": 28,
+        "legacy_rows": 0,
+        "delta_rows": 28,
+        "by_dataset": {
+          "pleiades_gis_4_1": 28
+        },
+        "severity": {
+          "warning": 28
+        },
+        "action_taken": {
+          "preserved_and_flagged": 28
+        },
+        "rule": {
+          "stage": "归一化",
+          "where": "pleiades_extract.extract_pleiades_full（connections 段）",
+          "rule": "connects_to 归一为裸 id 后，任一端不在 places.csv（含 /errata/、整行空）→ 开票，不生成候选关系"
+        },
+        "samples": [
+          {
+            "issue_id": "dq_0020564",
+            "source_record_id": "sr_0143628",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "altar-of-the-eudamenoi",
+            "raw_file": "connections.csv",
+            "raw_record_index": "11",
+            "observed_value": "999238742 -> 368305523"
+          },
+          {
+            "issue_id": "dq_0020565",
+            "source_record_id": "sr_0143673",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "lucania",
+            "raw_file": "connections.csv",
+            "raw_record_index": "56",
+            "observed_value": "991362 -> 487529761"
+          },
+          {
+            "issue_id": "dq_0020566",
+            "source_record_id": "sr_0143691",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "kummuhu-kingdom",
+            "raw_file": "connections.csv",
+            "raw_record_index": "74",
+            "observed_value": "998821004 -> 424616150"
+          },
+          {
+            "issue_id": "dq_0020567",
+            "source_record_id": "sr_0143692",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "bit-agusi-kingdom",
+            "raw_file": "connections.csv",
+            "raw_record_index": "75",
+            "observed_value": "998821004 -> 802922078"
+          },
+          {
+            "issue_id": "dq_0020568",
+            "source_record_id": "sr_0143693",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "bit-adini-kingdom",
+            "raw_file": "connections.csv",
+            "raw_record_index": "76",
+            "observed_value": "998821004 -> 744211055"
+          },
+          {
+            "issue_id": "dq_0020569",
+            "source_record_id": "sr_0143697",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "bit-agusi-kingdom",
+            "raw_file": "connections.csv",
+            "raw_record_index": "80",
+            "observed_value": "998821003 -> 802922078"
+          },
+          {
+            "issue_id": "dq_0020570",
+            "source_record_id": "sr_0147239",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "991384",
+            "raw_file": "connections.csv",
+            "raw_record_index": "3622",
+            "observed_value": "1001914 -> 991384"
+          },
+          {
+            "issue_id": "dq_0020571",
+            "source_record_id": "sr_0147549",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "kummuhu-kingdom",
+            "raw_file": "connections.csv",
+            "raw_record_index": "3932",
+            "observed_value": "168815529 -> 424616150"
+          },
+          {
+            "issue_id": "dq_0020572",
+            "source_record_id": "sr_0147550",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "bit-agusi-kingdom",
+            "raw_file": "connections.csv",
+            "raw_record_index": "3933",
+            "observed_value": "168815529 -> 802922078"
+          },
+          {
+            "issue_id": "dq_0020573",
+            "source_record_id": "sr_0147551",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "bit-adini-kingdom",
+            "raw_file": "connections.csv",
+            "raw_record_index": "3934",
+            "observed_value": "168815529 -> 744211055"
+          },
+          {
+            "issue_id": "dq_0020574",
+            "source_record_id": "sr_0148112",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "",
+            "raw_file": "connections.csv",
+            "raw_record_index": "4495",
+            "observed_value": "<blank> -> <blank>"
+          },
+          {
+            "issue_id": "dq_0020575",
+            "source_record_id": "sr_0148603",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "874325",
+            "raw_file": "connections.csv",
+            "raw_record_index": "4986",
+            "observed_value": "874316 -> 874325"
+          },
+          {
+            "issue_id": "dq_0020576",
+            "source_record_id": "sr_0149011",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "via-delle-gallie",
+            "raw_file": "connections.csv",
+            "raw_record_index": "5394",
+            "observed_value": "849308046 -> 571200449"
+          },
+          {
+            "issue_id": "dq_0020577",
+            "source_record_id": "sr_0149373",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "chalcidean-league",
+            "raw_file": "connections.csv",
+            "raw_record_index": "5756",
+            "observed_value": "491701 -> 585841736"
+          },
+          {
+            "issue_id": "dq_0020578",
+            "source_record_id": "sr_0149397",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "chalcidean-league",
+            "raw_file": "connections.csv",
+            "raw_record_index": "5780",
+            "observed_value": "491678 -> 585841736"
+          },
+          {
+            "issue_id": "dq_0020579",
+            "source_record_id": "sr_0150293",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "991353",
+            "raw_file": "connections.csv",
+            "raw_record_index": "6676",
+            "observed_value": "462503 -> 991353"
+          },
+          {
+            "issue_id": "dq_0020580",
+            "source_record_id": "sr_0151939",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "1523064470",
+            "raw_file": "connections.csv",
+            "raw_record_index": "8322",
+            "observed_value": "456339119 -> 324782842"
+          },
+          {
+            "issue_id": "dq_0020581",
+            "source_record_id": "sr_0152810",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "kummuhu-kingdom",
+            "raw_file": "connections.csv",
+            "raw_record_index": "9193",
+            "observed_value": "319432673 -> 424616150"
+          },
+          {
+            "issue_id": "dq_0020582",
+            "source_record_id": "sr_0153408",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "0957846214",
+            "raw_file": "connections.csv",
+            "raw_record_index": "9791",
+            "observed_value": "354841590 -> 324782842"
+          },
+          {
+            "issue_id": "dq_0020583",
+            "source_record_id": "sr_0153658",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "province-of-the-commander-in-chief-on-the-left",
+            "raw_file": "connections.csv",
+            "raw_record_index": "10041",
+            "observed_value": "270123727 -> 3456694"
+          }
+        ],
+        "all_keys": [
+          {
+            "issue_id": "dq_0020564",
+            "source_record_id": "sr_0143628",
+            "external_id": "altar-of-the-eudamenoi",
+            "raw_file": "connections.csv",
+            "raw_record_index": "11"
+          },
+          {
+            "issue_id": "dq_0020565",
+            "source_record_id": "sr_0143673",
+            "external_id": "lucania",
+            "raw_file": "connections.csv",
+            "raw_record_index": "56"
+          },
+          {
+            "issue_id": "dq_0020566",
+            "source_record_id": "sr_0143691",
+            "external_id": "kummuhu-kingdom",
+            "raw_file": "connections.csv",
+            "raw_record_index": "74"
+          },
+          {
+            "issue_id": "dq_0020567",
+            "source_record_id": "sr_0143692",
+            "external_id": "bit-agusi-kingdom",
+            "raw_file": "connections.csv",
+            "raw_record_index": "75"
+          },
+          {
+            "issue_id": "dq_0020568",
+            "source_record_id": "sr_0143693",
+            "external_id": "bit-adini-kingdom",
+            "raw_file": "connections.csv",
+            "raw_record_index": "76"
+          },
+          {
+            "issue_id": "dq_0020569",
+            "source_record_id": "sr_0143697",
+            "external_id": "bit-agusi-kingdom",
+            "raw_file": "connections.csv",
+            "raw_record_index": "80"
+          },
+          {
+            "issue_id": "dq_0020570",
+            "source_record_id": "sr_0147239",
+            "external_id": "991384",
+            "raw_file": "connections.csv",
+            "raw_record_index": "3622"
+          },
+          {
+            "issue_id": "dq_0020571",
+            "source_record_id": "sr_0147549",
+            "external_id": "kummuhu-kingdom",
+            "raw_file": "connections.csv",
+            "raw_record_index": "3932"
+          },
+          {
+            "issue_id": "dq_0020572",
+            "source_record_id": "sr_0147550",
+            "external_id": "bit-agusi-kingdom",
+            "raw_file": "connections.csv",
+            "raw_record_index": "3933"
+          },
+          {
+            "issue_id": "dq_0020573",
+            "source_record_id": "sr_0147551",
+            "external_id": "bit-adini-kingdom",
+            "raw_file": "connections.csv",
+            "raw_record_index": "3934"
+          },
+          {
+            "issue_id": "dq_0020574",
+            "source_record_id": "sr_0148112",
+            "external_id": "",
+            "raw_file": "connections.csv",
+            "raw_record_index": "4495"
+          },
+          {
+            "issue_id": "dq_0020575",
+            "source_record_id": "sr_0148603",
+            "external_id": "874325",
+            "raw_file": "connections.csv",
+            "raw_record_index": "4986"
+          },
+          {
+            "issue_id": "dq_0020576",
+            "source_record_id": "sr_0149011",
+            "external_id": "via-delle-gallie",
+            "raw_file": "connections.csv",
+            "raw_record_index": "5394"
+          },
+          {
+            "issue_id": "dq_0020577",
+            "source_record_id": "sr_0149373",
+            "external_id": "chalcidean-league",
+            "raw_file": "connections.csv",
+            "raw_record_index": "5756"
+          },
+          {
+            "issue_id": "dq_0020578",
+            "source_record_id": "sr_0149397",
+            "external_id": "chalcidean-league",
+            "raw_file": "connections.csv",
+            "raw_record_index": "5780"
+          },
+          {
+            "issue_id": "dq_0020579",
+            "source_record_id": "sr_0150293",
+            "external_id": "991353",
+            "raw_file": "connections.csv",
+            "raw_record_index": "6676"
+          },
+          {
+            "issue_id": "dq_0020580",
+            "source_record_id": "sr_0151939",
+            "external_id": "1523064470",
+            "raw_file": "connections.csv",
+            "raw_record_index": "8322"
+          },
+          {
+            "issue_id": "dq_0020581",
+            "source_record_id": "sr_0152810",
+            "external_id": "kummuhu-kingdom",
+            "raw_file": "connections.csv",
+            "raw_record_index": "9193"
+          },
+          {
+            "issue_id": "dq_0020582",
+            "source_record_id": "sr_0153408",
+            "external_id": "0957846214",
+            "raw_file": "connections.csv",
+            "raw_record_index": "9791"
+          },
+          {
+            "issue_id": "dq_0020583",
+            "source_record_id": "sr_0153658",
+            "external_id": "province-of-the-commander-in-chief-on-the-left",
+            "raw_file": "connections.csv",
+            "raw_record_index": "10041"
+          },
+          {
+            "issue_id": "dq_0020584",
+            "source_record_id": "sr_0155118",
+            "external_id": "chalcidean-league",
+            "raw_file": "connections.csv",
+            "raw_record_index": "11501"
+          },
+          {
+            "issue_id": "dq_0020585",
+            "source_record_id": "sr_0155141",
+            "external_id": "chalcidean-league",
+            "raw_file": "connections.csv",
+            "raw_record_index": "11524"
+          },
+          {
+            "issue_id": "dq_0020586",
+            "source_record_id": "sr_0155146",
+            "external_id": "chalcidean-league",
+            "raw_file": "connections.csv",
+            "raw_record_index": "11529"
+          },
+          {
+            "issue_id": "dq_0020587",
+            "source_record_id": "sr_0155190",
+            "external_id": "chalcidean-league",
+            "raw_file": "connections.csv",
+            "raw_record_index": "11573"
+          },
+          {
+            "issue_id": "dq_0020588",
+            "source_record_id": "sr_0156442",
+            "external_id": "1212628995",
+            "raw_file": "connections.csv",
+            "raw_record_index": "12825"
+          },
+          {
+            "issue_id": "dq_0020589",
+            "source_record_id": "sr_0156655",
+            "external_id": "mosyli",
+            "raw_file": "connections.csv",
+            "raw_record_index": "13038"
+          },
+          {
+            "issue_id": "dq_0020590",
+            "source_record_id": "sr_0156850",
+            "external_id": "4170842001",
+            "raw_file": "connections.csv",
+            "raw_record_index": "13233"
+          },
+          {
+            "issue_id": "dq_0020591",
+            "source_record_id": "sr_0157201",
+            "external_id": "nashteban",
+            "raw_file": "connections.csv",
+            "raw_record_index": "13584"
+          }
+        ]
+      },
+      {
+        "issue_type": "coordinate_out_of_range",
+        "total_rows": 1,
+        "legacy_rows": 1,
+        "delta_rows": 0,
+        "by_dataset": {
+          "mcgd_zenodo_22094815_head960": 1
+        },
+        "severity": {
+          "blocking": 1
+        },
+        "action_taken": {
+          "preserved_and_flagged": 1
+        },
+        "rule": {},
+        "samples": [
+          {
+            "issue_id": "dq_0007478",
+            "source_record_id": "sr_0016540",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0178501",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "792",
+            "observed_value": "lon=881.41253,lat=47.844924"
+          }
+        ],
+        "all_keys": [
+          {
+            "issue_id": "dq_0007478",
+            "source_record_id": "sr_0016540",
+            "external_id": "H0178501",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "792"
+          }
+        ]
+      },
+      {
+        "issue_type": "coordinate_outside_china_bbox",
+        "total_rows": 6,
+        "legacy_rows": 6,
+        "delta_rows": 0,
+        "by_dataset": {
+          "mcgd_zenodo_22094815_head960": 6
+        },
+        "severity": {
+          "warning": 6
+        },
+        "action_taken": {
+          "needs_manual_review": 6
+        },
+        "rule": {},
+        "samples": [
+          {
+            "issue_id": "dq_0007379",
+            "source_record_id": "sr_0016465",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0380800",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "717",
+            "observed_value": "lon=140.100403,lat=39.72092"
+          },
+          {
+            "issue_id": "dq_0007381",
+            "source_record_id": "sr_0015973",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0465935",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "225",
+            "observed_value": "lon=6.086277,lat=50.774219"
+          },
+          {
+            "issue_id": "dq_0007383",
+            "source_record_id": "sr_0016648",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0465940",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "900",
+            "observed_value": "lon=11.981183,lat=51.427681"
+          },
+          {
+            "issue_id": "dq_0007385",
+            "source_record_id": "sr_0016572",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0465939",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "824",
+            "observed_value": "lon=-84.659684,lat=43.378676"
+          },
+          {
+            "issue_id": "dq_0007387",
+            "source_record_id": "sr_0016473",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0465936",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "725",
+            "observed_value": "lon=-81.519928,lat=41.081421"
+          },
+          {
+            "issue_id": "dq_0007389",
+            "source_record_id": "sr_0016536",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0465937",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "788",
+            "observed_value": "lon=-73.754256,lat=42.648102"
+          }
+        ],
+        "all_keys": [
+          {
+            "issue_id": "dq_0007379",
+            "source_record_id": "sr_0016465",
+            "external_id": "H0380800",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "717"
+          },
+          {
+            "issue_id": "dq_0007381",
+            "source_record_id": "sr_0015973",
+            "external_id": "H0465935",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "225"
+          },
+          {
+            "issue_id": "dq_0007383",
+            "source_record_id": "sr_0016648",
+            "external_id": "H0465940",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "900"
+          },
+          {
+            "issue_id": "dq_0007385",
+            "source_record_id": "sr_0016572",
+            "external_id": "H0465939",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "824"
+          },
+          {
+            "issue_id": "dq_0007387",
+            "source_record_id": "sr_0016473",
+            "external_id": "H0465936",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "725"
+          },
+          {
+            "issue_id": "dq_0007389",
+            "source_record_id": "sr_0016536",
+            "external_id": "H0465937",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "788"
+          }
+        ]
+      },
+      {
+        "issue_type": "duplicate_sysid",
+        "total_rows": 2,
+        "legacy_rows": 2,
+        "delta_rows": 0,
+        "by_dataset": {
+          "chgis_v6_prefecture_points": 2
+        },
+        "severity": {
+          "warning": 2
+        },
+        "action_taken": {
+          "needs_manual_review": 2
+        },
+        "rule": {},
+        "samples": [
+          {
+            "issue_id": "dq_0007485",
+            "source_record_id": "sr_0004941",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "35000",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "4941",
+            "observed_value": "35000"
+          },
+          {
+            "issue_id": "dq_0007486",
+            "source_record_id": "sr_0004942",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "35001",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "4942",
+            "observed_value": "35001"
+          }
+        ],
+        "all_keys": [
+          {
+            "issue_id": "dq_0007485",
+            "source_record_id": "sr_0004941",
+            "external_id": "35000",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "4941"
+          },
+          {
+            "issue_id": "dq_0007486",
+            "source_record_id": "sr_0004942",
+            "external_id": "35001",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "4942"
+          }
+        ]
+      },
+      {
+        "issue_type": "geometry_invalid_repaired",
+        "total_rows": 4,
+        "legacy_rows": 0,
+        "delta_rows": 4,
+        "by_dataset": {
+          "pleiades_gis_4_1": 4
+        },
+        "severity": {
+          "warning": 4
+        },
+        "action_taken": {
+          "repaired": 4
+        },
+        "rule": {
+          "stage": "归一化",
+          "where": "pleiades_extract._location_geometry",
+          "rule": "GEOS 判定 ST_IsValid=false → shapely.make_valid + 只取面片 → 修好才开票；修不出面片则整行不入库"
+        },
+        "samples": [
+          {
+            "issue_id": "dq_0020560",
+            "source_record_id": "sr_0139650",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "total-station-coordinates",
+            "raw_file": "location_polygons.csv",
+            "raw_record_index": "418",
+            "observed_value": "POLYGON ((40.72715447084607 34.75073315203117, 40.7271545005079 34.75073309694033, 40.72698268645261 34.75067176381188, "
+          },
+          {
+            "issue_id": "dq_0020561",
+            "source_record_id": "sr_0140788",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "plan-location-south",
+            "raw_file": "location_polygons.csv",
+            "raw_record_index": "1556",
+            "observed_value": "MULTIPOLYGON (((40.72905081327747 34.74383411833565, 40.72908655795309 34.74384278455818, 40.729150138796946 34.74386649"
+          },
+          {
+            "issue_id": "dq_0020562",
+            "source_record_id": "sr_0141031",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "location-of-balochistan",
+            "raw_file": "location_polygons.csv",
+            "raw_record_index": "1799",
+            "observed_value": "MULTIPOLYGON (((60 24, 65 28, 70 24, 60 24)), ((65 28, 60 32, 70 32, 65 28)))"
+          },
+          {
+            "issue_id": "dq_0020563",
+            "source_record_id": "sr_0142673",
+            "dataset_id": "pleiades_gis_4_1",
+            "external_id": "total-station-coordinates",
+            "raw_file": "location_polygons.csv",
+            "raw_record_index": "3441",
+            "observed_value": "POLYGON ((40.7269542448162 34.75109897347563, 40.72696268775386 34.751100589410605, 40.72696629784875 34.75110101098185,"
+          }
+        ],
+        "all_keys": [
+          {
+            "issue_id": "dq_0020560",
+            "source_record_id": "sr_0139650",
+            "external_id": "total-station-coordinates",
+            "raw_file": "location_polygons.csv",
+            "raw_record_index": "418"
+          },
+          {
+            "issue_id": "dq_0020561",
+            "source_record_id": "sr_0140788",
+            "external_id": "plan-location-south",
+            "raw_file": "location_polygons.csv",
+            "raw_record_index": "1556"
+          },
+          {
+            "issue_id": "dq_0020562",
+            "source_record_id": "sr_0141031",
+            "external_id": "location-of-balochistan",
+            "raw_file": "location_polygons.csv",
+            "raw_record_index": "1799"
+          },
+          {
+            "issue_id": "dq_0020563",
+            "source_record_id": "sr_0142673",
+            "external_id": "total-station-coordinates",
+            "raw_file": "location_polygons.csv",
+            "raw_record_index": "3441"
+          }
+        ]
+      },
+      {
+        "issue_type": "missing_coordinate",
+        "total_rows": 7537,
+        "legacy_rows": 337,
+        "delta_rows": 7200,
+        "by_dataset": {
+          "chgis_v6_county_points": 10,
+          "pleiades_gis_4_1": 7200,
+          "pleiades_gis_4_1_slice": 327
+        },
+        "severity": {
+          "blocking": 7537
+        },
+        "action_taken": {
+          "preserved_and_flagged": 7537
+        },
+        "rule": {
+          "stage": "归一化",
+          "where": "pleiades_extract.py: place 行 representative_latitude/longitude 缺失 ⇒ quality_flags",
+          "rule": "places.csv 该行没有代表坐标 → place 记录带 missing_coordinate → normalize 逐 place 开票（1 place 1 行）"
+        },
+        "samples": [
+          {
+            "issue_id": "dq_0003363",
+            "source_record_id": "sr_0015748",
+            "dataset_id": "chgis_v6_county_points",
+            "external_id": "70483",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "10522",
+            "observed_value": "X_COOR=**********;Y_COOR=**********"
+          },
+          {
+            "issue_id": "dq_0003364",
+            "source_record_id": "sr_0015740",
+            "dataset_id": "chgis_v6_county_points",
+            "external_id": "70484",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "10514",
+            "observed_value": "X_COOR=**********;Y_COOR=**********"
+          },
+          {
+            "issue_id": "dq_0003365",
+            "source_record_id": "sr_0015741",
+            "dataset_id": "chgis_v6_county_points",
+            "external_id": "70485",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "10515",
+            "observed_value": "X_COOR=**********;Y_COOR=**********"
+          },
+          {
+            "issue_id": "dq_0003366",
+            "source_record_id": "sr_0015743",
+            "dataset_id": "chgis_v6_county_points",
+            "external_id": "70486",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "10517",
+            "observed_value": "X_COOR=**********;Y_COOR=**********"
+          },
+          {
+            "issue_id": "dq_0003367",
+            "source_record_id": "sr_0015747",
+            "dataset_id": "chgis_v6_county_points",
+            "external_id": "70487",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "10521",
+            "observed_value": "X_COOR=**********;Y_COOR=**********"
+          },
+          {
+            "issue_id": "dq_0003368",
+            "source_record_id": "sr_0015742",
+            "dataset_id": "chgis_v6_county_points",
+            "external_id": "70488",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "10516",
+            "observed_value": "X_COOR=**********;Y_COOR=**********"
+          },
+          {
+            "issue_id": "dq_0003369",
+            "source_record_id": "sr_0015744",
+            "dataset_id": "chgis_v6_county_points",
+            "external_id": "70489",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "10518",
+            "observed_value": "X_COOR=**********;Y_COOR=**********"
+          },
+          {
+            "issue_id": "dq_0003441",
+            "source_record_id": "sr_0015739",
+            "dataset_id": "chgis_v6_county_points",
+            "external_id": "70591",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "10513",
+            "observed_value": "X_COOR=**********;Y_COOR=**********"
+          },
+          {
+            "issue_id": "dq_0003442",
+            "source_record_id": "sr_0015745",
+            "dataset_id": "chgis_v6_county_points",
+            "external_id": "70592",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "10519",
+            "observed_value": "X_COOR=**********;Y_COOR=**********"
+          },
+          {
+            "issue_id": "dq_0003443",
+            "source_record_id": "sr_0015746",
+            "dataset_id": "chgis_v6_county_points",
+            "external_id": "70593",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "10520",
+            "observed_value": "X_COOR=**********;Y_COOR=**********"
+          },
+          {
+            "issue_id": "dq_0007493",
+            "source_record_id": "sr_0019173",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "92112",
+            "raw_file": "sample_data_pleiades/places.csv.range-0-1048575",
+            "raw_record_index": "2465",
+            "observed_value": ""
+          },
+          {
+            "issue_id": "dq_0007494",
+            "source_record_id": "sr_0019170",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "92113",
+            "raw_file": "sample_data_pleiades/places.csv.range-0-1048575",
+            "raw_record_index": "2462",
+            "observed_value": ""
+          },
+          {
+            "issue_id": "dq_0007495",
+            "source_record_id": "sr_0019198",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "92114",
+            "raw_file": "sample_data_pleiades/places.csv.range-0-1048575",
+            "raw_record_index": "2490",
+            "observed_value": ""
+          },
+          {
+            "issue_id": "dq_0007496",
+            "source_record_id": "sr_0019186",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "92115",
+            "raw_file": "sample_data_pleiades/places.csv.range-0-1048575",
+            "raw_record_index": "2478",
+            "observed_value": ""
+          },
+          {
+            "issue_id": "dq_0007497",
+            "source_record_id": "sr_0019217",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "92116",
+            "raw_file": "sample_data_pleiades/places.csv.range-0-1048575",
+            "raw_record_index": "2509",
+            "observed_value": ""
+          },
+          {
+            "issue_id": "dq_0007498",
+            "source_record_id": "sr_0019204",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "92117",
+            "raw_file": "sample_data_pleiades/places.csv.range-0-1048575",
+            "raw_record_index": "2496",
+            "observed_value": ""
+          },
+          {
+            "issue_id": "dq_0007499",
+            "source_record_id": "sr_0019192",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "92118",
+            "raw_file": "sample_data_pleiades/places.csv.range-0-1048575",
+            "raw_record_index": "2484",
+            "observed_value": ""
+          },
+          {
+            "issue_id": "dq_0007500",
+            "source_record_id": "sr_0019210",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "92121",
+            "raw_file": "sample_data_pleiades/places.csv.range-0-1048575",
+            "raw_record_index": "2502",
+            "observed_value": ""
+          },
+          {
+            "issue_id": "dq_0007501",
+            "source_record_id": "sr_0019196",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "92122",
+            "raw_file": "sample_data_pleiades/places.csv.range-0-1048575",
+            "raw_record_index": "2488",
+            "observed_value": ""
+          },
+          {
+            "issue_id": "dq_0007502",
+            "source_record_id": "sr_0019182",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "92124",
+            "raw_file": "sample_data_pleiades/places.csv.range-0-1048575",
+            "raw_record_index": "2474",
+            "observed_value": ""
+          }
+        ]
+      },
+      {
+        "issue_type": "nonstandard_field_name",
+        "total_rows": 2,
+        "legacy_rows": 2,
+        "delta_rows": 0,
+        "by_dataset": {
+          "": 2
+        },
+        "severity": {
+          "info": 2
+        },
+        "action_taken": {
+          "preserved_and_flagged": 2
+        },
+        "rule": {},
+        "samples": [
+          {
+            "issue_id": "dq_0007487",
+            "source_record_id": "",
+            "dataset_id": "",
+            "external_id": "",
+            "raw_file": "",
+            "raw_record_index": "",
+            "observed_value": "END_DATE"
+          },
+          {
+            "issue_id": "dq_0007488",
+            "source_record_id": "",
+            "dataset_id": "",
+            "external_id": "",
+            "raw_file": "",
+            "raw_record_index": "",
+            "observed_value": "GEOCOMPLR"
+          }
+        ],
+        "all_keys": [
+          {
+            "issue_id": "dq_0007487",
+            "source_record_id": "",
+            "external_id": "",
+            "raw_file": "",
+            "raw_record_index": ""
+          },
+          {
+            "issue_id": "dq_0007488",
+            "source_record_id": "",
+            "external_id": "",
+            "raw_file": "",
+            "raw_record_index": ""
+          }
+        ]
+      },
+      {
+        "issue_type": "parent_place_not_in_sample",
+        "total_rows": 4810,
+        "legacy_rows": 4810,
+        "delta_rows": 0,
+        "by_dataset": {
+          "pleiades_gis_4_1_slice": 4810
+        },
+        "severity": {
+          "info": 4810
+        },
+        "action_taken": {
+          "preserved_and_flagged": 4810
+        },
+        "rule": {
+          "stage": "归一化",
+          "where": "normalize.py 孤儿子行段",
+          "rule": "子行的 parent_external_id 不在抽取范围内 → 保留源记录并开票；全量包无孤儿，故本批 0 条新增"
+        },
+        "samples": [
+          {
+            "issue_id": "dq_0007822",
+            "source_record_id": "sr_0021426",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "mesambrie",
+            "raw_file": "sample_data_pleiades/names.csv.range-0-1048575",
+            "raw_record_index": "2075",
+            "observed_value": "922680"
+          },
+          {
+            "issue_id": "dq_0007823",
+            "source_record_id": "sr_0021427",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "ponte-romano-di-parco-deii-medici",
+            "raw_file": "sample_data_pleiades/names.csv.range-0-1048575",
+            "raw_record_index": "2076",
+            "observed_value": "922890940"
+          },
+          {
+            "issue_id": "dq_0007824",
+            "source_record_id": "sr_0021428",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "tepekoy-hoyuk",
+            "raw_file": "sample_data_pleiades/names.csv.range-0-1048575",
+            "raw_record_index": "2077",
+            "observed_value": "92232873"
+          },
+          {
+            "issue_id": "dq_0007825",
+            "source_record_id": "sr_0021429",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "name.2017-11-03.3767761427",
+            "raw_file": "sample_data_pleiades/names.csv.range-0-1048575",
+            "raw_record_index": "2078",
+            "observed_value": "922537087"
+          },
+          {
+            "issue_id": "dq_0007826",
+            "source_record_id": "sr_0021430",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "name.2017-11-03.4297960550",
+            "raw_file": "sample_data_pleiades/names.csv.range-0-1048575",
+            "raw_record_index": "2079",
+            "observed_value": "922537087"
+          },
+          {
+            "issue_id": "dq_0007827",
+            "source_record_id": "sr_0021431",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "villa-romana-delle-paduline",
+            "raw_file": "sample_data_pleiades/names.csv.range-0-1048575",
+            "raw_record_index": "2080",
+            "observed_value": "922522298"
+          },
+          {
+            "issue_id": "dq_0007828",
+            "source_record_id": "sr_0021432",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "plovdiv-roman-stadium",
+            "raw_file": "sample_data_pleiades/names.csv.range-0-1048575",
+            "raw_record_index": "2081",
+            "observed_value": "925968978"
+          },
+          {
+            "issue_id": "dq_0007829",
+            "source_record_id": "sr_0021433",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "villa-dionysos-at-knossos",
+            "raw_file": "sample_data_pleiades/names.csv.range-0-1048575",
+            "raw_record_index": "2082",
+            "observed_value": "925012715"
+          },
+          {
+            "issue_id": "dq_0007830",
+            "source_record_id": "sr_0021434",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "timnah",
+            "raw_file": "sample_data_pleiades/names.csv.range-0-1048575",
+            "raw_record_index": "2083",
+            "observed_value": "925655548"
+          },
+          {
+            "issue_id": "dq_0007831",
+            "source_record_id": "sr_0021435",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "tel-batash",
+            "raw_file": "sample_data_pleiades/names.csv.range-0-1048575",
+            "raw_record_index": "2084",
+            "observed_value": "925655548"
+          },
+          {
+            "issue_id": "dq_0007832",
+            "source_record_id": "sr_0021436",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "tel-batash-1",
+            "raw_file": "sample_data_pleiades/names.csv.range-0-1048575",
+            "raw_record_index": "2085",
+            "observed_value": "925655548"
+          },
+          {
+            "issue_id": "dq_0007833",
+            "source_record_id": "sr_0021437",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "collegio-degli-augustali",
+            "raw_file": "sample_data_pleiades/names.csv.range-0-1048575",
+            "raw_record_index": "2086",
+            "observed_value": "925847415"
+          },
+          {
+            "issue_id": "dq_0007834",
+            "source_record_id": "sr_0021438",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "name.2018-10-29.6823453287",
+            "raw_file": "sample_data_pleiades/names.csv.range-0-1048575",
+            "raw_record_index": "2087",
+            "observed_value": "925825061"
+          },
+          {
+            "issue_id": "dq_0007835",
+            "source_record_id": "sr_0021439",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "funerary-temple-of-seti-i-1",
+            "raw_file": "sample_data_pleiades/names.csv.range-0-1048575",
+            "raw_record_index": "2088",
+            "observed_value": "92549399"
+          },
+          {
+            "issue_id": "dq_0007836",
+            "source_record_id": "sr_0021440",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "temple-of-a-million-years-of-seti-i",
+            "raw_file": "sample_data_pleiades/names.csv.range-0-1048575",
+            "raw_record_index": "2089",
+            "observed_value": "92549399"
+          },
+          {
+            "issue_id": "dq_0007837",
+            "source_record_id": "sr_0021441",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "temple-funeraire-de-sethi-i",
+            "raw_file": "sample_data_pleiades/names.csv.range-0-1048575",
+            "raw_record_index": "2090",
+            "observed_value": "92549399"
+          },
+          {
+            "issue_id": "dq_0007838",
+            "source_record_id": "sr_0021442",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "temple-des-millions-dannees-de-sethi-i",
+            "raw_file": "sample_data_pleiades/names.csv.range-0-1048575",
+            "raw_record_index": "2091",
+            "observed_value": "92549399"
+          },
+          {
+            "issue_id": "dq_0007839",
+            "source_record_id": "sr_0021443",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "tavoliere-di-puglia",
+            "raw_file": "sample_data_pleiades/names.csv.range-0-1048575",
+            "raw_record_index": "2092",
+            "observed_value": "92542458"
+          },
+          {
+            "issue_id": "dq_0007840",
+            "source_record_id": "sr_0021444",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "tavoliere-delle-puglie",
+            "raw_file": "sample_data_pleiades/names.csv.range-0-1048575",
+            "raw_record_index": "2093",
+            "observed_value": "92542458"
+          },
+          {
+            "issue_id": "dq_0007841",
+            "source_record_id": "sr_0021445",
+            "dataset_id": "pleiades_gis_4_1_slice",
+            "external_id": "tall-warish",
+            "raw_file": "sample_data_pleiades/names.csv.range-0-1048575",
+            "raw_record_index": "2094",
+            "observed_value": "959992688"
+          }
+        ]
+      },
+      {
+        "issue_type": "truncated_slice_tail",
+        "total_rows": 4,
+        "legacy_rows": 4,
+        "delta_rows": 0,
+        "by_dataset": {
+          "": 4
+        },
+        "severity": {
+          "info": 4
+        },
+        "action_taken": {
+          "discarded": 4
+        },
+        "rule": {},
+        "samples": [
+          {
+            "issue_id": "dq_0007489",
+            "source_record_id": "",
+            "dataset_id": "",
+            "external_id": "",
+            "raw_file": "",
+            "raw_record_index": "",
+            "observed_value": "file=places.csv.range-0-1048575; parsed_fields=3/11; head=2010-10-06T16:28:48Z | An ancient place, cited: BAtlas 94 C5 F"
+          },
+          {
+            "issue_id": "dq_0007490",
+            "source_record_id": "",
+            "dataset_id": "",
+            "external_id": "",
+            "raw_file": "",
+            "raw_record_index": "",
+            "observed_value": "file=names.csv.range-0-1048575; parsed_fields=12/19; head=2016-09-13T20:02:36Z | Historical name (XIII century). Actual "
+          },
+          {
+            "issue_id": "dq_0007491",
+            "source_record_id": "",
+            "dataset_id": "",
+            "external_id": "",
+            "raw_file": "",
+            "raw_record_index": "",
+            "observed_value": "file=location_points.csv.range-0-1048575; parsed_fields=2/16; head=2013-12-08T18:15:38Z | Lo"
+          },
+          {
+            "issue_id": "dq_0007492",
+            "source_record_id": "",
+            "dataset_id": "",
+            "external_id": "",
+            "raw_file": "",
+            "raw_record_index": "",
+            "observed_value": "file=connections.csv.range-0-524287; parsed_fields=10/13; head=2016-07-13T13:41:21Z |  | "
+          }
+        ],
+        "all_keys": [
+          {
+            "issue_id": "dq_0007489",
+            "source_record_id": "",
+            "external_id": "",
+            "raw_file": "",
+            "raw_record_index": ""
+          },
+          {
+            "issue_id": "dq_0007490",
+            "source_record_id": "",
+            "external_id": "",
+            "raw_file": "",
+            "raw_record_index": ""
+          },
+          {
+            "issue_id": "dq_0007491",
+            "source_record_id": "",
+            "external_id": "",
+            "raw_file": "",
+            "raw_record_index": ""
+          },
+          {
+            "issue_id": "dq_0007492",
+            "source_record_id": "",
+            "external_id": "",
+            "raw_file": "",
+            "raw_record_index": ""
+          }
+        ]
+      },
+      {
+        "issue_type": "unknown_crs",
+        "total_rows": 646,
+        "legacy_rows": 646,
+        "delta_rows": 0,
+        "by_dataset": {
+          "mcgd_zenodo_22094815_head960": 643,
+          "whg_hgis_de_las_indias_sample": 3
+        },
+        "severity": {
+          "warning": 646
+        },
+        "action_taken": {
+          "needs_manual_review": 646
+        },
+        "rule": {},
+        "samples": [
+          {
+            "issue_id": "dq_0006832",
+            "source_record_id": "sr_0016078",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0456778",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "330",
+            "observed_value": "lon=100.291554;lat=35.326801"
+          },
+          {
+            "issue_id": "dq_0006833",
+            "source_record_id": "sr_0016062",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0456777",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "314",
+            "observed_value": "lon=100.307004;lat=35.306534"
+          },
+          {
+            "issue_id": "dq_0006834",
+            "source_record_id": "sr_0016253",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0322806",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "505",
+            "observed_value": "lon=110.285556;lat=27.445556"
+          },
+          {
+            "issue_id": "dq_0006835",
+            "source_record_id": "sr_0016354",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0172867",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "606",
+            "observed_value": "lon=110.286111;lat=25.335833"
+          },
+          {
+            "issue_id": "dq_0006836",
+            "source_record_id": "sr_0016299",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0358948",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "551",
+            "observed_value": "lon=117.077778;lat=25.122222"
+          },
+          {
+            "issue_id": "dq_0006837",
+            "source_record_id": "sr_0016055",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0428772",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "307",
+            "observed_value": "lon=108.823056;lat=34.268333"
+          },
+          {
+            "issue_id": "dq_0006838",
+            "source_record_id": "sr_0016012",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0322799",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "264",
+            "observed_value": "lon=112.089167;lat=26.416667"
+          },
+          {
+            "issue_id": "dq_0006839",
+            "source_record_id": "sr_0016222",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0322805",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "474",
+            "observed_value": "lon=111.624722;lat=26.6775"
+          },
+          {
+            "issue_id": "dq_0006840",
+            "source_record_id": "sr_0016291",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0358947",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "543",
+            "observed_value": "lon=117.193333;lat=25.769444"
+          },
+          {
+            "issue_id": "dq_0006841",
+            "source_record_id": "sr_0016175",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0322803",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "427",
+            "observed_value": "lon=111.654444;lat=26.9425"
+          },
+          {
+            "issue_id": "dq_0006842",
+            "source_record_id": "sr_0016171",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0322802",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "423",
+            "observed_value": "lon=110.989444;lat=25.068889"
+          },
+          {
+            "issue_id": "dq_0006843",
+            "source_record_id": "sr_0016395",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0322813",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "647",
+            "observed_value": "lon=111.393056;lat=25.501111"
+          },
+          {
+            "issue_id": "dq_0006844",
+            "source_record_id": "sr_0015900",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0064889",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "152",
+            "observed_value": "lon=101.930442;lat=32.919936"
+          },
+          {
+            "issue_id": "dq_0006845",
+            "source_record_id": "sr_0016704",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0358961",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "956",
+            "observed_value": "lon=117.915413;lat=25.088333"
+          },
+          {
+            "issue_id": "dq_0006846",
+            "source_record_id": "sr_0016708",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0094332",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "960",
+            "observed_value": "lon=116.559271;lat=30.662736"
+          },
+          {
+            "issue_id": "dq_0006847",
+            "source_record_id": "sr_0015882",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0449748",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "134",
+            "observed_value": "lon=103.303723;lat=23.697668"
+          },
+          {
+            "issue_id": "dq_0006848",
+            "source_record_id": "sr_0015901",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0064890",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "153",
+            "observed_value": "lon=102.636638;lat=32.41875"
+          },
+          {
+            "issue_id": "dq_0006849",
+            "source_record_id": "sr_0016690",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0064946",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "942",
+            "observed_value": "lon=104.367959;lat=31.588219"
+          },
+          {
+            "issue_id": "dq_0006850",
+            "source_record_id": "sr_0015867",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0380833",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "119",
+            "observed_value": "lon=82.575069;lat=33.218355"
+          },
+          {
+            "issue_id": "dq_0006851",
+            "source_record_id": "sr_0016528",
+            "dataset_id": "mcgd_zenodo_22094815_head960",
+            "external_id": "H0003932",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/mcgd/MCGD_Data2026_08_25.csv.head-960rows.sample.csv",
+            "raw_record_index": "780",
+            "observed_value": "lon=102.84579;lat=40.480869"
+          }
+        ]
+      },
+      {
+        "issue_type": "unknown_time_bound_type",
+        "total_rows": 6448,
+        "legacy_rows": 6448,
+        "delta_rows": 0,
+        "by_dataset": {
+          "chgis_v6_county_points": 6176,
+          "chgis_v6_prefecture_points": 272
+        },
+        "severity": {
+          "info": 6448
+        },
+        "action_taken": {
+          "preserved_and_flagged": 6448
+        },
+        "rule": {
+          "stage": "归一化（仅 CHGIS 分支）",
+          "where": "normalize.py 只在 chgis_records 循环内开票",
+          "rule": "BEG_RULE/END_RULE 不在 xtra_date_rules 且 time_bound_type=unknown；Pleiades 无此两列 ⇒ 恒 0"
+        },
+        "samples": [
+          {
+            "issue_id": "dq_0000001",
+            "source_record_id": "sr_0003606",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "32025",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3606",
+            "observed_value": "END_RULE=7"
+          },
+          {
+            "issue_id": "dq_0000014",
+            "source_record_id": "sr_0004833",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "32248",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "4833",
+            "observed_value": "BEG_RULE=<blank>;END_RULE=<blank>"
+          },
+          {
+            "issue_id": "dq_0000038",
+            "source_record_id": "sr_0004168",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "33071",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "4168",
+            "observed_value": "BEG_RULE=<blank>"
+          },
+          {
+            "issue_id": "dq_0000078",
+            "source_record_id": "sr_0003504",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "45406",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "3504",
+            "observed_value": "BEG_RULE=<blank>;END_RULE=<blank>"
+          },
+          {
+            "issue_id": "dq_0000079",
+            "source_record_id": "sr_0002066",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "70316",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "2066",
+            "observed_value": "BEG_RULE=<blank>;END_RULE=<blank>"
+          },
+          {
+            "issue_id": "dq_0000080",
+            "source_record_id": "sr_0002067",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "70318",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "2067",
+            "observed_value": "BEG_RULE=<blank>;END_RULE=<blank>"
+          },
+          {
+            "issue_id": "dq_0000081",
+            "source_record_id": "sr_0002068",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "70349",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "2068",
+            "observed_value": "BEG_RULE=<blank>;END_RULE=<blank>"
+          },
+          {
+            "issue_id": "dq_0000082",
+            "source_record_id": "sr_0002173",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "70469",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "2173",
+            "observed_value": "BEG_RULE=<blank>;END_RULE=<blank>"
+          },
+          {
+            "issue_id": "dq_0000083",
+            "source_record_id": "sr_0002174",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "70471",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "2174",
+            "observed_value": "BEG_RULE=<blank>;END_RULE=<blank>"
+          },
+          {
+            "issue_id": "dq_0000084",
+            "source_record_id": "sr_0002170",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "70473",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "2170",
+            "observed_value": "BEG_RULE=<blank>;END_RULE=<blank>"
+          },
+          {
+            "issue_id": "dq_0000085",
+            "source_record_id": "sr_0002175",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "70479",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "2175",
+            "observed_value": "BEG_RULE=<blank>;END_RULE=<blank>"
+          },
+          {
+            "issue_id": "dq_0000086",
+            "source_record_id": "sr_0002118",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "70982",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "2118",
+            "observed_value": "BEG_RULE=<blank>;END_RULE=<blank>"
+          },
+          {
+            "issue_id": "dq_0000087",
+            "source_record_id": "sr_0002138",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "71062",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "2138",
+            "observed_value": "BEG_RULE=<blank>;END_RULE=<blank>"
+          },
+          {
+            "issue_id": "dq_0000088",
+            "source_record_id": "sr_0002139",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "71063",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "2139",
+            "observed_value": "BEG_RULE=<blank>;END_RULE=<blank>"
+          },
+          {
+            "issue_id": "dq_0000089",
+            "source_record_id": "sr_0002140",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "71064",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "2140",
+            "observed_value": "BEG_RULE=<blank>;END_RULE=<blank>"
+          },
+          {
+            "issue_id": "dq_0000091",
+            "source_record_id": "sr_0002130",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "71096",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "2130",
+            "observed_value": "BEG_RULE=<blank>;END_RULE=<blank>"
+          },
+          {
+            "issue_id": "dq_0000092",
+            "source_record_id": "sr_0002072",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "71195",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "2072",
+            "observed_value": "BEG_RULE=<blank>;END_RULE=<blank>"
+          },
+          {
+            "issue_id": "dq_0000094",
+            "source_record_id": "sr_0002149",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "71233",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "2149",
+            "observed_value": "BEG_RULE=<blank>;END_RULE=<blank>"
+          },
+          {
+            "issue_id": "dq_0000095",
+            "source_record_id": "sr_0002150",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "71234",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "2150",
+            "observed_value": "BEG_RULE=<blank>;END_RULE=<blank>"
+          },
+          {
+            "issue_id": "dq_0000096",
+            "source_record_id": "sr_0002762",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "80001",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "2762",
+            "observed_value": "BEG_RULE=<blank>;END_RULE=<blank>"
+          }
+        ]
+      },
+      {
+        "issue_type": "year_out_of_range",
+        "total_rows": 4,
+        "legacy_rows": 4,
+        "delta_rows": 0,
+        "by_dataset": {
+          "chgis_v6_county_points": 1,
+          "chgis_v6_prefecture_points": 3
+        },
+        "severity": {
+          "warning": 4
+        },
+        "action_taken": {
+          "preserved_and_flagged": 4
+        },
+        "rule": {},
+        "samples": [
+          {
+            "issue_id": "dq_0000214",
+            "source_record_id": "sr_0001079",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "210672",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "1079",
+            "observed_value": "2115"
+          },
+          {
+            "issue_id": "dq_0000215",
+            "source_record_id": "sr_0001079",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "210672",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "1079",
+            "observed_value": "2150"
+          },
+          {
+            "issue_id": "dq_0000217",
+            "source_record_id": "sr_0001080",
+            "dataset_id": "chgis_v6_prefecture_points",
+            "external_id": "210673",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "1080",
+            "observed_value": "2151"
+          },
+          {
+            "issue_id": "dq_0006815",
+            "source_record_id": "sr_0012176",
+            "dataset_id": "chgis_v6_county_points",
+            "external_id": "200445",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "6950",
+            "observed_value": "11911"
+          }
+        ],
+        "all_keys": [
+          {
+            "issue_id": "dq_0000214",
+            "source_record_id": "sr_0001079",
+            "external_id": "210672",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "1079"
+          },
+          {
+            "issue_id": "dq_0000215",
+            "source_record_id": "sr_0001079",
+            "external_id": "210672",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "1079"
+          },
+          {
+            "issue_id": "dq_0000217",
+            "source_record_id": "sr_0001080",
+            "external_id": "210673",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_pref_pts_utf_wgs84.zip",
+            "raw_record_index": "1080"
+          },
+          {
+            "issue_id": "dq_0006815",
+            "source_record_id": "sr_0012176",
+            "external_id": "200445",
+            "raw_file": "设计资料/P0验证/WB-002/sample_data/chgis/v6_time_cnty_pts_utf_wgs84.zip",
+            "raw_record_index": "6950"
+          }
+        ]
+      }
+    ]
+  },
+  "B_importer_synthesized": {
+    "note": "本阶段**未执行导入**，因此这三类没有实测行数；下面给出规则、在暂存上可静态预判的口径，以及为什么无法提前冻结",
+    "types": [
+      {
+        "issue_type": "duplicate_external_id",
+        "verified": false,
+        "static_estimate": "暂存里 38 个多行组 / 76 行，其中 2 组已有 duplicate_sysid，余下 36 组各 1 行 ⇒ 静态预判 36 行；实际以导入器运行期分组为准",
+        "rule": {
+          "stage": "导入器运行期",
+          "where": "import_staging.write_ledger（+duplicate_sysid 排除）",
+          "rule": "同一 (dataset, scope, parent, external_id) 出现多行且不是 duplicate_sysid 组 ⇒ 1 组 1 行；取决于运行期分组"
+        }
+      },
+      {
+        "issue_type": "derived_value_mismatch",
+        "verified": false,
+        "static_estimate": "取决于地点级时间包络与暂存值逐地点比对，本阶段不重算",
+        "rule": {
+          "stage": "导入器运行期",
+          "where": "import_staging.write_ledger（地点级时间包络重算）",
+          "rule": "地点级 valid_from/valid_to 与仅 name+location 子行包络不一致 ⇒ 1 处 1 行"
+        }
+      },
+      {
+        "issue_type": "manual_edit_conflict",
+        "verified": false,
+        "static_estimate": "取决于目标库里哪些地点带人工保护位；本阶段不查库",
+        "rule": {
+          "stage": "导入器运行期（依赖库内人工保护位）",
+          "where": "import_staging.write_places → manual_blocks",
+          "rule": "目标地点 created_by=manual / locked / manual_edited_fields 非空且 canonical_name 不同 ⇒ 1 处 1 行"
+        }
+      }
+    ]
+  },
+  "C_not_opened": [
+    {
+      "fact": "place_without_geometry（7,200 个地点无任何坐标线索）",
+      "why": "OWNER 决策：每个这样的地点已有一条 missing_coordinate，再写 7,200 行是同一事实重复登记；改为验收查询 historical_place ⋈ historical_place_location NOT EXISTS"
+    },
+    {
+      "fact": "z_ordinate_discarded（8 POINT Z / 11 LINESTRING Z / 91 POLYGON Z）",
+      "why": "表列是 geometry(Geometry,4326)，降维是表示层处理，不构成源数据缺陷；原始 WKT 带 Z 的事实保留在该行 raw_payload，quality_flag 也留了痕迹"
+    },
+    {
+      "fact": "place_type 未映射（29,677 个地点 place_type=unknown，其中 NEW 26,383）",
+      "why": "Pleiades 192 键类型词表无法映射到 5 值域；强行映射等于编造。多值关系写进 place_type_basis_note 汇总文本"
+    },
+    {
+      "fact": "name_lang 非法 BCP-47（42 行：asyr/osar/cana/arbd/etruscan-in-latin-characters 等）",
+      "why": "导入器 sanitize_lang 统一写 und，原值留在 raw_payload；这是既有的降级路径，不是新缺陷"
+    },
+    {
+      "fact": "attested_form 未单独成名称行（10,297 条）",
+      "why": "OWNER 决策：不补名称行，原文只在 raw_payload"
+    }
+  ]
+}

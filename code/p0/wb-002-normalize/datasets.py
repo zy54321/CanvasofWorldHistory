@@ -255,6 +255,31 @@ DATASETS: Tuple[DatasetInfo, ...] = (
             "from a documented time field."
         ),
     ),
+    DatasetInfo(
+        dataset_id="pleiades_gis_4_1",
+        source_id="pleiades",
+        dataset_name="Pleiades Datasets v4.1 — GIS CSV (complete package)",
+        homepage="https://doi.org/10.5281/zenodo.15540082",
+        attribution_text=PLEIADES_ATTRIBUTION,
+        acquisition_method=(
+            "Zenodo record 15540082, file pleiades.datasets-v4.1.zip "
+            "(286,621,469 B, md5 ad339c92c6b895f0eb9a52228da498c4), unpacked to "
+            "code/data/raw/pleiades_gis_4_1/gis/"
+        ),
+        evidence=(
+            "code/ops/m4-3/audit.json: 19 files, 128,705,151 B, per-file sha256; "
+            "code/data/raw/pleiades_gis_4_1/gis_sha256.txt is the same digest list; "
+            "verification and coverage analysis in "
+            "code/ops/reports/M4_3_PLEIADES_GIS_ACQUISITION_REPORT.md"
+        ),
+        notes=(
+            "M4-4a 全量接入。与 pleiades_gis_4_1_slice 是同一来源的两个快照："
+            "41,480 个地点中 2,552 个已由切片快照承载，本数据集只为它们写 "
+            "is_active=false 的源记录，不重复建点（增量方案 A）。"
+            "四个词表文件与 places_accuracy / places_place_types 不逐行入表，"
+            "承载方式见 code/ops/reports/M4_3_FILE_BEARING_MATRIX.md。"
+        ),
+    ),
 )
 
 #: Ordered dataset identifiers.

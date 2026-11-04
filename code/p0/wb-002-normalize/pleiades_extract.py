@@ -31,6 +31,8 @@ from __future__ import annotations
 import csv
 import hashlib
 import io
+import sys
+from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
@@ -46,6 +48,11 @@ __all__ = [
     "PLEIADES_SLICE_DIR",
     "SLICE_FILES",
     "extract_pleiades",
+    # M4-4a
+    "PLEIADES_FULL_SOURCE_DATASET",
+    "PLEIADES_FULL_DATASET_ID",
+    "PLEIADES_FULL_DIR",
+    "extract_pleiades_full",
 ]
 
 #: ``source_id`` written on every Pleiades row.
@@ -555,3 +562,856 @@ def _build_reference(row: Dict[str, str], index: int, raw_file: str) -> ExtraRec
             "free-text ('2600000 BC') and are NOT parsed into years."
         ),
     )
+
+
+# ===========================================================================
+# M4-4a：Pleiades GIS 4.1 全量数据集
+# ===========================================================================
+#
+# 与上面的 1 MB 切片抽取器并列存在、互不调用改动：
+#
+#   ``extract_pleiades()``       读 ``设计资料/P0收敛/WB-002/sample_data_pleiades/``
+#                                的 5 个 HTTP Range 切片，产出 12,445 条记录，
+#                                数据集 ``pleiades_gis_4_1_slice``。
+#   ``extract_pleiades_full()``  读 ``code/data/raw/pleiades_gis_4_1/gis/`` 的
+#                                完整 19 文件包，产出 ``pleiades_gis_4_1`` 数据集。
+#
+# 全量分支多出来的四件事，全部有明确数据依据：
+#
+#   1. **几何是三种，不是一种。** points / linestrings / polygons 三个文件各有
+#      自己的 WKT 列，必须分别落到 Point / LineString / Polygon（修复后可能是
+#      MultiPolygon）。切片只有 points。
+#   2. **无效多边形要修。** 整包 5 条 ``ST_IsValid=false``，其中 4 条属于 NEW
+#      集合。修复规则与 PostGIS ``ST_MakeValid`` + ``ST_CollectionExtract(...,3)``
+#      等价（同为 GEOS），结果类型按实际面片数写 Polygon 或 MultiPolygon。
+#   3. **代表点要合成。** 3,317 个 NEW 地点有 ``representative_latitude/longitude``
+#      却没有任何 location 行。``historical_place`` 没有坐标列，地图只认
+#      ``historical_place_location.representative_lon/lat``，不合成则不可见。
+#      合成行使用 places.csv 的原始坐标，**不用 bbox 中心替代**。
+#   4. **连接全量保留。** 13,603 行一行不少；两端解析不到的一律打
+#      ``connection_endpoint_missing`` 标记，由 normalize 开台账，不在这里丢弃。
+
+#: ``source_dataset`` / ``dataset_id`` of the full v4.1 dataset.
+PLEIADES_FULL_SOURCE_DATASET = "pleiades_gis_4_1"
+PLEIADES_FULL_DATASET_ID = "pleiades_gis_4_1"
+
+#: Directory of the extracted v4.1 GIS files, relative to the **code root**
+#: (i.e. ``code/``), because that is where the archive was unpacked.
+PLEIADES_FULL_DIR = Path("data") / "raw" / "pleiades_gis_4_1" / "gis"
+
+#: ``(logical name, physical file name)`` in reading order.  The order fixes
+#: ``source_record_id`` allocation, and inside it the location order is
+#: points -> representative points -> linestrings -> polygons so that
+#: ``ORDER BY location_id LIMIT 1`` in the map query always sees the most
+#: precise row first.
+FULL_FILES: Tuple[Tuple[str, str], ...] = (
+    ("places", "places.csv"),
+    ("names", "names.csv"),
+    ("location_points", "location_points.csv"),
+    ("location_linestrings", "location_linestrings.csv"),
+    ("location_polygons", "location_polygons.csv"),
+    ("connections", "connections.csv"),
+    ("places_accuracy", "places_accuracy.csv"),
+    ("places_place_types", "places_place_types.csv"),
+)
+
+#: Geometry kind implied by each location file.
+LOCATION_FILE_KIND: Dict[str, str] = {
+    "location_points": "Point",
+    "location_linestrings": "LineString",
+    "location_polygons": "Polygon",
+}
+
+#: ``places_accuracy.min_accuracy_meters`` uses ``-1`` to mean "unknown".
+ACCURACY_UNKNOWN_SENTINEL = -1.0
+
+
+def _shapely_modules():
+    """Import shapely, falling back to the vendored ``code/ops/.deps`` copy.
+
+    Only the full-dataset extractor needs a geometry engine.  The slice
+    extractor stays standard-library-only, which is why the import is lazy: a
+    machine that only runs the old pipeline keeps working unchanged.
+
+    Returns:
+      ``(shapely, shapely.wkt)`` module pair.
+
+    Raises:
+      SystemExit: When shapely is absent even from the vendor directory, because
+        continuing would silently mis-handle 4,385 polygons and 5,265 lines.
+    """
+    try:
+        import shapely  # noqa: PLC0415 - deliberate lazy import
+        from shapely import wkt as shapely_wkt  # noqa: PLC0415
+
+        return shapely, shapely_wkt
+    except ImportError:
+        vendor = Path(__file__).resolve().parents[2] / "ops" / ".deps"
+        if vendor.is_dir() and str(vendor) not in sys.path:
+            sys.path.insert(0, str(vendor))
+        try:
+            import shapely  # noqa: PLC0415
+            from shapely import wkt as shapely_wkt  # noqa: PLC0415
+
+            return shapely, shapely_wkt
+        except ImportError as exc:  # pragma: no cover - environment problem
+            raise SystemExit(
+                "Pleiades 全量几何处理需要 shapely；已在 sys.path 追加 "
+                f"{vendor} 仍无法导入：{exc}"
+            ) from exc
+
+
+def _read_full_csv(path: Path) -> Tuple[List[str], List[Dict[str, str]], str, int, List[Dict[str, Any]]]:
+    """Parse one *complete* CSV file of the v4.1 package.
+
+    Unlike :func:`_read_csv_slice` there is no truncation to explain, so a short
+    record is a genuine defect and is reported rather than explained away.
+
+    Returns:
+      ``(header, rows, sha256, bytes, short_records)``.
+    """
+    raw = path.read_bytes()
+    digest = hashlib.sha256(raw).hexdigest()
+    text = raw.decode("utf-8-sig", errors="replace")
+    reader = csv.reader(io.StringIO(text))
+    header: List[str] = next(reader, [])
+    rows: List[Dict[str, str]] = []
+    short: List[Dict[str, Any]] = []
+    for position, values in enumerate(reader, start=2):
+        if len(values) == len(header):
+            rows.append(dict(zip(header, values)))
+        else:
+            short.append(
+                {
+                    "file": path.name,
+                    "physical_line": position,
+                    "parsed_fields": len(values),
+                    "expected_fields": len(header),
+                    "leading_cells": " | ".join(values[:3])[:200],
+                }
+            )
+    return header, rows, digest, len(raw), short
+
+
+def _place_key(value: str) -> str:
+    """Normalise a place reference to its bare id.
+
+    ``connects_to`` is an absolute URI (``https://pleiades.stoa.org/places/433032``)
+    while ``place_id`` columns hold the bare id, so comparing them without
+    normalising invents 13,603 false orphans.  ``/errata/991384`` is not a place
+    and normalises to ``991384``, which simply fails the "is a known place"
+    test downstream -- that is the intended outcome.
+    """
+    text = (value or "").strip()
+    if not text:
+        return ""
+    if "/" in text:
+        return text.rstrip("/").rsplit("/", 1)[-1]
+    return text
+
+
+def _has_z_dimension(wkt: str) -> bool:
+    """True when a WKT of any geometry type declares or carries a Z ordinate."""
+    text = (wkt or "").strip()
+    if not text:
+        return False
+    head = text[: text.find("(")] if "(" in text else text
+    if "Z" in head.upper().split():
+        return True
+    return wkt_has_z(text)
+
+
+def _wkt_2d(shapely, shapely_wkt, text: str):
+    """Parse WKT and force it to two dimensions.
+
+    ``historical_place_location.geom`` is ``geometry(Geometry,4326)`` -- 2D.  The
+    package carries 8 ``POINT Z``, 11 ``LINESTRING Z`` and 91 ``POLYGON Z`` rows,
+    so the Z ordinate is dropped *explicitly* and flagged on the row rather than
+    left for PostGIS to reject.
+
+    Returns:
+      The parsed 2D geometry, or ``None`` when the text is not parseable.
+    """
+    try:
+        geom = shapely_wkt.loads(text)
+    except Exception:  # noqa: BLE001 - GEOS raises several unrelated types
+        return None
+    if geom.is_empty:
+        return None
+    if geom.has_z:
+        geom = shapely.force_2d(geom)
+    return geom
+
+
+def _polygon_payload(shapely, geom) -> Tuple[str, Any]:
+    """Classify a polygon after repair.
+
+    ``ST_MakeValid`` can return a GeometryCollection (a polygon plus dangling
+    lines) or a MultiPolygon.  ``ST_CollectionExtract(...,3)`` keeps only the
+    polygonal parts, and the stored ``geom_type`` must match what is left: one
+    part -> ``Polygon``, several parts -> ``MultiPolygon``.
+
+    Returns:
+      ``(geom_type, geometry)`` with ``geom_type`` empty when no polygonal part
+      survives.
+    """
+    parts = [part for part in shapely.get_parts(geom) if part.geom_type == "Polygon"]
+    if not parts:
+        return "", None
+    if len(parts) == 1:
+        return "Polygon", parts[0]
+    return "MultiPolygon", shapely.MultiPolygon(parts)
+
+
+def _location_geometry(wkt: str, file_kind: str) -> Dict[str, Any]:
+    """Turn one location row's WKT into the staging fields that describe it.
+
+    Args:
+      wkt: Verbatim ``geometry_wkt`` cell.
+      file_kind: ``Point`` / ``LineString`` / ``Polygon`` -- the file the row
+        came from, which must agree with the WKT type.
+
+    Returns:
+      A dict with ``geom_type`` (may be ``MultiPolygon`` after repair),
+      ``geom_wkt`` (2D, repaired when needed), ``lon``/``lat`` (representative
+      point), ``flags`` and ``note``.  ``geom_type`` is ``""`` when the row
+      cannot be used, in which case ``flags`` explains why.
+    """
+    text = (wkt or "").strip()
+    flags: List[str] = []
+    note_parts: List[str] = []
+    if not text:
+        return {"geom_type": "", "geom_wkt": "", "lon": None, "lat": None,
+                "flags": ["empty_geometry"], "note": "geometry_wkt 为空"}
+
+    if _has_z_dimension(text):
+        flags.append("z_ordinate_discarded")
+        note_parts.append("原始 WKT 带 Z 序，已降为二维（表列是 geometry(Geometry,4326)）")
+
+    if file_kind == "Point":
+        point = parse_wkt_point(text)
+        lon = point[0] if point else None
+        lat = point[1] if point else None
+        if lon is None or lat is None:
+            return {"geom_type": "", "geom_wkt": text, "lon": None, "lat": None,
+                    "flags": flags + ["missing_coordinate"],
+                    "note": "POINT WKT 无法解析出 x/y"}
+        return {"geom_type": "Point", "geom_wkt": text, "lon": lon, "lat": lat,
+                "flags": flags, "note": "; ".join(note_parts)}
+
+    shapely, shapely_wkt = _shapely_modules()
+    geom = _wkt_2d(shapely, shapely_wkt, text)
+    if geom is None:
+        return {"geom_type": "", "geom_wkt": text, "lon": None, "lat": None,
+                "flags": flags + ["unparseable_geometry"],
+                "note": "WKT 无法被 GEOS 解析或为空几何"}
+
+    observed = geom.geom_type
+    allowed = {"LineString"} if file_kind == "LineString" else {"Polygon", "MultiPolygon"}
+    if observed not in allowed:
+        return {"geom_type": "", "geom_wkt": text, "lon": None, "lat": None,
+                "flags": flags + ["unexpected_geometry_type"],
+                "note": (
+                    f"{file_kind} 文件里出现 {observed}，与文件语义不符，未入库"
+                    "（几何类型以 WKT 为准，但不接受跨文件类型混入）"
+                )}
+
+    if observed in ("Polygon", "MultiPolygon"):
+        if not geom.is_valid:
+            reason = shapely.is_valid_reason(geom)
+            repaired = shapely.make_valid(geom)
+            geom_type, cleaned = _polygon_payload(shapely, repaired)
+            if cleaned is None:
+                return {"geom_type": "", "geom_wkt": text, "lon": None, "lat": None,
+                        "flags": flags + ["geometry_unrepairable"],
+                        "note": f"ST_IsValid=false（{reason}），ST_MakeValid 后无面片残留"}
+            flags.append("geometry_invalid_repaired")
+            note_parts.append(
+                f"源 WKT 无效（{reason}），经 GEOS MakeValid + 只取面片后修复为 {geom_type}"
+            )
+            geom = cleaned
+            observed = geom_type
+        else:
+            geom_type = "Polygon"
+        lon, lat = geom.representative_point().x, geom.representative_point().y
+        note_parts.append("代表点由 ST_PointOnSurface 等价算法（面内点）在入库前算出")
+    else:  # LineString
+        geom_type = "LineString"
+        point = geom.interpolate(0.5, normalized=True)
+        lon, lat = point.x, point.y
+        note_parts.append(
+            "代表点由 ST_LineInterpolatePoint(geom, 0.5) 等价算法（线长中点）在入库前算出"
+        )
+
+    try:
+        wkt_2d = shapely.to_wkt(geom, rounding_precision=-1, trim=True)
+    except Exception:  # noqa: BLE001
+        wkt_2d = text
+    return {"geom_type": geom_type, "geom_wkt": wkt_2d, "lon": lon, "lat": lat,
+            "flags": flags, "note": "; ".join(note_parts)}
+
+
+def _full_location_record(
+    row: Dict[str, str],
+    index: int,
+    raw_file: str,
+    place_id: str,
+    geometry: Dict[str, Any],
+    synthetic: bool,
+    accuracy_m: Optional[float],
+) -> ExtraRecord:
+    """Build one ``location`` record for the full dataset (real or synthesised)."""
+    lon = geometry["lon"]
+    lat = geometry["lat"]
+    flags = list(geometry["flags"])
+    if lon is None or lat is None:
+        if "missing_coordinate" not in flags:
+            flags.append("missing_coordinate")
+    else:
+        if not (-180.0 <= lon <= 180.0) or not (-90.0 <= lat <= 90.0):
+            flags.append("coordinate_out_of_range")
+
+    tpq = parse_signed_year(row.get("year_after_which", ""))
+    taq = parse_signed_year(row.get("year_before_which", ""))
+    bound_type = _pleiades_time_bound_type(tpq, taq)
+
+    uncertainty = ""
+    note_parts = [geometry["note"]] if geometry["note"] else []
+    if synthetic:
+        if accuracy_m is None or accuracy_m == ACCURACY_UNKNOWN_SENTINEL:
+            flags.append("accuracy_unknown_sentinel")
+            note_parts.append(
+                "places_accuracy.min_accuracy_meters = -1（未知哨兵）⇒ uncertainty_m 写 NULL，"
+                "并记 accuracy_unknown_sentinel 台账"
+            )
+        else:
+            uncertainty = f"{accuracy_m:g}"
+            note_parts.append(
+                f"uncertainty_m 取自 places_accuracy.min_accuracy_meters={accuracy_m:g}"
+            )
+        note_parts.append(
+            "representative point synthesised (A2): places.csv 的 "
+            "representative_latitude/longitude 原样使用，未用 bounding_box 中心替代"
+        )
+    else:
+        radius = (row.get("accuracy_radius") or "").strip()
+        if radius and _coerce_float(radius) is not None:
+            uncertainty = radius
+
+    return ExtraRecord(
+        dataset_id=PLEIADES_FULL_DATASET_ID,
+        source_id=PLEIADES_SOURCE_ID,
+        source_dataset=PLEIADES_FULL_SOURCE_DATASET,
+        record_kind="location",
+        record_index=index,
+        raw_file=raw_file,
+        raw={k: v for k, v in row.items()},
+        external_id=(
+            f"{place_id}-representative" if synthetic else (row.get("id") or "").strip()
+        ),
+        external_id_type=(
+            "pleiades_representative_point" if synthetic else "pleiades_location_id"
+        ),
+        parent_external_id=place_id,
+        name=(row.get("title") or "").strip(),
+        name_lang="und",
+        name_script="",
+        name_type="alternate",
+        place_type="unknown",
+        lon=lon,
+        lat=lat,
+        lon_text=(f"{lon:.9f}".rstrip("0").rstrip(".") if lon is not None else ""),
+        lat_text=(f"{lat:.9f}".rstrip("0").rstrip(".") if lat is not None else ""),
+        geom_wkt=geometry["geom_wkt"],
+        location_precision=(row.get("location_precision") or "").strip(),
+        uncertainty_m=uncertainty,
+        original_crs="EPSG:4326",
+        crs_confidence="confirmed",
+        time_bound_type=bound_type,
+        valid_from_year=tpq,
+        valid_to_year=taq,
+        time_rule_code="year_after_which|year_before_which",
+        quality_flags=flags,
+        notes=(
+            f"Pleiades v4.1 {geometry['geom_type'] or 'geometry'}"
+            f"（{'合成代表点' if synthetic else raw_file}）。"
+            "X/Y = longitude/latitude：WKT 轴序为 X Y，gis_README.md 亦写明 "
+            "X=representative_longitude。"
+            + ("；" + "；".join(note_parts) if note_parts else "")
+        ),
+    )
+
+
+def extract_pleiades_full(
+    gis_dir: Path,
+    new_place_ids: Optional[Sequence[str]] = None,
+    superseded_place_ids: Optional[Sequence[str]] = None,
+) -> ExtraExtraction:
+    """Read the complete Pleiades GIS 4.1 package and normalise it.
+
+    The 2,552 places that already have a row in the older slice snapshot are
+    *not* skipped: their ``place`` records are still emitted so that every one of
+    the 41,480 source rows is traceable, but they are reported through
+    ``stats['superseded_place_ids']`` so that the normaliser creates no second
+    ``historical_places`` row for them.  Their child rows (names, locations) are
+    not emitted at all, because the same place already carries the children that
+    were imported from the slice -- importing them again would double every name
+    without adding information (increment plan A).
+
+    Args:
+      gis_dir: Directory holding the 19 extracted files.
+      new_place_ids: Place ids that will become new ``historical_places`` rows.
+        ``None`` means "every place in the package".
+      superseded_place_ids: Place ids that already exist in the slice snapshot.
+
+    Returns:
+      An :class:`ExtraExtraction` with place / name / location / connection
+      records, ordered places -> names -> points -> representative points ->
+      linestrings -> polygons -> connections.
+
+    Raises:
+      SystemExit: On a missing directory or file, because an empty extraction
+        would look like a legitimate zero.
+    """
+    gis_dir = Path(gis_dir)
+    if not gis_dir.is_dir():
+        raise SystemExit(f"Pleiades v4.1 GIS directory not found: {gis_dir}")
+
+    extraction = ExtraExtraction(
+        source_id=PLEIADES_SOURCE_ID,
+        source_dataset=PLEIADES_FULL_SOURCE_DATASET,
+        dataset_id=PLEIADES_FULL_DATASET_ID,
+        attribution_note=(
+            "Pleiades Datasets v4.1 (Zenodo 15540082), data/gis CSV package; "
+            "CC BY 3.0 per datasets_docs/LICENSE_CC-BY-3.0.txt. 授权由 Owner 负责，"
+            "来源信息不参与任何准入判定。"
+        ),
+    )
+
+    tables: Dict[str, List[Dict[str, str]]] = {}
+    short_total = 0
+    for logical, file_name in FULL_FILES:
+        path = gis_dir / file_name
+        if not path.is_file():
+            raise SystemExit(f"Pleiades v4.1 file missing: {path}")
+        header, rows, digest, size, short = _read_full_csv(path)
+        tables[logical] = rows
+        short_total += len(short)
+        extraction.slice_files.append(
+            {
+                "file": file_name,
+                "label": logical,
+                "bytes": size,
+                "columns": len(header),
+                "parsed_rows": len(rows),
+                "discarded_rows": len(short),
+                "sha256": digest,
+                "header": header,
+            }
+        )
+        extraction.stats.setdefault("short_records", []).extend(short)
+
+    place_rows = tables["places"]
+    place_index: Dict[str, int] = {}
+    for index, row in enumerate(place_rows, start=1):
+        place_index[(row.get("id") or "").strip()] = index
+    all_ids = set(place_index)
+    all_ids.discard("")
+
+    new_set = set(new_place_ids) if new_place_ids is not None else set(all_ids)
+    sup_set = set(superseded_place_ids or ())
+    unknown_new = sorted(new_set - all_ids)
+    unknown_sup = sorted(sup_set - all_ids)
+    if unknown_new or unknown_sup:
+        raise SystemExit(
+            "Pleiades 4.1 集合划分与 places.csv 不一致："
+            f"NEW 中不存在的 id {len(unknown_new)} 个（示例 {unknown_new[:3]}）；"
+            f"重叠集中不存在的 id {len(unknown_sup)} 个（示例 {unknown_sup[:3]}）"
+        )
+    if new_set & sup_set:
+        raise SystemExit(
+            f"NEW 与重叠集相交 {len(new_set & sup_set)} 个，集合划分不自洽"
+        )
+
+    # 地点级精度汇总，只用于合成代表点的 uncertainty_m
+    min_accuracy: Dict[str, Optional[float]] = {}
+    accuracy_precision: Dict[str, str] = {}
+    for row in tables["places_accuracy"]:
+        pid = (row.get("place_id") or "").strip()
+        min_accuracy[pid] = _coerce_float(row.get("min_accuracy_meters", ""))
+        accuracy_precision[pid] = (row.get("location_precision") or "").strip()
+
+    # places.csv 与 places_accuracy.csv 的精度列是否一致（两文件都声明了该字段）
+    precision_disagreements = 0
+    for row in place_rows:
+        pid = (row.get("id") or "").strip()
+        own = (row.get("location_precision") or "").strip()
+        other = accuracy_precision.get(pid, "")
+        if other and own and own != other:
+            precision_disagreements += 1
+
+    # 多值类型：只有汇总文本可以承载，逐行关系留在归档（见 M4-3 承载矩阵 §四）
+    place_types: Dict[str, List[str]] = defaultdict(list)
+    for row in tables["places_place_types"]:
+        pid = (row.get("place_id") or "").strip()
+        value = (row.get("place_type") or "").strip()
+        if pid and value:
+            place_types[pid].append(value)
+    for pid in place_types:
+        place_types[pid] = sorted(set(place_types[pid]))
+
+    # ---- 地名/位置/连接：子行只导 NEW 集合 ------------------------------
+    have_location: set = set()
+    name_records: List[ExtraRecord] = []
+    point_records: List[ExtraRecord] = []
+    line_records: List[ExtraRecord] = []
+    polygon_records: List[ExtraRecord] = []
+    geometry_counts: Counter = Counter()
+    invalid_repaired: List[Dict[str, str]] = []
+    skipped_unusable: List[Dict[str, str]] = []
+
+    for index, row in enumerate(tables["names"], start=1):
+        pid = _place_key(row.get("place_id"))
+        if pid not in new_set:
+            continue
+        name, basis = _pick_name(row)
+        raw_type = (row.get("name_type") or "").strip()
+        tpq = parse_signed_year(row.get("year_after_which", ""))
+        taq = parse_signed_year(row.get("year_before_which", ""))
+        bound_type = _pleiades_time_bound_type(tpq, taq)
+        flags: List[str] = []
+        if not name:
+            flags.append("empty_name")
+        language = (row.get("language_tag") or "").strip() or "und"
+        note_bits = [
+            f"display name 取自 '{basis}'",
+            f"pleiades_name_type={raw_type or '<blank>'}",
+            "year_after_which=TPQ / year_before_which=TAQ（gis_README.md），区间是界不是实测跨度",
+        ]
+        if not (row.get("language_tag") or "").strip():
+            note_bits.append("language_tag 空 ⇒ name_lang 写 und")
+        if bound_type == "bounded":
+            note_bits.append("两端同一年 ⇒ 记 bounded，不记 0 年 exact")
+        name_records.append(
+            ExtraRecord(
+                dataset_id=PLEIADES_FULL_DATASET_ID,
+                source_id=PLEIADES_SOURCE_ID,
+                source_dataset=PLEIADES_FULL_SOURCE_DATASET,
+                record_kind="name",
+                record_index=index,
+                raw_file="names.csv",
+                raw={k: v for k, v in row.items()},
+                external_id=(row.get("id") or "").strip(),
+                external_id_type="pleiades_name_id",
+                parent_external_id=pid,
+                name=name,
+                name_lang=language,
+                name_script="",
+                name_type=_NAME_TYPE_MAP.get(raw_type, "alternate"),
+                place_type="unknown",
+                time_bound_type=bound_type,
+                valid_from_year=tpq,
+                valid_to_year=taq,
+                time_rule_code="year_after_which|year_before_which",
+                quality_flags=flags,
+                notes=("Pleiades v4.1 name (names.csv)；" + "；".join(note_bits)),
+            )
+        )
+
+    for logical, target in (
+        ("location_points", point_records),
+        ("location_linestrings", line_records),
+        ("location_polygons", polygon_records),
+    ):
+        file_kind = LOCATION_FILE_KIND[logical]
+        raw_file = dict(FULL_FILES)[logical]
+        for index, row in enumerate(tables[logical], start=1):
+            pid = _place_key(row.get("place_id"))
+            if pid not in new_set:
+                continue
+            geometry = _location_geometry(row.get("geometry_wkt", ""), file_kind)
+            if not geometry["geom_type"]:
+                skipped_unusable.append(
+                    {
+                        "file": raw_file,
+                        "row": str(index),
+                        "id": (row.get("id") or "").strip(),
+                        "place_id": pid,
+                        "flags": "|".join(geometry["flags"]),
+                        "note": geometry["note"],
+                    }
+                )
+                continue
+            have_location.add(pid)
+            geometry_counts[geometry["geom_type"]] += 1
+            if "geometry_invalid_repaired" in geometry["flags"]:
+                invalid_repaired.append(
+                    {
+                        "file": raw_file,
+                        "row": str(index),
+                        "id": (row.get("id") or "").strip(),
+                        "place_id": pid,
+                        "geom_type": geometry["geom_type"],
+                        "note": geometry["note"],
+                    }
+                )
+            target.append(
+                _full_location_record(
+                    row, index, raw_file, pid, geometry,
+                    synthetic=False,
+                    accuracy_m=min_accuracy.get(pid),
+                )
+            )
+
+    # ---- A2：有代表点、却没有任何 location 行的 NEW 地点 ------------------
+    rep_records: List[ExtraRecord] = []
+    rep_precision: Counter = Counter()
+    rep_sentinel = 0
+    for index, row in enumerate(place_rows, start=1):
+        pid = (row.get("id") or "").strip()
+        if pid not in new_set or pid in have_location:
+            continue
+        lon = _coerce_float(row.get("representative_longitude", ""))
+        lat = _coerce_float(row.get("representative_latitude", ""))
+        if lon is None or lat is None:
+            continue
+
+        # 合成行的 raw 载荷 = places.csv 该行 + 两个派生键。
+        # `place_id` 是必需的：导入器按 raw_payload.place_id 派生
+        # source_record.parent_external_id；places.csv 只有 `id`，没有 `place_id`。
+        payload = {k: v for k, v in row.items()}
+        payload["place_id"] = pid
+        payload["_derived_from"] = (
+            "places.csv:representative_latitude,representative_longitude"
+        )
+        payload["_synthetic"] = "representative_point"
+
+        flags: List[str] = []
+        if not (-180.0 <= lon <= 180.0) or not (-90.0 <= lat <= 90.0):
+            flags.append("coordinate_out_of_range")
+        accuracy = min_accuracy.get(pid)
+        if accuracy is None or accuracy == ACCURACY_UNKNOWN_SENTINEL:
+            rep_sentinel += 1
+        rep_precision[(row.get("location_precision") or "").strip() or "unknown"] += 1
+        rep_records.append(
+            _full_location_record(
+                payload, index, "places.csv", pid,
+                {
+                    "geom_type": "Point",
+                    "geom_wkt": f"POINT({lon} {lat})",
+                    "lon": lon,
+                    "lat": lat,
+                    "flags": flags,
+                    "note": "合成代表点（A2），来源 places.csv 的代表坐标",
+                },
+                synthetic=True,
+                accuracy_m=accuracy,
+            )
+        )
+
+    # ---- connections：13,603 行一行不丢 ----------------------------------
+    connection_records: List[ExtraRecord] = []
+    dangling: List[Dict[str, str]] = []
+    self_loops = 0
+    for index, row in enumerate(tables["connections"], start=1):
+        a = _place_key(row.get("place_id"))
+        b = _place_key(row.get("connects_to"))
+        tpq = parse_signed_year(row.get("year_after_which", ""))
+        taq = parse_signed_year(row.get("year_before_which", ""))
+        bound_type = _pleiades_time_bound_type(tpq, taq)
+        flags: List[str] = []
+        note_bits = [
+            "connects_to 是绝对 URI，尾段归一为地点 id（不把 URI 当 id）",
+            f"connection_type={(row.get('connection_type') or '').strip() or '<blank>'}",
+        ]
+        if not a and not b:
+            flags.append("connection_endpoint_missing")
+            note_bits.append("整行字段全空，两端都无法解析")
+            dangling.append({"row": str(index), "id": "", "place_id": "", "connects_to": ""})
+        elif a not in all_ids or b not in all_ids:
+            flags.append("connection_endpoint_missing")
+            bad = "place_id" if a not in all_ids else "connects_to"
+            note_bits.append(f"{bad} 端不在 places.csv（{a or '<blank>'} → {b or '<blank>'}）")
+            dangling.append(
+                {
+                    "row": str(index),
+                    "id": (row.get("id") or "").strip(),
+                    "place_id": a,
+                    "connects_to": (row.get("connects_to") or "").strip(),
+                }
+            )
+        elif a == b:
+            self_loops += 1
+            note_bits.append("两端同一地点：源数据自环，入库不生成候选关系")
+
+        connection_records.append(
+            ExtraRecord(
+                dataset_id=PLEIADES_FULL_DATASET_ID,
+                source_id=PLEIADES_SOURCE_ID,
+                source_dataset=PLEIADES_FULL_SOURCE_DATASET,
+                record_kind="connection",
+                record_index=index,
+                raw_file="connections.csv",
+                raw={k: v for k, v in row.items()},
+                external_id=(row.get("id") or "").strip(),
+                external_id_type="pleiades_connection_id",
+                parent_external_id=a,
+                name=(row.get("title") or "").strip(),
+                name_lang="und",
+                name_script="",
+                name_type="alternate",
+                place_type="unknown",
+                time_bound_type=bound_type,
+                valid_from_year=tpq,
+                valid_to_year=taq,
+                time_rule_code="year_after_which|year_before_which",
+                quality_flags=flags,
+                notes=("Pleiades v4.1 connection (connections.csv)；" + "；".join(note_bits)),
+                connection_type=(row.get("connection_type") or "").strip(),
+                connects_to_external_id=b,
+            )
+        )
+
+    # ---- places：41,480 行全部保留（含 2,552 条重叠） ---------------------
+    place_records: List[ExtraRecord] = []
+    place_precision: Counter = Counter()
+    missing_rep = 0
+    for index, row in enumerate(place_rows, start=1):
+        pid = (row.get("id") or "").strip()
+        lon = _coerce_float(row.get("representative_longitude", ""))
+        lat = _coerce_float(row.get("representative_latitude", ""))
+        has_rep = lon is not None and lat is not None
+        has_bbox = bool((row.get("bounding_box_wkt") or "").strip())
+        precision = (row.get("location_precision") or "").strip() or "unknown"
+        types = place_types.get(pid, [])
+        flags: List[str] = []
+        if not has_rep:
+            flags.append("missing_coordinate")
+            if pid in new_set:
+                missing_rep += 1
+        else:
+            if not (-180.0 <= lon <= 180.0) or not (-90.0 <= lat <= 90.0):
+                flags.append("coordinate_out_of_range")
+        if pid in new_set:
+            place_precision[precision] += 1
+        place_records.append(
+            ExtraRecord(
+                dataset_id=PLEIADES_FULL_DATASET_ID,
+                source_id=PLEIADES_SOURCE_ID,
+                source_dataset=PLEIADES_FULL_SOURCE_DATASET,
+                record_kind="place",
+                record_index=index,
+                raw_file="places.csv",
+                raw={k: v for k, v in row.items()},
+                external_id=pid,
+                external_id_type="pleiades_place_id",
+                name=(row.get("title") or "").strip(),
+                name_lang="und",
+                name_script="",
+                name_type="primary",
+                # 5 值域里只有 settlement 有数据依据；其余一律 unknown
+                place_type=("settlement" if "settlement" in types else "unknown"),
+                lon=lon,
+                lat=lat,
+                lon_text=(row.get("representative_longitude") or "").strip(),
+                lat_text=(row.get("representative_latitude") or "").strip(),
+                geom_wkt="",
+                location_precision=precision,
+                time_bound_type="unknown",
+                time_rule_code="",
+                quality_flags=flags,
+                notes=(
+                    f"pleiades_place_types={','.join(types) if types else ''}"
+                    f";has_representative_point={'true' if has_rep else 'false'}"
+                    f";has_bounding_box={'true' if has_bbox else 'false'}"
+                    f";location_precision={precision}"
+                ),
+            )
+        )
+
+    records: List[ExtraRecord] = (
+        place_records
+        + name_records
+        + point_records
+        + rep_records
+        + line_records
+        + polygon_records
+        + connection_records
+    )
+    extraction.records = records
+
+    location_total = (
+        len(point_records) + len(rep_records) + len(line_records) + len(polygon_records)
+    )
+    extraction.stats.update(
+        {
+            "source_id": PLEIADES_SOURCE_ID,
+            "dataset_id": PLEIADES_FULL_DATASET_ID,
+            "full_package": True,
+            "record_kinds": {
+                "places": len(place_records),
+                "names": len(name_records),
+                "locations": location_total,
+                "location_points": len(point_records),
+                "location_representative_points": len(rep_records),
+                "location_linestrings": len(line_records),
+                "location_polygons": len(polygon_records),
+                "connections": len(connection_records),
+            },
+            "record_kind_total": len(records),
+            "places_all": len(place_rows),
+            "places_new": len(new_set),
+            "places_superseded": len(sup_set),
+            "superseded_place_ids": sorted(sup_set),
+            "superseded_place_index": {
+                pid: place_index.get(pid, 0) for pid in sorted(sup_set)
+            },
+            "places_new_without_representative_point": missing_rep,
+            "superseded_place_precision": dict(
+                sorted(Counter(
+                    (row.get("location_precision") or "").strip() or "unknown"
+                    for row in place_rows
+                    if (row.get("id") or "").strip() in sup_set
+                ).items())
+            ),
+            "place_precision_new": dict(sorted(place_precision.items())),
+            "place_type_detail_counts": dict(
+                sorted(
+                    Counter(
+                        "settlement" if "settlement" in place_types.get(pid, []) else "unknown"
+                        for pid in new_set
+                    ).items()
+                )
+            ),
+            "location_geometry_counts": dict(sorted(geometry_counts.items())),
+            "location_geometry_invalid_repaired": invalid_repaired,
+            "location_geometry_unusable": skipped_unusable,
+            "location_precision_new": dict(
+                sorted(Counter(
+                    (r.location_precision or "unknown")
+                    for r in point_records + rep_records + line_records + polygon_records
+                ).items())
+            ),
+            "representative_points": {
+                "count": len(rep_records),
+                "precision": dict(sorted(rep_precision.items())),
+                "accuracy_unknown_sentinel": rep_sentinel,
+            },
+            "connections": {
+                "rows": len(connection_records),
+                "dangling": len(dangling),
+                "dangling_rows": dangling,
+                "self_loops": self_loops,
+            },
+            "short_record_count": short_total,
+            "place_precision_vs_places_accuracy_disagreements": precision_disagreements,
+            "places_table_has_time_columns": False,
+            "year_zero_convention": (
+                "gis_README.md: 'a signed integer indicating a year in the proleptic "
+                "Julian calendar. There is no year zero.' —— 与 CHGIS 同一约定，"
+                "astro_year() 原样适用"
+            ),
+            "qualities_present": ["place", "name", "location", "connection"],
+        }
+    )
+    return extraction
