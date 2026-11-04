@@ -1,0 +1,237 @@
+{
+  "sets": {
+    "places_all": 41480,
+    "slice_places": 2643,
+    "new_places": 38928,
+    "overlap_places": 2552,
+    "slice_only_places": 91
+  },
+  "place_precision": {
+    "all": {
+      "precise": 29396,
+      "rough": 12084
+    },
+    "new": {
+      "precise": 27418,
+      "rough": 11510
+    }
+  },
+  "names": {
+    "rows_total": 38862,
+    "rows_new": 37055,
+    "name_types_new": {
+      "geographic": 34582,
+      "ethnic": 1340,
+      "associated_modern": 960,
+      "label": 156,
+      "undefined": 10,
+      "unknown": 7
+    }
+  },
+  "locations": {
+    "Point": {
+      "file": "location_points.csv",
+      "rows_total": 25038,
+      "rows_new": 23367,
+      "precision_new": {
+        "precise": 23367
+      },
+      "accuracy_radius_new": {
+        "positive": 23366,
+        "null": 1
+      },
+      "places_with_any_row": 22285,
+      "places_with_row_new": 20732
+    },
+    "Polygon": {
+      "file": "location_polygons.csv",
+      "rows_total": 4385,
+      "rows_new": 4114,
+      "precision_new": {
+        "rough": 3740,
+        "precise": 374
+      },
+      "accuracy_radius_new": {
+        "null": 3673,
+        "positive": 441
+      },
+      "places_with_any_row": 4366,
+      "places_with_row_new": 4095
+    },
+    "LineString": {
+      "file": "location_linestrings.csv",
+      "rows_total": 5265,
+      "rows_new": 4893,
+      "precision_new": {
+        "precise": 4893
+      },
+      "accuracy_radius_new": {
+        "positive": 4893
+      },
+      "places_with_any_row": 4915,
+      "places_with_row_new": 4558
+    }
+  },
+  "locations_total_new_rows": 32374,
+  "coverage": {
+    "all": {
+      "places": 41480,
+      "with_rep_point": 33971,
+      "with_bbox": 33971,
+      "with_location_rows": 30506,
+      "rep_but_no_location": 3465,
+      "bbox_but_no_location": 3465,
+      "rep_and_bbox_but_no_location": 3465,
+      "no_rep_no_bbox_no_location": 7509,
+      "no_rep_but_location": 0,
+      "no_rep_no_bbox_but_location": 0
+    },
+    "new": {
+      "places": 38928,
+      "with_rep_point": 31728,
+      "with_bbox": 31728,
+      "with_location_rows": 28411,
+      "rep_but_no_location": 3317,
+      "bbox_but_no_location": 3317,
+      "rep_and_bbox_but_no_location": 3317,
+      "no_rep_no_bbox_no_location": 7200,
+      "no_rep_but_location": 0,
+      "no_rep_no_bbox_but_location": 0
+    },
+    "new_examples": [
+      "1001134",
+      "1004",
+      "100487408",
+      "100544804",
+      "100569646"
+    ]
+  },
+  "connections": {
+    "rows_total": 13603,
+    "resolvable_both_ends": 13574,
+    "both_ends_in_new": 11843,
+    "one_end_alias_to_slice": 1358,
+    "self_loop": 1,
+    "dangling_endpoint": 28,
+    "dangling_examples": [
+      {
+        "place_id": "999238742",
+        "connects_to": "368305523",
+        "a_ok": true,
+        "b_ok": false
+      },
+      {
+        "place_id": "991362",
+        "connects_to": "487529761",
+        "a_ok": true,
+        "b_ok": false
+      },
+      {
+        "place_id": "998821004",
+        "connects_to": "424616150",
+        "a_ok": true,
+        "b_ok": false
+      },
+      {
+        "place_id": "998821004",
+        "connects_to": "802922078",
+        "a_ok": true,
+        "b_ok": false
+      },
+      {
+        "place_id": "998821004",
+        "connects_to": "744211055",
+        "a_ok": true,
+        "b_ok": false
+      }
+    ],
+    "duplicate_triples_extra_rows": 9,
+    "pair_dedup_extra_rows": 21,
+    "distinct_pairs_candidate_rows": 13553
+  },
+  "placement_accuracy": {
+    "rows": 41480,
+    "negative_sentinel_total": 12007,
+    "negative_sentinel_new": 11438,
+    "empty_hull_new": 11511
+  },
+  "geometry_invalid": {
+    "total": 5,
+    "in_new": 4,
+    "examples": [
+      {
+        "place_id": "977420436",
+        "in_new": false,
+        "wkt": "POLYGON ((40.7274034386772 34.750826431606434, 40.72720644397732 34.75"
+      },
+      {
+        "place_id": "747016480",
+        "in_new": true,
+        "wkt": "POLYGON ((40.726752109533194 34.75106028562368, 40.72693675480507 34.7"
+      },
+      {
+        "place_id": "15685985",
+        "in_new": true,
+        "wkt": "POLYGON ((40.72897471479746 34.74375408054022, 40.728974038770666 34.7"
+      },
+      {
+        "place_id": "84624811",
+        "in_new": true,
+        "wkt": "POLYGON ((60 32, 70 32, 60 24, 70 24, 60 32))"
+      },
+      {
+        "place_id": "288390870",
+        "in_new": true,
+        "wkt": "POLYGON ((40.726752109533194 34.75106028562368, 40.726752109533194 34."
+      }
+    ]
+  },
+  "place_types": {
+    "rows_total": 51009,
+    "rows_new": 48030,
+    "places_with_type_new": 38926,
+    "places_without_type_new": 2,
+    "vocab_keys": 192,
+    "used_keys": 206,
+    "used_not_defined": 29,
+    "top_types_new": {
+      "settlement": 12545,
+      "unlocated": 6178,
+      "villa": 2072,
+      "map label location": 1717,
+      "fort, tower (deprecated)": 1535,
+      "river, drainage": 1529,
+      "station (road or coastal)": 1391,
+      "people, tribe (historical cultural group)": 1381,
+      "archaeological site": 1136,
+      "road": 1014
+    }
+  },
+  "languages": {
+    "vocab_codes": 103,
+    "distinct_used_new": 87,
+    "used_not_in_vocab": [
+      "bn",
+      "egy-leidentr",
+      "si"
+    ]
+  },
+  "rep_point_materialisation": {
+    "new_places_rep_only": 3317,
+    "precision": {
+      "precise": 2589,
+      "rough": 728
+    },
+    "location_rows_if_materialised": 35691,
+    "source_delta_if_materialised": 127829,
+    "expected_source_total": 153903
+  },
+  "source_record_delta": {
+    "places": 38928,
+    "names": 37055,
+    "locations": 32374,
+    "connections": 13603,
+    "inactive_overlap_places": 2552,
+    "total": 124512
+  }
+}
