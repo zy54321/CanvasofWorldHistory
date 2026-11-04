@@ -226,13 +226,21 @@ data_dataset 8 / data_source 5
 | 干净库首轮导入 | EXIT 0，一次提交成功，断言全通过 |
 | 干净库次轮导入 | EXIT 0，六表 Δ=0（幂等） |
 | 测试库两轮导入 | EXIT 0，六表 Δ=0（在 39 条人工地点共存的情况下仍幂等） |
-| 导入器自检 | `verify_import.py` 13 项：**PASS 11 / FAIL 0 / UNVERIFIED 1**（V9b「内容变更→UPDATE」路径两轮输入相同未触发，与阶段三结论一致，不冒充通过） |
+| 导入器自检 | `verify_import.py` 13 项：**PASS 11 / FAIL 0 / UNVERIFIED 1**。其中 V9b 在本库两轮输入相同、`updated=0`，更新路径走不到 ⇒ 如实标 UNVERIFIED；该路径由**隔离库测试**承担（见 §14.3 与 §15） |
 | 回滚保护 | 9 项：**PASS 8 / FAIL 0**（1 项 INFO） |
 | 台账 | 12,833 行 / 15 类型；`issue_type` 中不存在任何 `licence*` 值；`attribution_missing` 2 行（由 SQL 直查，非验证器判据） |
 | 候选留痕 | 53,137 = 入库 53,131 + 留痕 6；19 列逐字保留 |
 
-V9b 诚实标注：本轮没有构造 `content_hash` 变化的第三轮输入，因此「内容变更走 UPDATE 而非 INSERT」的路径
-**本轮未实测**，不做 PASS 判定。
+V9b 说明（三条路径分开记，不混为一谈）：
+
+| 路径 | 在哪测 | 结论 |
+|---|---|---|
+| 内容变化 ⇒ UPDATE 而非 INSERT | 隔离库 `v9b_update_path_test.py`（§14.3） | 实测通过（源记录不新增、content_hash 变化、first 不变、last 推进） |
+| **同一内容再导** ⇒ 零新增零更新 | 同上，第三轮（§15） | 实测通过（`source_stat.inserted=0 / updated=0`，last_batch_id 按设计推进，`occurrence_count` 每行 +1） |
+| 导入器漏生成 / 多生成合成台账 | 故障注入（§15） | 实测：删除 1 条或插入 1 条多余行，验证器均判 FAIL |
+
+`verify_import.py` 自身运行的那一轮（同输入）只能证明「重复导入不产生变化」，
+不能证明「内容变化走 UPDATE」——这两件事在报告里始终分开陈述。
 
 ## 九、M0～M3 相关回归
 
@@ -307,7 +315,7 @@ import_batch 7  data_dataset 8  data_source 5
 | 2 | 写接口仍无鉴权 | 本机工具可接受 | 对外部署前必须补（M2 起遗留） |
 | 3 | `source_records.attribution_text` 保留 | 属引用串，不是准入条件 | 若 Owner 要求「零 attribution 字段」，可再删一列，需同步重跑导入 |
 | 4 | `issue_type` 值域现为 20 值 | 与设计文档 19 值不一致 | 本轮已在 `CORE_DATA_MODEL_V2.1.1.md` 旁注说明；若后续新增类型应合并为一次值域修订 |
-| 5 | V9b「内容变更走 UPDATE」未实测 | 无 | 需要专门构造 content_hash 变化的第三轮，属独立测试项目 |
+| 5 | ~~V9b「内容变更走 UPDATE」未实测~~ | 已在收尾轮闭环 | **已解决**：隔离库实测通过，见 §14.3（内容变化 UPDATE）与 §15（第三轮幂等 + 故障注入） |
 | 6 | 测试库 `canvas_history_m2check` 已有全量数据 | M2/M3 用例的绝对计数含义变化 | 现有用例均按名称/关联断言，实测全部通过；后续新增用例不要写死总量 |
 
 ---
@@ -330,16 +338,17 @@ Owner 验收指出的六项已全部处理，未扩大范围：来源可选化�
 **历史基线不删，但验证器不读**：M4-2 的数量（12,631 / 5 / 197 / 130 / 12,833 / 15 类型）
 保存在 `code/ops/m4-2/import_baseline.json`，文件头明确写「仅作审计证据，验证器不读取、不作判据」。
 
-**对照实验（证明不是换个地方写死）**：复制干净库，人为插入 7 条额外的
-`duplicate_external_id` 台账行（快照里没有），再跑验证器：
+**⚠️ 本节在最终收尾轮被取代。** 当时的「插入 7 条额外合成行仍 PASS」的对照实验，
+事后看正说明判据是自我引用的（多出来的行也会把期望值一起抬高）。
+现在 V2/V7 的期望值改为**从暂存 CSV 独立复算**（见 §15.1），同一个实验已经会 FAIL：
 
 ```
-✓ V2  PASS  台账 暂存 12,631（现场读取、零丢弃） + 合成 209 = 12,840（期望同值）
-✓ V7  PASS  12,840 行 = 暂存 12,631 + 合成 209；15 种 issue_type = 暂存 13 + 合成 2
+删除 1 条 derived_value_mismatch  → exit 1，V2/V7 均 FAIL
+插入 1 条 duplicate_external_id   → exit 1，V2 FAIL
+恢复原状                          → exit 0，V2/V7 恢复 PASS，台账回到 12,833 / 197 / 5
 ```
 
-若仍依赖固定的 202 / 12,833，这两项必然 FAIL。日志：`ops/m4-2/no_fixed_numbers_control.txt`
-（同一次运行里 V8 判 FAIL 是预期的——V8 校「快照 ↔ 实际行数」，人为插入的行本来就不在快照里）。
+证据：`ops/m4-2/fault_injection.txt`（旧的 `no_fixed_numbers_control.txt` 已删除，避免与新行为冲突）。
 
 ### 14.2 通用验证器清除许可专项检查
 
@@ -362,7 +371,7 @@ Owner 验收指出的六项已全部处理，未扩大范围：来源可选化�
 3. 同时改一个地点的正名，并在库里把该地点 `locked=true`；
 4. 再导一轮，核对更新语义。
 
-结果 **14 / 14 PASS**：
+结果 **24 / 24 PASS**（下表只列 UPDATE 路径的 9 条；第三轮幂等的 10 条见 §15）：
 
 | 判据 | 结果 |
 |---|---|
@@ -395,7 +404,8 @@ V9b 靠它做到「构造变化 + 用完即删库」，不污染正式库与既�
 |---|---|
 | 干净库两轮导入 + `verify_import.py` | 13 项：**PASS 11 / FAIL 0 / UNVERIFIED 1**（V9b 由隔离测试承担，见 14.3） |
 | 人工保护与回滚 `verify_rollback_and_protection.py` | 9 项：**PASS 8 / FAIL 0** |
-| V9b 更新路径（隔离库） | **14 / 14** |
+| V9b（内容变化 UPDATE + 第三轮幂等，隔离库） | **24 / 24**（原 14 项 + 新增 10 项第三轮状态判定） |
+| 合成台账故障注入（隔离库） | **11 / 11**（正常 PASS / 删 1 条 FAIL / 多 1 条 FAIL / 恢复 PASS） |
 | M4-2 来源可选化 API | **19 / 19** |
 | M4-2 无来源地点上图 E2E | **9 / 9** |
 | M3 接口 / 写保护 / E2E | **51 / 51**、**4 / 4**、**56 / 56** |
@@ -407,6 +417,48 @@ V9b 靠它做到「构造变化 + 用完即删库」，不污染正式库与既�
 > 测试库积累了多轮自动化留下的人物后命中被挤出首页 → 改为 `size=100`（命中判定不应受分页窗口影响），
 > 并清理了 35 条**无任何引用**的自动化人物残留（`测试*` / `界面测试*` / 重复的 `孔丘*`）。
 > 这是测试数据治理，不涉及产品逻辑。
+
+---
+
+## 十五、最终收尾（验证器独立化，M4-2 FINAL CLOSURE）
+
+源码复核报告指出的 8 项问题已在本轮全部处理，详细对照见
+`code/ops/reports/M4_2_FINAL_CLOSURE_REPORT.md`。对**本报告结论有影响**的变更只有三处：
+
+### 15.1 V2/V7 的期望值不再自我引用
+
+此前 `ledger_expected` 与 `exp_total` 把 `data_quality_issue` 自己的计数当作期望值，
+导致「导入器漏生成合成台账」也能 PASS。现在改为：
+
+- `duplicate_external_id`：从 `source_records.csv` 按 (dataset_id, record_scope,
+  parent_external_id, external_id) 重新分组，行数 > 1 为重复组，再排除已登记
+  `duplicate_sysid` 的组 ⇒ 每组 1 行；
+- `derived_value_mismatch`：从 name/location 暂存行重算地点级时间包络（排除隔离源），
+  逐地点逐列与暂存值比较 ⇒ 每处不等 1 行；
+- 两者都**不查询** `data_quality_issue`。`manual_edit_conflict` 依赖导入时的库内保护位状态，
+  无法从暂存复算，单独列出并标注。
+
+独立复算结果与本报告 §五的数字完全一致（dup 5 / mismatch 197 / 130 个地点），
+说明此前基线数字本身是对的，问题只在**判据来源**。
+
+### 15.2 故障注入证明判据真的会 FAIL
+
+| 场景 | 结果 |
+|---|---|
+| 正常数据 | 验证器 exit 0，V2/V7 PASS |
+| 删除 1 条 `derived_value_mismatch` | **exit 1，V2 与 V7 均 FAIL** |
+| 插入 1 条不存在的 `duplicate_external_id` | **exit 1，V2 FAIL** |
+| 撤销注入、恢复原状 | exit 0，V2/V7 恢复 PASS，台账回到 12,833 / 197 / 5 |
+
+全部在一次性隔离库执行（库名带 pid+uuid，跑完即删）。
+
+### 15.3 V9b 第三轮：从「看退出码」改为「比状态」
+
+第三轮（同一份变更再导一次）现在比对前后真实状态：源记录总数、3 条记录的 content_hash /
+first_batch_id、`source_stat.inserted/updated`、新批次是否新增源记录 ID、
+台账行数与指纹数、`occurrence_count` 增量、`last_batch_id` 推进范围。
+`last_batch_id` 按设计会推进、`occurrence_count` 会 +1，这两项按「允许变化但必须符合设计」判定，
+不作为失败条件。
 
 ---
 

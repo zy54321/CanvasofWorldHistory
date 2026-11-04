@@ -1,0 +1,9 @@
+Streets    用时   539ms  name="Streets" raster=0 places=400
+Satellite  用时  1051ms  name="Satellite" raster=1 places=400
+Hybrid     用时   537ms  name="Satellite Hybrid" raster=1 places=400
+Outdoor    用时   557ms  name="Outdoor" raster=0 places=400
+failed maptiler requests: 13 [
+  'maptiler.com/maps/streets-v2/sprite.json',
+  '.maptiler.com/maps/streets-v2/sprite.png',
+  '.maptiler.com/maps/satellite/sprite.json'
+]
