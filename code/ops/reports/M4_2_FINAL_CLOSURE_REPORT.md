@@ -245,7 +245,8 @@ candidate_match 53,131 / data_quality_issue 12,831 / import_batch 7 / data_datas
 | `ab3f73f` | `ab3f73fdb9a214dd833182c627206552be8ba142` | 上轮：报告回填完整提交号 |
 | `23504b7` | `23504b767ff9543b3aee79c37d85f1d9230907c5` | 上轮：报告修订指针可定位化 |
 | `2233cb5` | `2233cb56ad5df9850a3ff0f82974c50c6c91fa97` | **本轮代码**：P1 独立复算 + `--only`、P2 第三轮状态、P3 地点匹配、P4 隔离库、P5 标签、P8 清理 |
-| （本文件） | 见 `git log -1 -- code/ops/reports/M4_2_FINAL_CLOSURE_REPORT.md` | 报告提交（只含文档，不含逻辑） |
+| `c8bb465` | `c8bb46563477f5c9dedb4f505e6bf25646af5562` | **本轮报告**：新增本文件 + 统一 M4-2 报告口径 + 采样探测证据 |
+| `6394d2d` | `6394d2dce8e879db1fa7d8205647826cd73742bf` | 清理误入库的回归截图（只动证据目录，不含逻辑） |
 
 历史提交未被修改或重写；分支 `m4-2-import-rules` 线性推进，无远程推送。
 
