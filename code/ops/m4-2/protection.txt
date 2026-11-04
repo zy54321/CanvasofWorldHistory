@@ -47,13 +47,13 @@ P   人工锁定与字段保护（真实导入代码路径，事务内）
   data_source 5 行（期望 4） / data_dataset 8 行（期望 7）
 
 ### 3.2 import_batch（每数据集 1 批，status=running）
-  batch 15  chgis_v6_prefecture_points         input_row_count=5,226
-  batch 16  chgis_v6_county_points             input_row_count=10,522
-  batch 17  mcgd_zenodo_22094815_head960       input_row_count=960
-  batch 18  pleiades_gis_4_1_slice             input_row_count=12,445
-  batch 19  whg_geoname_s_gn_sample            input_row_count=209
-  batch 20  whg_getty_tgn_sample               input_row_count=21
-  batch 21  whg_hgis_de_las_indias_sample      input_row_count=8
+  batch 37  chgis_v6_prefecture_points         input_row_count=5,226
+  batch 38  chgis_v6_county_points             input_row_count=10,522
+  batch 39  mcgd_zenodo_22094815_head960       input_row_count=960
+  batch 40  pleiades_gis_4_1_slice             input_row_count=12,445
+  batch 41  whg_geoname_s_gn_sample            input_row_count=209
+  batch 42  whg_getty_tgn_sample               input_row_count=21
+  batch 43  whg_hgis_de_las_indias_sample      input_row_count=8
 
 ### 3.3 source_record（五段键；隔离不删行）
   库中已存在 29,391 行
@@ -70,9 +70,9 @@ P   人工锁定与字段保护（真实导入代码路径，事务内）
       locked                 place 1 现值 = 【保护测试·locked】  未覆盖 ✓
       manual_edited_fields   place 15747 现值 = 【保护测试·字段级】  未覆盖 ✓
       created_by=manual      place 16390 现值 = 【保护测试·人工创建】  未覆盖 ✓
-      记录级跳过 blocked_count 合计 3（期望 3）
+      place_blocked（地点级人工保护）3（期望 3）；source_blocked（源记录级 quarantine_hold）3
       台账 manual_edit_conflict 3 条（期望 3，一行一条，R2 的 1:1 前提）
-  ✓ [P1] locked / manual_edited_fields / created_by=manual 三种保护位均未被机器覆盖；blocked_count=3、manual_edit_conflict=3（1:1）
+  ✓ [P1] locked / manual_edited_fields / created_by=manual 三种保护位均未被机器覆盖；place_blocked=3、source_blocked=3、manual_edit_conflict=3（1:1）
 
     本轮 write_places 四类处置：新增 0 / 更新 0 / 无变化 19,036 / 人工保护跳过 3（登记台账 3）；合计 19,039 vs 地点数 19,039
   ✓ [P2] 19,039 个地点 = 新增 0 + 更新 0 + 无变化 19,036 + 人工保护跳过 3；仅这 3 个被挡且各登记 1 条台账，其余 19,036 个地点重跑均判为无变化，无误挡
@@ -80,18 +80,18 @@ P   人工锁定与字段保护（真实导入代码路径，事务内）
 ==============================================================================
 Q   回滚四道闸 R1 / R2 / R2b / R2c（ROLLBACK §3.4 六步判定顺序的参考实现）
 ==============================================================================
-    被回滚批 R = 22（夹具 11 行：正常3 / 已失效1 / 保护位2 / 批次不符1 / 墓碑1 / 隔离2 / 写入失败1）
-      sr#29392  fx01  → rolled_back   （预期 rolled_back）
-      sr#29393  fx02  → rolled_back   （预期 rolled_back）
-      sr#29394  fx03  → rolled_back   （预期 rolled_back）
-      sr#29395  fx04  → noop          （预期 noop）
-      sr#29396  fx05  → stale_batch   （预期 stale_batch）
-      sr#29397  fx06  → locked        （预期 locked）
-      sr#29398  fx07  → locked        （预期 field_locked）
-      sr#29399  fx08  → tombstone     （预期 tombstone）
-      sr#29400  fx09  → quarantine    （预期 quarantine）
-      sr#29401  fx10  → quarantine    （预期 quarantine）
-      sr#29402  fx11  → failed        （预期 inject_fail）
+    被回滚批 R = 44（夹具 11 行：正常3 / 已失效1 / 保护位2 / 批次不符1 / 墓碑1 / 隔离2 / 写入失败1）
+      sr#29430  fx01  → rolled_back   （预期 rolled_back）
+      sr#29431  fx02  → rolled_back   （预期 rolled_back）
+      sr#29432  fx03  → rolled_back   （预期 rolled_back）
+      sr#29433  fx04  → noop          （预期 noop）
+      sr#29434  fx05  → stale_batch   （预期 stale_batch）
+      sr#29435  fx06  → locked        （预期 locked）
+      sr#29436  fx07  → locked        （预期 field_locked）
+      sr#29437  fx08  → tombstone     （预期 tombstone）
+      sr#29438  fx09  → quarantine    （预期 quarantine）
+      sr#29439  fx10  → quarantine    （预期 quarantine）
+      sr#29440  fx11  → failed        （预期 inject_fail）
 
     参考实现结果：N_quar=2 N_noop=1 N_blocked=4 N_fail_rb=1 N_rolled_back=3  合计=11
     G2(i)  11 = 2 + 9 → 成立
@@ -132,7 +132,7 @@ T   真值表 7 个合法格 + orphaned 反例（C27 穷尽性，事务内）
 ==============================================================================
 汇总
 ==============================================================================
-  ✓ P1   PASS       locked / manual_edited_fields / created_by=manual 三种保护位均未被机器覆盖；blocked_count=3、manual_edit_conflict=3（1:1）
+  ✓ P1   PASS       locked / manual_edited_fields / created_by=manual 三种保护位均未被机器覆盖；place_blocked=3、source_blocked=3、manual_edit_conflict=3（1:1）
   ✓ P2   PASS       19,039 个地点 = 新增 0 + 更新 0 + 无变化 19,036 + 人工保护跳过 3；仅这 3 个被挡且各登记 1 条台账，其余 19,036 个地点重跑均判为无变化，无误挡
   ✓ Q1   PASS       R1 成立：回滚成功 3 行 == (|B|−N_quar)−N_noop−blocked−failed = 3
   ✓ Q2   PASS       判定顺序不可换已实测：错误顺序会使 R1 右式变成 -2（差 5）

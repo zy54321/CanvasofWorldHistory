@@ -47,8 +47,16 @@ V2  原始 / 入库 / 排除 / 转换行数可逐层解释（行数现场读取�
       historical_place_location  实际  18,101  期望  18,101  ✓
       candidate_match            实际  53,131  期望  53,131  ✓
       data_quality_issue         实际  12,833  期望  12,833  ✓
-    台账口径：暂存 12,631（现场读取）+ 合成 [duplicate_external_id 5 + derived_value_mismatch 197 + manual_edit_conflict 0] = 12,833；实际入库 12,833
-  ✓ [V2] 七项等式成立；台账 暂存 12,631（现场读取、零丢弃） + 合成 202 = 12,833（期望同值）；隔离 3 行保留未删
+      duplicate_external_id      实际       5  期望       5  ✓
+      derived_value_mismatch     实际     197  期望     197  ✓
+    合成台账独立复算（期望值只来自暂存 CSV，不读 data_quality_issue）：
+      issue_type                         独立期望     库内实际     差异
+      duplicate_external_id                 5        5     +0
+      derived_value_mismatch              197      197     +0
+      manual_edit_conflict（运行期产生）           —        0      —
+      推导依据：源记录 29,384 组 / 多行组 7 / 其中需登记 5 组 / 隔离 3 条；偏差 197 处落在 130 个地点
+    台账口径：暂存 12,631（现场读取）+ 独立复算 202 + 人工冲突 0 = 12,833；实际入库 12,833
+  ✓ [V2] 九项等式成立；台账 暂存 12,631（零丢弃）+ 独立复算 dup 5 / mismatch 197 + 人工 0 = 12,833；隔离 3 行保留未删
 
 ==============================================================================
 V3  外键无孤儿行（全库 FK 逐条 LEFT JOIN 扫描，非抽样）
@@ -165,11 +173,11 @@ V7  质量台账逐项核对（类型覆盖 / 总数 / 指纹唯一，全部现�
     duplicate_sysid                         2
     coordinate_out_of_range                 1
     合计                                 12,833   类型数 15
-    暂存类型 13 种；库中合成类型 ['derived_value_mismatch', 'duplicate_external_id']；期望类型数 15、期望总数 12,833
+    暂存类型 13 种；合成类型 ['duplicate_external_id', 'derived_value_mismatch']（期望数量 [5, 197]）；期望类型数 15、期望总数 12,833
     暂存有而库中缺：无；库中多出未声明类型：无
-    参考分布：derived_value_mismatch 197 条落在 130 个地点；duplicate_external_id 5 条；manual_edit_conflict 0 条
-    逐项判据：总数 12,833 vs 12,833 ✓；类型数 15 vs 15 ✓；暂存类型缺失 0 vs 0 ✓；未声明类型 0 vs 0 ✓；指纹唯一 12,833 vs 12,833 ✓
-  ✓ [V7] 12,833 行 = 暂存 12,631 + 合成 202；15 种 issue_type = 暂存 13 + 合成 2；暂存类型 0 缺失、0 未声明；指纹 12,833/12,833 唯一
+    分布核对：derived_value_mismatch 197 条 / 130 个地点（独立复算 197 条 / 130 个地点）；duplicate_external_id 5 条（独立复算 5 条）；manual_edit_conflict 0 条（运行期产生）
+    逐项判据：总数 12,833 vs 12,833 ✓；类型数 15 vs 15 ✓；暂存类型缺失 0 vs 0 ✓；未声明类型 0 vs 0 ✓；指纹唯一 12,833 vs 12,833 ✓；偏差地点数 130 vs 130 ✓
+  ✓ [V7] 12,833 行 = 暂存 12,631 + 合成 202（dup 5 独立复算 / mismatch 197 独立复算 / manual 0）；15 种 issue_type = 暂存 13 + 合成 2；暂存类型 0 缺失、0 未声明；指纹 12,833/12,833 唯一
 
 ==============================================================================
 V8  幂等：两轮真实执行快照独立复算（缺字段不默认 0，逐步核对增量）
@@ -201,7 +209,7 @@ V9  不同批次的更新规则（last_batch_id / first_batch_id / occurrence_co
     occurrence_count > 1 的台账行 12,833；first_batch_id <> last_batch_id 12833
     内容更新路径（content_hash 变化 ⇒ UPDATE raw_payload）：本轮 updated = 0
   ✓ [V9] 29,391 行 last_batch_id 均指向本数据集最新批；first_batch_id 未被重跑改写
-  ? [V9b] 「内容变更 ⇒ UPDATE 而非 INSERT」的更新路径在**本库两轮输入相同**的条件下未走到（updated=0），因此这里不判 PASS。该路径由隔离测试实测：ops/m4-2/v9b_update_path_test.py（构造 content_hash 变化，14/14 PASS，用完即删库，不污染任何既有数据）
+  ? [V9b] 「内容变更 ⇒ UPDATE 而非 INSERT」的更新路径在**本库两轮输入相同**的条件下未走到（updated=0），因此这里不判 PASS。该路径由隔离测试实测：ops/m4-2/v9b_update_path_test.py（内容变化 UPDATE 路径 + 第三轮相同内容幂等，24/24 PASS，一次性隔离库，用完即删）
 
 ==============================================================================
 V12  C27 / C28 断言级真值表（非 SQL CHECK，必须用数据实测）
@@ -241,15 +249,15 @@ V13  candidate_match 排除追溯（逐条可回溯到原始 CSV 行）
 汇总
 ==============================================================================
   ✓ V1    PASS       7/7 文件指纹与基线逐字节相等；import_batch 14 个（其中外部批次 0 条不计）逐条核对 14 条，全部 input_sha256 = 其 input_file 的基线值（NULL 0 条、不符 0 条）
-  ✓ V2    PASS       七项等式成立；台账 暂存 12,631（现场读取、零丢弃） + 合成 202 = 12,833（期望同值）；隔离 3 行保留未删
+  ✓ V2    PASS       九项等式成立；台账 暂存 12,631（零丢弃）+ 独立复算 dup 5 / mismatch 197 + 人工 0 = 12,833；隔离 3 行保留未删
   ✓ V3    PASS       25 条外键全部 0 孤儿（全表扫描，非抽样）
   ✓ V4    PASS       5 组业务唯一键全部 0 冲突
   ✓ V5    PASS       18,091 行几何全部 SRID=4326 / Point，且 ST_X/ST_Y 与 representative_lon/lat NULL 安全逐位相等（IS DISTINCT FROM 0 行）；lon/lat 单侧 NULL 双向均为 0（lon 空 0 / lat 空 0）；有 geom 缺坐标 0、有坐标缺 geom 0；无 geom 10 行全部非 published（published 0，C14/C15 违例 0），notes 空 0 行且 missing_coordinate 台账覆盖率 100%；1 行越界坐标原样保留，台账 coordinate_out_of_range / severity=blocking / preserved_and_flagged 逐条相符
   ✓ V6    PASS       列数 11/7/10 命中；两地点级视图各 19,039 行 = 地点数；canonical 每地点恰 1 行（19,039）；证据行 84,958 = creator 19,358 + name 47,499 + location 18,101，name/location 与子表按 place_id+source_record_id+child_table+child_row_id 四列双向差集均为 0；evidence_role 仅 creator/name/location 三类、child_table 与角色一一对应、每地点均有 creator 行、creator 均带源记录；时间跨度 9 列独立重算 0 不一致，实际派生结果 17,469 行（no_evidence 1,570 / single_point 361）
-  ✓ V7    PASS       12,833 行 = 暂存 12,631 + 合成 202；15 种 issue_type = 暂存 13 + 合成 2；暂存类型 0 缺失、0 未声明；指纹 12,833/12,833 唯一
+  ✓ V7    PASS       12,833 行 = 暂存 12,631 + 合成 202（dup 5 独立复算 / mismatch 197 独立复算 / manual 0）；15 种 issue_type = 暂存 13 + 合成 2；暂存类型 0 缺失、0 未声明；指纹 12,833/12,833 唯一
   ✓ V8    PASS       两轮真实执行快照字段完整（13 个必备键 + 9 表逐表计数 + source_stat 4 个子字段 + candidate_stat 2 个子字段齐备）；独立复算首轮六表全净增、次轮六表净增全 0；run1.after 逐表等于 run2.before；run2 快照与当前库实际行数逐表相等；次轮新增 0 / 内容变更 0 / 候选新增 0；source_stat 新增+变更+推进+隔离 = 29,391 = 库中源记录数
   ✓ V9    PASS       29,391 行 last_batch_id 均指向本数据集最新批；first_batch_id 未被重跑改写
-  ? V9b   UNVERIFIED 「内容变更 ⇒ UPDATE 而非 INSERT」的更新路径在**本库两轮输入相同**的条件下未走到（updated=0），因此这里不判 PASS。该路径由隔离测试实测：ops/m4-2/v9b_update_path_test.py（构造 content_hash 变化，14/14 PASS，用完即删库，不污染任何既有数据）
+  ? V9b   UNVERIFIED 「内容变更 ⇒ UPDATE 而非 INSERT」的更新路径在**本库两轮输入相同**的条件下未走到（updated=0），因此这里不判 PASS。该路径由隔离测试实测：ops/m4-2/v9b_update_path_test.py（内容变化 UPDATE 路径 + 第三轮相同内容幂等，24/24 PASS，一次性隔离库，用完即删）
   ✓ V12   PASS       C27：6 条 R4a–R4f 全 0；出现 1 种 liveness、1 个合法格。C28：19,039 行按优先级重算 0 不一致
   · V12b  INFO       真值表穷尽性**不能**由本库数据证明（仅 1/7 个合法格出现）；穷尽性由 verify_rollback_and_protection.py 的构造夹具 T 段落实测，见其日志
   ✓ V13   PASS       53,137 行 = 入库 53,131 + 留痕 6（自指 2 + C09 收敛 4）；留痕完整保留原始全部 19 列且逐字相符；staging_row_no / candidate_id 均无重复；4 条 C09 收敛目标全部存在于原始 CSV 且在库中有对应保留行

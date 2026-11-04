@@ -1,0 +1,14 @@
+== 一次性数据库生命周期安全测试 ==
+[ephemeral] 已删除本次运行的隔离库 canvas_history_safety_42496_72a341f3
+PASS S1   正常运行后临时库已删除                                  | 期望 不存在 | 实际 canvas_history_safety_42496_72a341f3
+PASS S1b  库名带 pid + uuid（非固定名）                         | 期望 canvas_history_safety_<pid>_<uuid8> | 实际 canvas_history_safety_42496_72a341f3
+[ephemeral] 已删除本次运行的隔离库 canvas_history_safety_42496_39256a5d
+PASS S2   主体抛异常后临时库仍被删除                                | 期望 已删除且异常上抛 | 实际 raised=True exists=False
+PASS S3   目标库已存在时拒绝创建                                  | 期望 抛错终止 | 实际 目标数据库已存在：canvas_history_safety_conflict_b431920b。为避免误删已有数据，本
+PASS S4   冲突库仍然存在（未被删除）                                | 期望 True | 实际 True
+PASS S4b  冲突库里的原有数据完好                                  | 期望 keep me | 实际 ('keep me',)
+[ephemeral] (未创建) 不是本次运行创建的，跳过删除
+PASS S5   未由本实例创建的库不会被 drop 删除                         | 期望 仍存在 | 实际 True
+PASS S6   测试自建的冲突库已由测试自己清理                             | 期望 已删除 | 实际 canvas_history_safety_conflict_b431920b
+
+=== 数据库安全：PASS 8 / 8 ===

@@ -1,0 +1,30 @@
+== V9b：内容变化 UPDATE 路径 + 第三轮相同内容幂等 ==
+隔离库：canvas_history_v9b_39736_cbea0ad8（本次创建，退出时自动删除）
+PASS V1    首轮导入成功（空库）                                     | 期望 0 | 实际 0
+PASS V2    取到 3 条待变更源记录                                   | 期望 3 | 实际 3
+PASS V3    县级数据集里取到带源记录锚点的地点                              | 期望 1 行 | 实际 (5225, '由拳县', '40052')
+PASS V4    CSV 侧按 (县级图层, external_id) 唯一命中                | 期望 恰好 1 行 | 实际 1 行 · ext=40052
+PASS V5    CSV 行与 DB 地点同名（确认同一对象）                         | 期望 由拳县 | 实际 由拳县
+PASS V6    DB 侧同一 external_id 的县级地点唯一                     | 期望 1 | 实际 1
+      已锁定地点 5225「由拳县」用于人工保护验证
+PASS V7    已构造 3 条 content_hash 变化                        | 期望 3 | 实际 3
+PASS V8    已构造被锁定地点的正名变更                                  | 期望 已写入 | 实际 hp_005225
+PASS V9    第二轮导入成功（内容变化场景）                                | 期望 0 | 实际 0
+PASS V10   源记录总数不变（没有重复新增）                                | 期望 29391 | 实际 29391
+PASS V11   3 条 content_hash 均已变化                          | 期望 3 | 实际 3
+PASS V12   first_batch_id 未被改写                            | 期望 3 | 实际 3
+PASS V13   last_batch_id 已推进到新批次                          | 期望 3 | 实际 3
+PASS V14   updated_source_record_ids 恰好是这 3 条             | 期望 3 个 id · chgis_v6_county_points | 实际 3 个 · chgis_v6_county_points
+PASS V15   被锁定地点的正名未被导入覆盖                                 | 期望 由拳县 / locked | 实际 由拳县 / True
+PASS V16   人工保护登记 1 条 manual_edit_conflict                | 期望 1 | 实际 1
+PASS V17   地点总数不变（无重复新增）                                  | 期望 19039 | 实际 19039
+PASS V18   第三轮导入退出码 0                                     | 期望 0 | 实际 0
+PASS V19   第三轮 source_stat：新增 0 / 内容更新 0                  | 期望 inserted=0 updated=0 | 实际 inserted=0 updated=0 touched=29388 held=3
+PASS V20   第三轮后 source_record 总数不变                        | 期望 29391 | 实际 29391
+PASS V21   第三轮后 3 条 content_hash 与 first_batch_id 均不变     | 期望 3 | 实际 3
+PASS V22   第三轮 last_batch_id 全部推进到本轮批次                    | 期望 29391 | 实际 29391
+PASS V23   第三轮没有新增源记录 ID                                  | 期望 0 | 实际 0
+PASS V24   第三轮台账：行数/指纹不变，occurrence_count 每行恰好 +1         | 期望 行 12834 / 指纹 12834 / Σocc 38501 | 实际 行 12834 / 指纹 12834 / Σocc 38501
+[ephemeral] 已删除本次运行的隔离库 canvas_history_v9b_39736_cbea0ad8
+
+=== V9b：PASS 24 / 24 ===

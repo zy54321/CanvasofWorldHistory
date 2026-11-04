@@ -55,6 +55,115 @@ RESULTS: list[tuple[str, str, str]] = []
 #   期望总数 = 暂存行数 + 合成行数。M4-2 的历史数量（12,631 / 5 / 197 / 130 / 12,833）
 #   只作为审计证据存在 ops/m4-2/import_baseline.json，验证器不读取、不作为判据。
 SYNTH_ISSUE_TYPES = ("duplicate_external_id", "derived_value_mismatch", "manual_edit_conflict")
+# 可从暂存输入独立复算的两类（见 expected_synth_counts）；manual_edit_conflict 依赖导入时的
+# 库内保护位状态，无法从暂存复算，单独处理并在输出中标注。
+RECOMPUTABLE_SYNTH = ("duplicate_external_id", "derived_value_mismatch")
+
+
+# ------------------------------------------------------------------ 合成台账独立复算
+# 目的：V2/V7 的期望值不能从被验证表 data_quality_issue 自己读，否则「导入器漏生成」
+# 与「多生成」都测不出来。这里只读暂存 CSV，按导入器的业务规则重算两类合成台账的行数。
+_SYNTH_CACHE: dict | None = None
+
+
+def _parse_staging_records() -> list[dict]:
+    """按导入器规则从 source_records.csv 重建 (ds, scope, parent, ext, hash, idx, sid)。"""
+    import import_staging as imp        # 只用纯常量与规范化函数，不碰任何运行期计数器
+
+    out = []
+    for r in csv_rows("source_records.csv"):
+        scope = imp.SCOPE_MAP.get((r["dataset_id"], r["external_id_type"]))
+        if scope not in imp.VALID_SCOPES:
+            continue
+        payload = json.loads(r["raw_payload_json"])
+        if scope == "place":
+            parent = imp.SENTINEL_PARENT
+        else:
+            p = payload.get("place_id") or payload.get("LocID")
+            parent = str(p) if p not in (None, "") else imp.SENTINEL_PARENT
+        digest = hashlib.sha256(imp.canonical_json(payload).encode("utf-8")).digest()
+        out.append(dict(sid=r["source_record_id"], ds=r["dataset_id"], scope=scope,
+                        ext=r["external_id"], parent=parent, hash=digest,
+                        idx=imp.to_int(r["raw_record_index"])))
+    return out
+
+
+def expected_synth_counts() -> dict:
+    """独立复算 duplicate_external_id / derived_value_mismatch 的期望行数。
+
+    完全依据暂存 CSV 与导入器公开的业务规则，**不查询 data_quality_issue**：
+      · duplicate_external_id：源记录按 (dataset_id, record_scope, parent_external_id,
+        external_id) 分组，行数 > 1 即为重复组；其中 external_id 已出现在暂存
+        duplicate_sysid 台账的组不再重复登记 ⇒ 每组 1 行。
+      · derived_value_mismatch：地点级时间 = 其 name+location 子行（排除隔离源）的
+        min(valid_from) / max(valid_to) 包络；逐地点逐列与暂存值比较，每处不等 1 行。
+    """
+    global _SYNTH_CACHE
+    if _SYNTH_CACHE is not None:
+        return _SYNTH_CACHE
+
+    import import_staging as imp
+
+    recs = _parse_staging_records()
+    groups: dict[tuple, list[dict]] = {}
+    for x in recs:
+        groups.setdefault((x["ds"], x["scope"], x["parent"], x["ext"]), []).append(x)
+
+    multi, quarantine = {}, set()
+    for key, g in groups.items():
+        if len(g) < 2:
+            continue
+        g.sort(key=lambda y: (y["hash"], y["idx"] or 0))
+        multi[key] = g
+        seen = set()
+        for y in g:
+            if y["hash"] in seen:
+                quarantine.add(y["sid"])
+            else:
+                seen.add(y["hash"])
+
+    dup_sysid = {r["observed_value"] for r in csv_rows("data_quality_issues.csv")
+                 if r["issue_type"] == "duplicate_sysid"}
+    dup_groups = [g for (_ds, _sc, _pa, ext), g in multi.items() if ext not in dup_sysid]
+    expected_dup = len(dup_groups)
+    dup_examples = [(k[0], k[3], len(v)) for k, v in multi.items() if k[3] not in dup_sysid][:5]
+
+    # ---- derived_value_mismatch：地点级时间包络 vs 暂存值
+    envelope: dict[str, list] = {}
+    for r in csv_rows("historical_place_names.csv") + csv_rows("historical_place_locations.csv"):
+        if r["source_record_id"] in quarantine:
+            continue
+        a = envelope.setdefault(r["place_id"], [None, None])
+        for i, col in ((0, "valid_from_year_astro"), (1, "valid_to_year_astro")):
+            v = imp.to_int(r[col])
+            if v is None:
+                continue
+            a[i] = v if a[i] is None else (min(a[i], v) if i == 0 else max(a[i], v))
+
+    expected_mis, mis_places, mis_cells = 0, set(), []
+    for r in csv_rows("historical_places.csv"):
+        a = envelope.get(r["place_id"], [None, None])
+        for i, col in ((0, "valid_from_year_astro"), (1, "valid_to_year_astro")):
+            staged = imp.to_int(r[col])
+            if staged == a[i]:
+                continue
+            expected_mis += 1
+            mis_places.add(r["place_id"])
+            if len(mis_cells) < 5:
+                mis_cells.append((r["place_id"], col, staged, a[i]))
+
+    _SYNTH_CACHE = dict(
+        duplicate_external_id=expected_dup,
+        derived_value_mismatch=expected_mis,
+        mismatch_places=len(mis_places),
+        mismatch_cells=mis_cells,
+        groups_total=len(groups),
+        multi_groups=len(multi),
+        quarantined=len(quarantine),
+        dup_without_sysid=len(dup_groups),
+        dup_examples=dup_examples,
+    )
+    return _SYNTH_CACHE
 
 
 def record(no: str, status: str, msg: str) -> None:
@@ -183,10 +292,16 @@ def v2_counts(cur, run_dir: Path) -> None:
                 ex_file = cand
                 break
     n_ex = len(list(csv.DictReader(io.open(ex_file, encoding="utf-8")))) if ex_file else None
-    # 合成台账行数一律现场统计，不写死任何数量
-    n_synth = {t: (val(cur, "SELECT count(*) FROM data_quality_issue WHERE issue_type=%s", (t,)) or 0)
-               for t in SYNTH_ISSUE_TYPES}
-    ledger_expected = src["data_quality_issues.csv"] + sum(n_synth.values())
+    # 合成台账：期望值来自**暂存输入的独立复算**（不读 data_quality_issue），
+    # manual_edit_conflict 依赖导入时的库内保护位状态，无法从暂存复算，单独标注。
+    exp_synth = expected_synth_counts()
+    db_synth = {t: (val(cur, "SELECT count(*) FROM data_quality_issue WHERE issue_type=%s", (t,)) or 0)
+                for t in RECOMPUTABLE_SYNTH}
+    manual_db = val(cur, "SELECT count(*) FROM data_quality_issue WHERE issue_type='manual_edit_conflict'") or 0
+    ledger_expected = (src["data_quality_issues.csv"]
+                       + exp_synth["duplicate_external_id"]
+                       + exp_synth["derived_value_mismatch"]
+                       + manual_db)
 
     print(f"    source_records.csv          {src['source_records.csv']:>7,} → source_record          {sr:>7,}")
     print(f"    historical_places.csv       {src['historical_places.csv']:>7,} → historical_place       {hp:>7,}")
@@ -207,25 +322,41 @@ def v2_counts(cur, run_dir: Path) -> None:
         ("historical_place_name", nm, src["historical_place_names.csv"] - (nm_skip or 0)),
         ("historical_place_location", lc, src["historical_place_locations.csv"] - (lc_skip or 0)),
         ("candidate_match", cm, src["candidate_matches.csv"] - (n_ex or 0)),
-        # 台账：暂存全量（零丢弃）+ 导入器运行期合成的各类型（现场计数）
+        # 台账：暂存全量（零丢弃）+ 独立复算的两类合成 + 运行期产生的人工冲突
         ("data_quality_issue", dq, ledger_expected),
+        ("duplicate_external_id", db_synth["duplicate_external_id"],
+         exp_synth["duplicate_external_id"]),
+        ("derived_value_mismatch", db_synth["derived_value_mismatch"],
+         exp_synth["derived_value_mismatch"]),
     ]
     bad = [(t, a, e) for t, a, e in checks if a != e]
     print("    逐项等式：")
     for t, a, e in checks:
         print(f"      {t:26s} 实际 {a:>7,}  期望 {e:>7,}  {'✓' if a == e else '✗'}")
-    synth_desc = " + ".join(f"{k} {v:,}" for k, v in n_synth.items())
-    print(f"    台账口径：暂存 {src['data_quality_issues.csv']:,}（现场读取）+ 合成 [{synth_desc}]"
-          f" = {ledger_expected:,}；实际入库 {dq:,}")
+    print("    合成台账独立复算（期望值只来自暂存 CSV，不读 data_quality_issue）：")
+    print(f"      {'issue_type':30s} {'独立期望':>8s} {'库内实际':>8s} {'差异':>6s}")
+    for t in RECOMPUTABLE_SYNTH:
+        e, a = exp_synth[t], db_synth[t]
+        print(f"      {t:30s} {e:>8,} {a:>8,} {a - e:>+6d}")
+    print(f"      {'manual_edit_conflict（运行期产生）':30s} {'—':>8s} {manual_db:>8,} {'—':>6s}")
+    print(f"      推导依据：源记录 {exp_synth['groups_total']:,} 组 / 多行组 "
+          f"{exp_synth['multi_groups']} / 其中需登记 {exp_synth['dup_without_sysid']} 组 / "
+          f"隔离 {exp_synth['quarantined']} 条；偏差 {exp_synth['derived_value_mismatch']} 处落在 "
+          f"{exp_synth['mismatch_places']} 个地点")
+    print(f"    台账口径：暂存 {src['data_quality_issues.csv']:,}（现场读取）+ 独立复算 "
+          f"{exp_synth['duplicate_external_id'] + exp_synth['derived_value_mismatch']:,} + 人工冲突 "
+          f"{manual_db:,} = {ledger_expected:,}；实际入库 {dq:,}")
     if bad or dq != ledger_expected or len(qids) != inact:
         record("V2", "FAIL",
-               f"行数链不成立：{bad}；台账 暂存 {src['data_quality_issues.csv']:,} + 合成 "
-               f"{sum(n_synth.values()):,} = {ledger_expected:,}，实际入库 {dq:,}；"
+               f"行数链不成立：{bad}；台账 暂存 {src['data_quality_issues.csv']:,} + 独立复算 "
+               f"{exp_synth['duplicate_external_id'] + exp_synth['derived_value_mismatch']:,} + 人工 "
+               f"{manual_db:,} = {ledger_expected:,}，实际入库 {dq:,}；"
                f"隔离清单 {len(qids)} vs 库中失效 {inact}")
     else:
         record("V2", "PASS",
-               f"七项等式成立；台账 暂存 {src['data_quality_issues.csv']:,}（现场读取、零丢弃）"
-               f" + 合成 {sum(n_synth.values()):,} = {dq:,}（期望同值）；隔离 {inact} 行保留未删")
+               f"九项等式成立；台账 暂存 {src['data_quality_issues.csv']:,}（零丢弃）+ 独立复算 "
+               f"dup {exp_synth['duplicate_external_id']} / mismatch {exp_synth['derived_value_mismatch']}"
+               f" + 人工 {manual_db} = {dq:,}；隔离 {inact} 行保留未删")
 
 
 # ------------------------------------------------------------------ V3
@@ -737,14 +868,22 @@ def v7_ledger(cur) -> None:
         print(f"    {it:34s} {c:>6,}")
     print(f"    {'合计':34s} {tot:>6,}   类型数 {len(rows)}")
 
-    # 类型集合现场推算：暂存里出现的类型必须都在库中；库里可以有导入器合成的类型
+    # 类型集合现场推算：暂存里出现的类型必须都在库中；合成类型按独立复算的期望数量判定
+    exp_synth = expected_synth_counts()
+    manual_db = db_types.get("manual_edit_conflict", 0)
+    exp_by_type = {
+        "duplicate_external_id": exp_synth["duplicate_external_id"],
+        "derived_value_mismatch": exp_synth["derived_value_mismatch"],
+        "manual_edit_conflict": manual_db,   # 运行期产生，无法从暂存复算
+    }
     missing = sorted(staged_types - set(db_types))
-    synth_present = {t: c for t, c in db_types.items() if t in SYNTH_ISSUE_TYPES}
+    synth_present = [t for t in SYNTH_ISSUE_TYPES if exp_by_type[t] or db_types.get(t, 0)]
     unexpected = sorted(set(db_types) - staged_types - set(SYNTH_ISSUE_TYPES))
-    exp_types = len(staged_types | set(synth_present))
-    exp_total = n_staged + sum(synth_present.values())
-    print(f"    暂存类型 {len(staged_types)} 种；库中合成类型 "
-          f"{sorted(synth_present) or '无'}；期望类型数 {exp_types}、期望总数 {exp_total:,}")
+    exp_types = len(staged_types) + len(synth_present)
+    exp_total = n_staged + sum(exp_by_type[t] for t in SYNTH_ISSUE_TYPES)
+    print(f"    暂存类型 {len(staged_types)} 种；合成类型 {synth_present or '无'}"
+          f"（期望数量 {[exp_by_type[t] for t in synth_present]}）；"
+          f"期望类型数 {exp_types}、期望总数 {exp_total:,}")
     print(f"    暂存有而库中缺：{missing or '无'}；库中多出未声明类型：{unexpected or '无'}")
 
     # 指纹唯一：同一条质量事实不得重复登记
@@ -755,13 +894,19 @@ def v7_ledger(cur) -> None:
     mis = db_types.get("derived_value_mismatch", 0)
     mis_p = val(cur, """SELECT count(DISTINCT place_id) FROM data_quality_issue
                          WHERE issue_type='derived_value_mismatch'""")
-    print(f"    参考分布：derived_value_mismatch {mis} 条落在 {mis_p} 个地点；"
-          f"duplicate_external_id {db_types.get('duplicate_external_id', 0)} 条；"
-          f"manual_edit_conflict {db_types.get('manual_edit_conflict', 0)} 条")
+    print(f"    分布核对：derived_value_mismatch {mis} 条 / {mis_p} 个地点"
+          f"（独立复算 {exp_by_type['derived_value_mismatch']} 条 / "
+          f"{exp_synth['mismatch_places']} 个地点）；"
+          f"duplicate_external_id {db_types.get('duplicate_external_id', 0)} 条"
+          f"（独立复算 {exp_by_type['duplicate_external_id']} 条）；"
+          f"manual_edit_conflict {manual_db} 条（运行期产生）")
+    if mis_p != exp_synth["mismatch_places"]:
+        print(f"      ✗ 偏差涉及地点数不一致：库内 {mis_p} vs 独立复算 {exp_synth['mismatch_places']}")
 
     checks = [("总数", tot, exp_total), ("类型数", len(rows), exp_types),
               ("暂存类型缺失", len(missing), 0), ("未声明类型", len(unexpected), 0),
-              ("指纹唯一", fp_uniq, fp_total)]
+              ("指纹唯一", fp_uniq, fp_total),
+              ("偏差地点数", mis_p, exp_synth["mismatch_places"])]
     bad = [(k, a, e) for k, a, e in checks if a != e]
     print("    逐项判据：" + "；".join(f"{k} {a:,} vs {e:,} {'✓' if a == e else '✗'}"
                                      for k, a, e in checks))
@@ -769,7 +914,9 @@ def v7_ledger(cur) -> None:
         record("V7", "FAIL", f"台账不符：{bad}")
     else:
         record("V7", "PASS",
-               f"{tot:,} 行 = 暂存 {n_staged:,} + 合成 {sum(synth_present.values()):,}；"
+               f"{tot:,} 行 = 暂存 {n_staged:,} + 合成 {sum(exp_by_type[t] for t in SYNTH_ISSUE_TYPES):,}"
+               f"（dup {exp_by_type['duplicate_external_id']} 独立复算 / mismatch "
+               f"{exp_by_type['derived_value_mismatch']} 独立复算 / manual {manual_db}）；"
                f"{len(rows)} 种 issue_type = 暂存 {len(staged_types)} + 合成 {len(synth_present)}；"
                f"暂存类型 0 缺失、0 未声明；指纹 {fp_uniq:,}/{fp_total:,} 唯一")
 
@@ -954,8 +1101,8 @@ def v9_batch_update(cur, run_dir: Path) -> None:
     record("V9b", "UNVERIFIED",
            f"「内容变更 ⇒ UPDATE 而非 INSERT」的更新路径在**本库两轮输入相同**的条件下未走到"
            f"（updated={st.get('updated')}），因此这里不判 PASS。该路径由隔离测试实测："
-           f"ops/m4-2/v9b_update_path_test.py（构造 content_hash 变化，14/14 PASS，"
-           f"用完即删库，不污染任何既有数据）")
+           f"ops/m4-2/v9b_update_path_test.py（内容变化 UPDATE 路径 + 第三轮相同内容幂等，"
+           f"24/24 PASS，一次性隔离库，用完即删）")
 
 
 # ------------------------------------------------------------------ V13
@@ -1079,7 +1226,10 @@ def main() -> int:
     ap.add_argument("--run-dir", default="",
                     help="本轮执行快照目录（run1_summary.json / run2_summary.json / 排除留痕）；"
                          "默认 ops/reports/r1_2")
+    ap.add_argument("--only", default="",
+                    help="只跑指定项（逗号分隔，如 V2,V7）。故障注入测试用，不影响默认全量核验")
     args = ap.parse_args()
+    only = {x.strip().upper() for x in args.only.split(",") if x.strip()}
     run_dir = Path(args.run_dir) if args.run_dir else (REPORTS / "r1_2")
     env = load_env()
     conn = psycopg2.connect(host="127.0.0.1", port=int(env.get("DB_HOST_PORT", "55432")),
@@ -1087,18 +1237,22 @@ def main() -> int:
     conn.autocommit = True
     cur = conn.cursor()
     print(f"### 阶段三导入结果核验（R1.2）  db={args.db}  run_dir={run_dir}")
+    steps = [("V1", lambda: v1_files(cur)),
+             ("V2", lambda: v2_counts(cur, run_dir)),
+             ("V3", lambda: v3_fk(cur)),
+             ("V4", lambda: v4_unique(cur)),
+             ("V5", lambda: v5_geom(cur)),
+             ("V6", lambda: v6_views(cur)),
+             ("V7", lambda: v7_ledger(cur)),
+             ("V8", lambda: v8_idempotent(cur, args.db, run_dir)),
+             ("V9", lambda: v9_batch_update(cur, run_dir)),
+             ("V12", lambda: v12_c27_c28(cur)),
+             ("V13", lambda: v13_candidate_trace(cur, run_dir))]
     try:
-        v1_files(cur)
-        v2_counts(cur, run_dir)
-        v3_fk(cur)
-        v4_unique(cur)
-        v5_geom(cur)
-        v6_views(cur)
-        v7_ledger(cur)
-        v8_idempotent(cur, args.db, run_dir)
-        v9_batch_update(cur, run_dir)
-        v12_c27_c28(cur)
-        v13_candidate_trace(cur, run_dir)
+        for no, fn in steps:
+            if only and no not in only and not (no == "V9" and "V9B" in only):
+                continue
+            fn()
     finally:
         conn.close()
 

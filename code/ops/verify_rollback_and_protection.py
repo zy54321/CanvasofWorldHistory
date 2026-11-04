@@ -92,18 +92,23 @@ def part_p(conn, dbname: str) -> None:
         print(f"      {label:22s} place {pid} 现值 = {now_name}  {'未覆盖 ✓' if kept else '被覆盖 ✗'}")
         ok &= kept
 
-    n_block = len(imp.manual_blocks)
+    # 两个口径必须分开：这里数的是**地点级**人工保护；源记录级阻断是 cnt_blocked（进 G1）。
+    n_place_blocked = len(imp.manual_blocks)
+    n_source_blocked = sum(imp.cnt_blocked.values())
     n_ledger = scalar(cur, """SELECT count(*) FROM data_quality_issue
                                WHERE issue_type = 'manual_edit_conflict'
                                  AND place_id = ANY(%s)""",
                       ([p for _d, _l, p in targets],))
-    print(f"      记录级跳过 blocked_count 合计 {n_block}（期望 3）")
+    print(f"      place_blocked（地点级人工保护）{n_place_blocked}（期望 3）；"
+          f"source_blocked（源记录级 quarantine_hold）{n_source_blocked}")
     print(f"      台账 manual_edit_conflict {n_ledger} 条（期望 3，一行一条，R2 的 1:1 前提）")
-    ok &= (n_block == 3 and n_ledger == 3)
+    ok &= (n_place_blocked == 3 and n_ledger == 3)
     record("P1", "PASS" if ok else "FAIL",
            f"locked / manual_edited_fields / created_by=manual 三种保护位均未被机器覆盖；"
-           f"blocked_count={n_block}、manual_edit_conflict={n_ledger}（1:1）" if ok
-           else f"保护失败：覆盖={[t for t in targets]} blocked={n_block} ledger={n_ledger}")
+           f"place_blocked={n_place_blocked}、source_blocked={n_source_blocked}、"
+           f"manual_edit_conflict={n_ledger}（1:1）" if ok
+           else f"保护失败：覆盖={[t for t in targets]} place_blocked={n_place_blocked} "
+                f"ledger={n_ledger}")
 
     # 无保护位的地点仍然正常（不被误挡）：新增 / 更新 / 无变化 / 人工保护跳过 四类必须覆盖全部地点
     ps = imp.place_stat

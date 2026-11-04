@@ -1,0 +1,16 @@
+== 合成台账独立验证 · 故障注入 ==
+隔离库：canvas_history_synth_fault_24700_fbf3c36c
+PASS S0   两轮导入成功（构造可靠基线）                                 | 期望 0/0 | 实际 0/0
+PASS A1   正常数据：验证器整体 PASS（exit 0）                        | 期望 exit 0 | 实际 exit 0
+PASS A2   正常数据：V2 与 V7 均 PASS                            | 期望 PASS/PASS | 实际 PASS/PASS
+PASS B1   删除 1 条 derived_value_mismatch 后验证器 FAIL        | 期望 exit≠0 | 实际 exit 1
+PASS B2   V2 判定为 FAIL                                    | 期望 FAIL | 实际 FAIL
+PASS B3   V7 判定为 FAIL                                    | 期望 FAIL | 实际 FAIL
+PASS C1   多 1 条 duplicate_external_id 后验证器 FAIL          | 期望 exit≠0 | 实际 exit 1
+PASS C2   V2 判定为 FAIL                                    | 期望 FAIL | 实际 FAIL
+PASS D1   恢复后验证器重新 PASS                                  | 期望 exit 0 | 实际 exit 0
+PASS D2   V2 与 V7 均恢复 PASS                               | 期望 PASS/PASS | 实际 PASS/PASS
+PASS D3   恢复后台账回到原状（12,833 / 197 / 5）                    | 期望 12833/197/5 | 实际 12833/197/5
+[ephemeral] 已删除本次运行的隔离库 canvas_history_synth_fault_24700_fbf3c36c
+
+=== 故障注入：PASS 11 / 11 ===
