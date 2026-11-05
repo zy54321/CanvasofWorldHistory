@@ -210,8 +210,7 @@ public class PlaceAdminService {
                         WHERE l.place_id = p.place_id AND l.geom IS NOT NULL
                           AND l.crs_confidence <> 'unknown'
                         ORDER BY l.location_id LIMIT 1) loc ON TRUE
-                 ORDER BY p.updated_at DESC NULLS LAST, p.place_id DESC
-                """;
+                """ + orderBy;
 
         List<PlaceAdminDtos.PlaceAdminRow> items = jdbc.query(sql, prm,
                 (rs, i) -> {

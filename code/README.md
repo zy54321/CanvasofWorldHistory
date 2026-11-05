@@ -22,7 +22,8 @@ code/
       V1__enable_extensions.sql        # PostGIS 扩展（已执行）
       V2__core_data_model.sql          # 九张表 + 约束 + 索引（已执行）
       V3__derived_views.sql            # 三个派生视图（已执行）
-    run-dev.sh                         # 从 ../.env 注入凭证启动 jar
+    run-dev.sh                         # 从 ../.env 注入凭证启动 jar（只读默认）
+    run-prod.sh                        # 正式环境：唯一正式库 + 受控写入 + 启动自检
   frontend/                 # Vue 3 + TS + MapLibre 前端
   tests/e2e/                # M0/M1 浏览器端到端验收脚本
   start-dev.sh              # 一键拉起后端 + 前端
@@ -41,13 +42,35 @@ docker compose up -d
 docker compose ps            # 等到 STATUS 出现 (healthy)
 ```
 
-## 2.5 应用启动（阶段四 M0/M1）
+## 2.5 应用启动（正式环境 / 开发只读）
+
+**正式环境（可写，唯一正式库）**
 
 ```bash
-cd backend  && mvn -DskipTests package && bash run-dev.sh   # API  http://127.0.0.1:8088
-cd frontend && npm install && npx vite --host 127.0.0.1      # WEB  http://127.0.0.1:5180
-# 或一键： bash start-dev.sh
+cd backend  && mvn -DskipTests package && bash run-prod.sh    # API  http://127.0.0.1:8088
+cd frontend && npm install && npx vite --host 127.0.0.1       # WEB  http://127.0.0.1:5180
 ```
+
+`run-prod.sh` 会显式设置 `DB_WRITE_ALLOWED_DATABASES=canvas_history`，
+并在启动后自动核对 `health.database=canvas_history` 与 `writeAllowed=true`；
+任一项不符就杀掉刚起的进程并返回非 0。它只接受库名 `canvas_history`，
+传别的库或别的白名单会直接拒绝启动（防止顺手把测试库也放开）。
+
+**开发 / 只读**
+
+```bash
+cd backend  && bash run-dev.sh        # 白名单为空 → writeAllowed=false，写操作返回 403
+cd frontend && npx vite --host 127.0.0.1
+```
+
+| 启动方式 | 连接库 | 可写 | 用途 |
+|---|---|---|---|
+| `bash run-prod.sh` | `canvas_history` | **是**（白名单仅此一库） | 正式环境 |
+| `bash run-dev.sh` | `canvas_history` | 否 | 只读浏览、排障 |
+| `DB_NAME=<库> DB_WRITE_ALLOWED_DATABASES=<库> bash run-dev.sh` | 指定库 | 是 | 隔离测试（临时环境，用完删除） |
+
+> `.env` 里 `DB_WRITE_ALLOWED_DATABASES` 保持**留空**（只读默认值）。
+> 可写这件事固定在 `run-prod.sh` 里，不靠每个人记住一条环境变量。
 
 - 接口：`GET /api/v1/places`、`/api/v1/places/{id}`、`/api/v1/places/map?bbox=w,s,e,n`、`/api/v1/meta/health|stats`
 - 地图底图需要 `code/.env` 的 `VITE_MAPTILER_API_KEY`（MapTiler **API key**，非 Service Token）。

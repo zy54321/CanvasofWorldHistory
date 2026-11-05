@@ -234,6 +234,53 @@ def main() -> None:
     f2_bad = [x["placeId"] for x in f2["items"] if truth[x["placeId"]]["geom"]]
     check("CM05-f", "带筛选翻到第 2 页仍满足筛选条件", not f2_bad, str(f2_bad[:3]))
 
+    # ------------------------------------- CM08 排序一致性（有效名 / 占位名交界）
+    # 排序键在 page_ids CTE 与外层 SELECT 里必须是同一个表达式，否则"当前页这 20 行"
+    # 在返回前会被按另一套键重排，交界页就会出现"占位名夹在有效名中间"。
+    size = 50
+    valid_n = exp_quality["valid"]
+    first_bad_page = valid_n // size + 1          # 含交界点的那一页
+    pages = [first_bad_page - 1, first_bad_page, first_bad_page + 1]
+    seq = []                                       # (page, placeId, is_valid)
+    for pg in pages:
+        d = get("/api/v1/places/admin", size=size, page=pg)
+        for it in d["items"]:
+            seq.append((pg, it["placeId"],
+                        classify(truth[it["placeId"]]["canonical"], truth[it["placeId"]]["has_alt"]) == "valid"))
+
+    flags = [x[2] for x in seq]
+    # 单调不增：先全是 True，一旦出现 False 就不能再出现 True
+    first_false = flags.index(False) if False in flags else len(flags)
+    monotonic = all(not f for f in flags[first_false:])
+    check("CM08-a", f"交界三页（{pages}）合起来「有效在前、占位在后」单调不交错", monotonic,
+          f"前 {first_false} 条有效，其后全为非有效" if monotonic else
+          f"第 {next(i for i, f in enumerate(flags[first_false:], first_false) if f)} 条又出现有效名")
+
+    # 交界页本身：有效名必须排在页内前部
+    bp = [x for x in seq if x[0] == first_bad_page]
+    bflags = [x[2] for x in bp]
+    k = bflags.count(True)
+    page_ok = bflags == [True] * k + [False] * (len(bflags) - k)
+    check("CM08-b", f"交界页（第 {first_bad_page} 页）页内也是有效名在前", page_ok,
+          f"{k} 有效 + {len(bflags) - k} 非有效，顺序 {''.join('V' if b else 'P' for b in bflags)}")
+
+    # 首页必须全是有效名；末页必须全是非有效名
+    d1 = get("/api/v1/places/admin", size=size, page=1)
+    head_bad = [it["placeId"] for it in d1["items"]
+                if classify(truth[it["placeId"]]["canonical"], truth[it["placeId"]]["has_alt"]) != "valid"]
+    check("CM08-c", "首页全部为有效名称", not head_bad, f"非有效 {head_bad[:3]}")
+
+    dlast = get("/api/v1/places/admin", size=size, page=d1["totalPages"])
+    tail_bad = [it["placeId"] for it in dlast["items"]
+                if classify(truth[it["placeId"]]["canonical"], truth[it["placeId"]]["has_alt"]) == "valid"]
+    check("CM08-d", "末页不含有效名称（有效已全部排在前面）", not tail_bad, f"有效 {tail_bad[:3]}")
+
+    # 带筛选时排序同样成立：只看占位名，整页都该是 placeholder
+    dph = get("/api/v1/places/admin", size=size, page=1, nameQuality="placeholder")
+    ph_bad = [it["placeId"] for it in dph["items"] if it["nameQuality"] != "placeholder"]
+    check("CM08-e", "按「占位无名」筛选后整页都是该分类（排序未把别的类混进来）",
+          not ph_bad, f"异常 {ph_bad[:3]}")
+
     # ------------------------------------------------------- CM07 性能
     bench = json.loads((CODE / "ops/reports/v1b/bench_b_final.json").read_text(encoding="utf-8"))
     check("CM07-a", "列表最差 P95 ≤ 300ms", bench["meets_target"],
