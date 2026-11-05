@@ -42,9 +42,12 @@ public class PlaceAdminController {
     @GetMapping(value = "/admin", produces = MediaType.APPLICATION_JSON_VALUE)
     public Dtos.Page<PlaceAdminDtos.PlaceAdminRow> list(
             @RequestParam(name = "keyword", required = false) String keyword,
+            // V1.0 内容管理：两层筛选（几何类型 / 名称质量），可单用也可 AND 组合
+            @RequestParam(name = "geomType", required = false) String geomType,
+            @RequestParam(name = "nameQuality", required = false) String nameQuality,
             @RequestParam(name = "page", defaultValue = "1") int page,
             @RequestParam(name = "size", defaultValue = "20") int size) {
-        return service.list(keyword, page, size);
+        return service.list(keyword, geomType, nameQuality, page, size);
     }
 
     @GetMapping(value = "/admin/options", produces = MediaType.APPLICATION_JSON_VALUE)

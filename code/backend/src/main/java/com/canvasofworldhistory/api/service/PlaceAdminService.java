@@ -12,7 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -47,6 +49,38 @@ public class PlaceAdminService {
     private static final String CRS_CONFIDENCES = "('confirmed','inferred','unknown')";
     private static final String CHILD_STATUS = "('staging','published','rejected')";
 
+    // ---- 几何筛选：按"是否存在这类带 geom 的位置行"判断（存在性，不是代表点）----
+    private static final String GEOM_POINT = """
+            EXISTS (SELECT 1 FROM historical_place_location l
+                     WHERE l.place_id = p.place_id AND l.geom IS NOT NULL AND l.geom_type = 'Point')""";
+    private static final String GEOM_LINE = """
+            EXISTS (SELECT 1 FROM historical_place_location l
+                     WHERE l.place_id = p.place_id AND l.geom IS NOT NULL AND l.geom_type = 'LineString')""";
+    private static final String GEOM_POLYGON = """
+            EXISTS (SELECT 1 FROM historical_place_location l
+                     WHERE l.place_id = p.place_id AND l.geom IS NOT NULL
+                       AND l.geom_type IN ('Polygon','MultiPolygon'))""";
+    private static final String GEOM_NONE = """
+            NOT EXISTS (SELECT 1 FROM historical_place_location l
+                         WHERE l.place_id = p.place_id AND l.geom IS NOT NULL)""";
+
+    // ---- 名称质量四分类：与 PlaceNames.quality() 必须逐条等价 ----
+    private static final String NOT_PLACEHOLDER = """
+            btrim(coalesce(p.canonical_name, '')) <> ''
+              AND lower(btrim(p.canonical_name)) NOT IN """ + PlaceNames.PLACEHOLDER_SQL_LIST;
+    private static final String IS_PLACEHOLDER = """
+            lower(btrim(coalesce(p.canonical_name, ''))) IN """ + PlaceNames.PLACEHOLDER_SQL_LIST;
+    private static final String HAS_ALT = """
+            EXISTS (SELECT 1 FROM historical_place_name n
+                     WHERE n.place_id = p.place_id AND btrim(coalesce(n.name_text, '')) <> '')""";
+
+    private static final String QUALITY_VALID = "(" + NOT_PLACEHOLDER + ")";
+    private static final String QUALITY_ALIAS = "(NOT (" + NOT_PLACEHOLDER + ") AND " + HAS_ALT + ")";
+    private static final String QUALITY_PLACEHOLDER =
+            "(NOT (" + NOT_PLACEHOLDER + ") AND NOT " + HAS_ALT + " AND " + IS_PLACEHOLDER + ")";
+    private static final String QUALITY_NO_NAME =
+            "(NOT (" + NOT_PLACEHOLDER + ") AND NOT " + HAS_ALT + " AND NOT " + IS_PLACEHOLDER + ")";
+
     private final NamedParameterJdbcTemplate jdbc;
 
     public PlaceAdminService(NamedParameterJdbcTemplate jdbc) {
@@ -65,22 +99,65 @@ public class PlaceAdminService {
     }
 
     // ================================================================ 列表
-    public Dtos.Page<PlaceAdminDtos.PlaceAdminRow> list(String keyword, int page, int size) {
+    /**
+     * 列表查询（V1.0 内容管理专项）。
+     *
+     * 三个口径必须说清楚，否则"筛选"和"显示的条数"会自相矛盾：
+     *  1) 几何筛选按**关联位置记录的存在性**判断，不是按代表点：一个地点可能同时有
+     *     点、线、面，于是它会同时出现在 point / line / polygon 三个筛选里 —— 这是对的。
+     *     "无几何"= 一条带 geom 的位置记录都没有（不是"没有代表点"）。
+     *  2) 名称质量四分类互斥且穷尽，与 PlaceNames.quality() 同口径：
+     *     占位词清单直接取 PlaceNames.PLACEHOLDER_SQL_LIST，避免两处漂移。
+     *  3) 逐类几何数量用一次 LATERAL 聚合取，**不对每行发额外查询**（无 N+1）。
+     */
+    public Dtos.Page<PlaceAdminDtos.PlaceAdminRow> list(String keyword, String geomType,
+                                                        String nameQuality, int page, int size) {
         int p = Math.max(1, page);
         int s = Math.min(Math.max(1, size), MAX_PAGE_SIZE);
         String kw = keyword == null ? "" : keyword.trim();
         String like = kw.isEmpty() ? null : "%" + kw + "%";
+        String geom = geomType == null ? "" : geomType.trim().toLowerCase(Locale.ROOT);
+        String quality = nameQuality == null ? "" : nameQuality.trim().toLowerCase(Locale.ROOT);
 
         MapSqlParameterSource prm = new MapSqlParameterSource()
                 .addValue("like", like)
                 .addValue("limit", s)
                 .addValue("offset", (p - 1) * s);
 
-        String where = like == null ? "" : """
-                 WHERE p.canonical_name ILIKE :like
-                    OR EXISTS (SELECT 1 FROM historical_place_name n
-                                WHERE n.place_id = p.place_id AND n.name_text ILIKE :like)
-                """;
+        List<String> conds = new ArrayList<>();
+        if (like != null) {
+            conds.add("""
+                    (p.canonical_name ILIKE :like
+                     OR p.place_id IN (SELECT n.place_id FROM historical_place_name n
+                                        WHERE n.name_text ILIKE :like))""");
+        }
+        switch (geom) {
+            case "point" -> conds.add(GEOM_POINT);
+            case "line" -> conds.add(GEOM_LINE);
+            case "polygon", "poly" -> conds.add(GEOM_POLYGON);
+            case "none" -> conds.add(GEOM_NONE);
+            case "", "all" -> { }
+            default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "geomType 只接受 point/line/polygon/none/all");
+        }
+        switch (quality) {
+            case "valid" -> conds.add(QUALITY_VALID);
+            case "alias_only" -> conds.add(QUALITY_ALIAS);
+            case "placeholder" -> conds.add(QUALITY_PLACEHOLDER);
+            case "no_name" -> conds.add(QUALITY_NO_NAME);
+            case "", "all" -> { }
+            default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "nameQuality 只接受 valid/alias_only/placeholder/no_name/all");
+        }
+        String where = conds.isEmpty() ? "" : " WHERE " + String.join(" AND ", conds);
+
+        // 排序：有可展示地名的排前面 → 最近更新 → id 倒序。
+        // 起因：Pleiades 切片有 3,856 条占位名，纯按 updated_at 排会让首页 20 行
+        // 全是"未命名地点"，列表看起来像坏了。加名称桶后首页即可读。
+        // 代价实测：深翻页 SQL 25ms → 42ms（仍远低于 300ms 目标，报告已记录）。
+        // 布尔表达式 DESC 即 true 在前，比 CASE WHEN 更短且同样走排序键。
+        String orderBy = " ORDER BY (" + NOT_PLACEHOLDER + ") DESC, "
+                + "p.updated_at DESC NULLS LAST, p.place_id DESC ";
 
         Long total = jdbc.queryForObject("SELECT count(*) FROM historical_place p" + where, prm, Long.class);
         long n = total == null ? 0 : total;
@@ -88,39 +165,80 @@ public class PlaceAdminService {
             return Dtos.Page.of(List.of(), p, s, 0);
         }
 
+        // 先只把"当前页这 20 个 place_id"取出来（走 pk 索引，深翻页也是毫秒级），
+        // 再对这 20 行做计数/别名/坐标的三次 LATERAL。
+        // 反过来写（把 LATERAL 放在带 LIMIT 的外层）会让 PG 先给 5.8 万行都算一遍
+        // 聚合再排序截断 —— 实测深翻页 369ms，改成本形状后 25ms。
         String sql = """
+                WITH page_ids AS (
+                    SELECT p.place_id
+                      FROM historical_place p
+                """ + where + """
+        """ + orderBy + """
+                     LIMIT :limit OFFSET :offset
+                )
                 SELECT p.place_id, p.canonical_name, p.canonical_name_lang, p.place_type,
                        p.description, p.record_status, p.dataset_id,
+                       d.display_name AS dataset_name,
                        (SELECT count(*) FROM historical_place_name n WHERE n.place_id = p.place_id) AS name_count,
-                       (SELECT count(*) FROM historical_place_location l
-                         WHERE l.place_id = p.place_id AND l.geom IS NOT NULL) AS location_count,
-                       loc.representative_lon, loc.representative_lat, (loc.geom IS NOT NULL) AS has_geom
-                  FROM historical_place p
+                       gc.loc_total, gc.geom_total, gc.points, gc.lines, gc.polys,
+                       loc.representative_lon, loc.representative_lat, (loc.geom IS NOT NULL) AS has_geom,
+                       alt.alt_name
+                  FROM page_ids k
+                  JOIN historical_place p ON p.place_id = k.place_id
+                  JOIN data_dataset d ON d.dataset_id = p.dataset_id
+                  LEFT JOIN LATERAL (
+                       -- 一次聚合拿到四类计数，避免"每个地点一条 SQL"的 N+1
+                       SELECT count(*) AS loc_total,
+                              count(*) FILTER (WHERE l.geom IS NOT NULL) AS geom_total,
+                              count(*) FILTER (WHERE l.geom IS NOT NULL AND l.geom_type = 'Point') AS points,
+                              count(*) FILTER (WHERE l.geom IS NOT NULL AND l.geom_type = 'LineString') AS lines,
+                              count(*) FILTER (WHERE l.geom IS NOT NULL
+                                                 AND l.geom_type IN ('Polygon','MultiPolygon')) AS polys
+                         FROM historical_place_location l
+                        WHERE l.place_id = p.place_id) gc ON TRUE
+                  LEFT JOIN LATERAL (
+                       SELECT n.name_text AS alt_name
+                         FROM historical_place_name n
+                        WHERE n.place_id = p.place_id
+                          AND btrim(coalesce(n.name_text, '')) <> ''
+                        ORDER BY CASE n.name_type WHEN 'primary' THEN 0 ELSE 1 END, n.name_id
+                        LIMIT 1) alt ON TRUE
                   LEFT JOIN LATERAL (
                        SELECT l.representative_lon, l.representative_lat, l.geom
                          FROM historical_place_location l
                         WHERE l.place_id = p.place_id AND l.geom IS NOT NULL
                           AND l.crs_confidence <> 'unknown'
                         ORDER BY l.location_id LIMIT 1) loc ON TRUE
-                """ + where + """
                  ORDER BY p.updated_at DESC NULLS LAST, p.place_id DESC
-                 LIMIT :limit OFFSET :offset
                 """;
 
         List<PlaceAdminDtos.PlaceAdminRow> items = jdbc.query(sql, prm,
-                (rs, i) -> new PlaceAdminDtos.PlaceAdminRow(
-                        rs.getLong("place_id"),
-                        rs.getString("canonical_name"),
-                        rs.getString("canonical_name_lang"),
-                        rs.getString("place_type"),
-                        rs.getString("description"),
-                        rs.getString("record_status"),
-                        rs.getString("dataset_id"),
-                        rs.getInt("name_count"),
-                        rs.getInt("location_count"),
-                        (Double) rs.getObject("representative_lon"),
-                        (Double) rs.getObject("representative_lat"),
-                        Boolean.TRUE.equals(rs.getObject("has_geom"))));
+                (rs, i) -> {
+                    String canonical = rs.getString("canonical_name");
+                    String altName = rs.getString("alt_name");
+                    boolean hasAlt = altName != null && !altName.trim().isEmpty();
+                    return new PlaceAdminDtos.PlaceAdminRow(
+                            rs.getLong("place_id"),
+                            canonical,
+                            rs.getString("canonical_name_lang"),
+                            rs.getString("place_type"),
+                            rs.getString("description"),
+                            rs.getString("record_status"),
+                            rs.getString("dataset_id"),
+                            rs.getInt("name_count"),
+                            rs.getInt("loc_total"),
+                            (Double) rs.getObject("representative_lon"),
+                            (Double) rs.getObject("representative_lat"),
+                            rs.getInt("geom_total") > 0,
+                            PlaceNames.displayName(canonical, altName),
+                            PlaceNames.quality(canonical, hasAlt),
+                            rs.getString("dataset_name"),
+                            rs.getInt("points"),
+                            rs.getInt("lines"),
+                            rs.getInt("polys"),
+                            rs.getInt("geom_total"));
+                });
 
         return Dtos.Page.of(items, p, s, n);
     }

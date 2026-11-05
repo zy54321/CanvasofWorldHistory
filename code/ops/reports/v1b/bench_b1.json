@@ -1,0 +1,166 @@
+{
+  "api": "http://127.0.0.1:8088",
+  "n": 30,
+  "size": 20,
+  "cases": {
+    "all_p1": {
+      "params": {
+        "page": 1
+      },
+      "total": 57967,
+      "items": 20,
+      "p50_ms": 43.0,
+      "p95_ms": 50.1,
+      "max_ms": 52.3
+    },
+    "all_p50": {
+      "params": {
+        "page": 50
+      },
+      "total": 57967,
+      "items": 20,
+      "p50_ms": 44.3,
+      "p95_ms": 50.4,
+      "max_ms": 52.7
+    },
+    "all_p500": {
+      "params": {
+        "page": 500
+      },
+      "total": 57967,
+      "items": 20,
+      "p50_ms": 86.1,
+      "p95_ms": 107.1,
+      "max_ms": 107.8
+    },
+    "all_deep": {
+      "params": {
+        "page": 1200
+      },
+      "total": 57967,
+      "items": 20,
+      "p50_ms": 369.3,
+      "p95_ms": 390.0,
+      "max_ms": 404.1
+    },
+    "point_p1": {
+      "params": {
+        "page": 1,
+        "geomType": "point"
+      },
+      "total": 42020,
+      "items": 20,
+      "p50_ms": 61.8,
+      "p95_ms": 74.1,
+      "max_ms": 74.9
+    },
+    "line_p1": {
+      "params": {
+        "page": 1,
+        "geomType": "line"
+      },
+      "total": 4558,
+      "items": 20,
+      "p50_ms": 60.6,
+      "p95_ms": 65.9,
+      "max_ms": 66.2
+    },
+    "polygon_p1": {
+      "params": {
+        "page": 1,
+        "geomType": "polygon"
+      },
+      "total": 4095,
+      "items": 20,
+      "p50_ms": 60.6,
+      "p95_ms": 66.0,
+      "max_ms": 68.3
+    },
+    "none_p1": {
+      "params": {
+        "page": 1,
+        "geomType": "none"
+      },
+      "total": 8268,
+      "items": 20,
+      "p50_ms": 56.4,
+      "p95_ms": 72.4,
+      "max_ms": 74.8
+    },
+    "name_placeholder_p1": {
+      "params": {
+        "page": 1,
+        "nameQuality": "placeholder"
+      },
+      "total": 3856,
+      "items": 20,
+      "p50_ms": 56.5,
+      "p95_ms": 67.3,
+      "max_ms": 75.1
+    },
+    "name_alias_p1": {
+      "params": {
+        "page": 1,
+        "nameQuality": "alias_only"
+      },
+      "total": 64,
+      "items": 20,
+      "p50_ms": 57.6,
+      "p95_ms": 64.2,
+      "max_ms": 64.9
+    },
+    "combo_valid_polygon": {
+      "params": {
+        "page": 1,
+        "geomType": "polygon",
+        "nameQuality": "valid"
+      },
+      "total": 2245,
+      "items": 20,
+      "p50_ms": 68.5,
+      "p95_ms": 81.2,
+      "max_ms": 83.0
+    },
+    "combo_placeholder_line": {
+      "params": {
+        "page": 1,
+        "geomType": "line",
+        "nameQuality": "placeholder"
+      },
+      "total": 8,
+      "items": 8,
+      "p50_ms": 51.9,
+      "p95_ms": 64.6,
+      "max_ms": 66.0
+    },
+    "keyword_athens": {
+      "params": {
+        "page": 1,
+        "keyword": "Athens"
+      },
+      "total": 17,
+      "items": 17,
+      "p50_ms": 281.7,
+      "p95_ms": 329.0,
+      "max_ms": 329.2
+    },
+    "keyword_none_geom": {
+      "params": {
+        "page": 1,
+        "keyword": "Untitled",
+        "geomType": "none"
+      },
+      "total": 94,
+      "items": 20,
+      "p50_ms": 420.5,
+      "p95_ms": 466.7,
+      "max_ms": 485.9
+    }
+  },
+  "worst": {
+    "case": "keyword_none_geom",
+    "p95_ms": 466.7
+  },
+  "target_ms": 300,
+  "meets_target": false
+}

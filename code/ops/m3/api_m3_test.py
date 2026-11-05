@@ -16,6 +16,7 @@ M3 时间—地图联动 · 接口实测（真实 HTTP + 真实数据库，不�
   G  写保护（正式库禁止写入）
 """
 import json
+import os
 import subprocess
 import sys
 import time
@@ -25,7 +26,8 @@ import urllib.request
 
 R = []
 BASE = ''
-DB = 'canvas_history_m2check'
+# 目标库可被环境变量覆盖：本轮跑在 V10 结构的隔离库上，不再依赖历史 m2check
+DB = os.environ.get('TEST_DB', 'canvas_history_m2check')
 
 
 def call(method, path, body=None, base=None):

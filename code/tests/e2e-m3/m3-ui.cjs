@@ -149,8 +149,9 @@ async function noPageScroll(page) {
   rec('U51', '地点标记已真正渲染到画布上', L0.placeRendered > 0, '>0', L0.placeRendered)
   rec('U52', '事件图层同时默认开启', L0.eventVis === 'visible' && L0.clusterVis === 'visible',
     '两个事件图层都 visible', `${L0.eventVis}/${L0.clusterVis}`)
-  rec('U53', '两个图层开关都处于开启态',
-    L0.switches.length === 2 && L0.switches.every((s) => s.on),
+  const core = L0.switches.filter((s) => s.text === '事件' || s.text === '地点')
+  rec('U53', '事件/地点两个图层开关都处于开启态',
+    core.length === 2 && core.every((s) => s.on),
     '事件+地点 均 active', JSON.stringify(L0.switches))
   rec('U54', '地点与事件视觉样式可区分（浅底棕环 vs 实心红点）',
     L0.placeColor !== L0.eventColor, '填充色不同',

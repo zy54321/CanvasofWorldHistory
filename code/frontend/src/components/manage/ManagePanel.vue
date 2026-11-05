@@ -2,12 +2,19 @@
 /**
  * M2 管理面板：地点 / 人物 / 事件 三个页签，左侧列表 + 右侧编辑器。
  * 地图本体仍由 MapView 负责，这里只发「定位」事件让地图飞过去。
+ *
+ * V1.0 内容管理专项（只在地点页签生效）：
+ *  · 两层筛选：几何类型 × 名称质量，AND 组合；任一变化回到第 1 页。
+ *  · 列表逐条显示展示名、名称质量、点/线/面数量、位置总数、名称数、数据集。
+ *  · 分页支持直接跳页（校验范围），翻页保留筛选。
+ *  · 请求进行中禁用所有翻页/跳页控件，并丢弃过期响应（防止慢请求覆盖新结果）。
  */
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import PlaceEditor from './PlaceEditor.vue'
 import PersonEditor from './PersonEditor.vue'
 import EventEditor from './EventEditor.vue'
 import { eventApi, personApi, placeAdmin } from '../../api'
+import type { PlaceAdminFilter } from '../../api'
 import { formatRange, formatYear } from '../../time'
 
 const props = defineProps<{ open: boolean }>()
@@ -23,40 +30,100 @@ const TABS: { v: Tab; t: string }[] = [
   { v: 'event', t: '事件' },
 ]
 
+const GEOM_OPTIONS: { v: NonNullable<PlaceAdminFilter['geomType']>; t: string }[] = [
+  { v: 'all', t: '全部几何' },
+  { v: 'point', t: '有点' },
+  { v: 'line', t: '有线' },
+  { v: 'polygon', t: '有面' },
+  { v: 'none', t: '无几何' },
+]
+
+const QUALITY_OPTIONS: { v: NonNullable<PlaceAdminFilter['nameQuality']>; t: string }[] = [
+  { v: 'all', t: '全部名称' },
+  { v: 'valid', t: '有效名称' },
+  { v: 'alias_only', t: '仅别名有效' },
+  { v: 'placeholder', t: '占位无名' },
+  { v: 'no_name', t: '完全无名称' },
+]
+
+const QUALITY_LABEL: Record<string, string> = {
+  valid: '有效名称',
+  alias_only: '仅别名有效',
+  placeholder: '占位无名',
+  no_name: '完全无名称',
+}
+
 const tab = ref<Tab>('place')
 const keyword = ref('')
+const geomType = ref<NonNullable<PlaceAdminFilter['geomType']>>('all')
+const nameQuality = ref<NonNullable<PlaceAdminFilter['nameQuality']>>('all')
 const page = ref(1)
-const list = ref<{ id: number; name: string; sub: string }[]>([])
+const pageSize = 20
+const list = ref<{ id: number; name: string; sub: string; tag?: string; noName?: boolean }[]>([])
 const total = ref(0)
 const totalPages = ref(1)
 const loading = ref(false)
 const err = ref<string | null>(null)
 const selectedId = ref<number | null>(null)
 const creating = ref(false)
+const jumpTo = ref('')
 
 let ctrl: AbortController | null = null
+/** 请求序号：只有最后一次请求的响应才允许写回列表 */
+let seq = 0
+
+function placeSub(x: {
+  nameCount: number
+  locationCount: number
+  geomLocationCount: number
+  pointCount: number
+  lineCount: number
+  polygonCount: number
+  datasetName: string | null
+  datasetId: string
+}): string {
+  const parts: string[] = []
+  if (x.geomLocationCount === 0) {
+    parts.push('无几何')
+  } else {
+    const g: string[] = []
+    if (x.pointCount) g.push(`点 ${x.pointCount}`)
+    if (x.lineCount) g.push(`线 ${x.lineCount}`)
+    if (x.polygonCount) g.push(`面 ${x.polygonCount}`)
+    parts.push(g.join(' / '))
+  }
+  parts.push(`位置 ${x.locationCount}`, `名称 ${x.nameCount}`)
+  parts.push(x.datasetName || x.datasetId)
+  return parts.join(' · ')
+}
 
 async function load() {
   ctrl?.abort()
   ctrl = new AbortController()
+  const my = ++seq
   loading.value = true
   err.value = null
   try {
     if (tab.value === 'place') {
-      const r = await placeAdmin.list(keyword.value, page.value, 20, ctrl.signal)
+      const r = await placeAdmin.list(
+        { keyword: keyword.value, geomType: geomType.value, nameQuality: nameQuality.value },
+        page.value,
+        pageSize,
+        ctrl.signal,
+      )
+      if (my !== seq) return // 过期响应：直接丢弃，不覆盖新结果
       list.value = r.items.map((x) => ({
         id: x.placeId,
-        name: x.canonicalName,
-        sub: [
-          x.placeType ?? '类型未定',
-          x.hasGeom && x.lon !== null ? '有坐标' : '无坐标',
-          `${x.nameCount} 名`,
-        ].join(' · '),
+        name: x.displayName ?? `未命名地点 · #${x.placeId}`,
+        noName: !x.displayName,
+        tag: QUALITY_LABEL[x.nameQuality] ?? x.nameQuality,
+        sub: placeSub(x),
       }))
       total.value = r.total
-      totalPages.value = r.totalPages
+      totalPages.value = Math.max(1, r.totalPages)
     } else if (tab.value === 'person') {
       const r = await personApi.list(keyword.value, page.value, 20, ctrl.signal)
+      if (my !== seq) return
       list.value = r.items.map((x) => ({
         id: x.personId,
         name: x.canonicalName,
@@ -68,9 +135,10 @@ async function load() {
         ].join(' · '),
       }))
       total.value = r.total
-      totalPages.value = r.totalPages
+      totalPages.value = Math.max(1, r.totalPages)
     } else {
       const r = await eventApi.list(keyword.value, page.value, 20, ctrl.signal)
+      if (my !== seq) return
       list.value = r.items.map((x) => ({
         id: x.eventId,
         name: x.title,
@@ -80,14 +148,15 @@ async function load() {
         ].join(' · '),
       }))
       total.value = r.total
-      totalPages.value = r.totalPages
+      totalPages.value = Math.max(1, r.totalPages)
     }
   } catch (e) {
     if ((e as Error).name === 'AbortError') return
+    if (my !== seq) return
     err.value = (e as Error).message
     list.value = []
   } finally {
-    loading.value = false
+    if (my === seq) loading.value = false
   }
 }
 
@@ -107,20 +176,51 @@ watch(
 function switchTab(t: Tab) {
   tab.value = t
   keyword.value = ''
+  geomType.value = 'all'
+  nameQuality.value = 'all'
   page.value = 1
+  jumpTo.value = ''
   selectedId.value = null
   creating.value = false
 }
 
-function search() {
+/** 任何筛选变化都必须回到第 1 页，否则会停在超出范围的页码上 */
+function applyFilter() {
   page.value = 1
+  jumpTo.value = ''
   load()
 }
 
+function search() {
+  applyFilter()
+}
+
 function goto(delta: number) {
+  if (loading.value) return
   const next = page.value + delta
   if (next < 1 || next > totalPages.value) return
   page.value = next
+  jumpTo.value = ''
+  load()
+}
+
+/** 直接跳页：非法输入给出提示且不发请求，合法则夹在 [1, totalPages] 内 */
+function jump() {
+  if (loading.value) return
+  const raw = jumpTo.value.trim()
+  if (!raw) return
+  if (!/^\d+$/.test(raw)) {
+    err.value = '页码必须是正整数'
+    return
+  }
+  const n = Number(raw)
+  if (n < 1 || n > totalPages.value) {
+    err.value = `页码超出范围（1 – ${totalPages.value}）`
+    return
+  }
+  err.value = null
+  page.value = n
+  jumpTo.value = ''
   load()
 }
 
@@ -189,17 +289,36 @@ onBeforeUnmount(() => ctrl?.abort())
               "
               @keyup.enter="search"
             />
-            <button class="m2-btn" @click="search">搜索</button>
+            <button class="m2-btn" :disabled="loading" @click="search">搜索</button>
           </div>
+
+          <!-- 两层筛选：几何类型 × 名称质量（AND）。只对地点页签生效。 -->
+          <div v-if="tab === 'place'" class="filters">
+            <label>
+              <span class="tiny dim">几何</span>
+              <select v-model="geomType" :disabled="loading" @change="applyFilter">
+                <option v-for="g in GEOM_OPTIONS" :key="g.v" :value="g.v">{{ g.t }}</option>
+              </select>
+            </label>
+            <label>
+              <span class="tiny dim">名称</span>
+              <select v-model="nameQuality" :disabled="loading" @change="applyFilter">
+                <option v-for="q in QUALITY_OPTIONS" :key="q.v" :value="q.v">{{ q.t }}</option>
+              </select>
+            </label>
+          </div>
+
           <button class="m2-btn primary new" @click="startCreate">
             + 新建{{ tab === 'place' ? '地点' : tab === 'person' ? '人物' : '事件' }}
           </button>
 
-          <div class="items scroll">
-            <p v-if="loading" class="m2-empty">加载中…</p>
+          <div class="items scroll" :class="{ busy: loading }">
+            <p v-if="loading && list.length === 0" class="m2-empty">加载中…</p>
             <p v-else-if="err" class="m2-alert">{{ err }}</p>
             <p v-else-if="list.length === 0" class="m2-empty">
-              暂无数据{{ keyword ? '（换个关键词试试）' : '' }}
+              暂无数据{{
+                keyword || geomType !== 'all' || nameQuality !== 'all' ? '（换个条件试试）' : ''
+              }}
             </p>
             <button
               v-for="it in list"
@@ -208,16 +327,37 @@ onBeforeUnmount(() => ctrl?.abort())
               :class="{ active: !creating && selectedId === it.id }"
               @click="pick(it.id)"
             >
-              <span class="nm">{{ it.name }}</span>
+              <span class="nm" :class="{ unnamed: it.noName }">{{ it.name }}</span>
+              <span v-if="it.tag" class="tag" :class="'q-' + (it.noName ? 'none' : 'ok')">
+                {{ it.tag }}
+              </span>
               <span class="sub tiny dim">{{ it.sub }}</span>
             </button>
           </div>
 
-          <footer v-if="totalPages > 1" class="pager">
-            <button class="m2-btn sm" :disabled="page <= 1" @click="goto(-1)">上一页</button>
+          <footer v-if="totalPages > 1 || loading" class="pager">
+            <button class="m2-btn sm" :disabled="loading || page <= 1" @click="goto(-1)">上一页</button>
             <span class="tiny dim">{{ page }} / {{ totalPages }}</span>
-            <button class="m2-btn sm" :disabled="page >= totalPages" @click="goto(1)">下一页</button>
+            <button
+              class="m2-btn sm"
+              :disabled="loading || page >= totalPages"
+              @click="goto(1)"
+            >
+              下一页
+            </button>
+            <span class="jump">
+              <input
+                v-model="jumpTo"
+                type="text"
+                inputmode="numeric"
+                placeholder="页码"
+                :disabled="loading"
+                @keyup.enter="jump"
+              />
+              <button class="m2-btn sm" :disabled="loading" @click="jump">跳转</button>
+            </span>
           </footer>
+          <p v-if="loading" class="loading-hint tiny dim">正在加载第 {{ page }} 页…</p>
         </aside>
 
         <!-- 右：编辑器 -->
@@ -299,7 +439,7 @@ onBeforeUnmount(() => ctrl?.abort())
 
 .body { flex: 1; display: flex; min-height: 0; }
 .side {
-  flex: 0 0 322px;
+  flex: 0 0 352px;
   border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
@@ -314,12 +454,25 @@ onBeforeUnmount(() => ctrl?.abort())
   border: 1px solid var(--line);
   border-radius: 7px;
 }
+.filters { display: flex; gap: 8px; padding: 0 12px 6px; }
+.filters label { display: flex; align-items: center; gap: 4px; flex: 1; }
+.filters select {
+  flex: 1;
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 5px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
 .new { margin: 2px 12px 8px; }
 .items { flex: 1; min-height: 80px; }
+.items.busy { opacity: 0.55; }
 .item {
   display: flex;
-  flex-direction: column;
-  gap: 1px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
   width: 100%;
   text-align: left;
   border: none;
@@ -331,6 +484,18 @@ onBeforeUnmount(() => ctrl?.abort())
 .item:hover { background: #f7f9fb; }
 .item.active { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
 .nm { font-size: 13px; font-weight: 600; }
+.nm.unnamed { font-weight: 500; color: var(--ink-3); font-style: italic; }
+.tag {
+  font-size: 10.5px;
+  line-height: 1.5;
+  padding: 0 5px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--ink-3);
+  background: #fafbfc;
+}
+.tag.q-none { color: #8a6d3b; border-color: #e6d3ae; background: #fdf7ea; }
+.sub { width: 100%; }
 .pager {
   display: flex;
   align-items: center;
@@ -338,7 +503,19 @@ onBeforeUnmount(() => ctrl?.abort())
   gap: 6px;
   padding: 7px 12px;
   border-top: 1px solid var(--line);
+  flex-wrap: wrap;
 }
+.jump { display: flex; align-items: center; gap: 4px; }
+.jump input {
+  width: 52px;
+  font: inherit;
+  font-size: 12px;
+  padding: 3px 5px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  text-align: center;
+}
+.loading-hint { padding: 0 12px 6px; }
 .main { flex: 1; min-width: 0; padding: 12px 14px; overflow: hidden; }
 .center { text-align: center; padding-top: 80px; }
 </style>

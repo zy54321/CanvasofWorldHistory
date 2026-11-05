@@ -119,11 +119,23 @@ function kw(keyword: string, page: number, size: number): string {
   return q.toString()
 }
 
+/** 内容管理的地点筛选条件（几何类型 / 名称质量，两者 AND 组合） */
+export interface PlaceAdminFilter {
+  keyword?: string
+  geomType?: 'all' | 'point' | 'line' | 'polygon' | 'none'
+  nameQuality?: 'all' | 'valid' | 'alias_only' | 'placeholder' | 'no_name'
+}
+
 // ------------------------------------------------------------------ 地点
 export const placeAdmin = {
   options: (signal?: AbortSignal) => getJson<PlaceOptions>('/api/v1/places/admin/options', signal),
-  list: (keyword: string, page = 1, size = 20, signal?: AbortSignal) =>
-    getJson<Paged<AdminPlaceRow>>(`/api/v1/places/admin?${kw(keyword, page, size)}`, signal),
+  list: (filter: PlaceAdminFilter, page = 1, size = 20, signal?: AbortSignal) => {
+    const q = new URLSearchParams({ page: String(page), size: String(size) })
+    if (filter.keyword && filter.keyword.trim()) q.set('keyword', filter.keyword.trim())
+    if (filter.geomType && filter.geomType !== 'all') q.set('geomType', filter.geomType)
+    if (filter.nameQuality && filter.nameQuality !== 'all') q.set('nameQuality', filter.nameQuality)
+    return getJson<Paged<AdminPlaceRow>>(`/api/v1/places/admin?${q.toString()}`, signal)
+  },
   create: (body: unknown) => send<{ placeId: number }>('POST', '/api/v1/places', body),
   update: (id: number, body: unknown) => send<unknown>('PUT', `/api/v1/places/${id}`, body),
   remove: (id: number) => send<unknown>('DELETE', `/api/v1/places/${id}`),

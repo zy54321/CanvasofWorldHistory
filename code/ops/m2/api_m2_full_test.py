@@ -14,6 +14,7 @@ M2 完整业务测试（真实 HTTP + 真实数据库，针对测试库 canvas_h
 用法：python ops/m2/api_m2_full_test.py [baseUrl]
 """
 import json
+import os
 import subprocess
 import sys
 import urllib.error
@@ -21,7 +22,8 @@ import urllib.parse
 import urllib.request
 
 BASE = (sys.argv[1] if len(sys.argv) > 1 else 'http://127.0.0.1:8089').rstrip('/')
-DB = 'canvas_history_m2check'
+# 目标库可被环境变量覆盖：本轮跑在 V10 结构的隔离库上，不再依赖历史 m2check
+DB = os.environ.get('TEST_DB', 'canvas_history_m2check')
 R = []
 
 
@@ -69,6 +71,19 @@ def main():
         'placeType': 'settlement', 'description': '端到端测试地点'})
     pid = r.get('placeId') if isinstance(r, dict) else None
     check('P01', '新建地点（不含坐标）→ 201', st == 201 and pid, '201', '%s id=%s' % (st, pid))
+
+    # 关联类用例需要"另一个已存在的地点"。原脚本硬编码 900002/900003（m2check 的历史行号），
+    # 在 V10 隔离库里不存在；改为现场创建，拿到真实 id 再关联。
+    st_b, r_b = call('POST', '/api/v1/places', {
+        'canonicalName': '测试地点B', 'canonicalNameLang': 'zh',
+        'placeType': 'settlement', 'description': '关联用例用地点'})
+    PID_B = r_b.get('placeId') if isinstance(r_b, dict) else None
+    st_c, r_c = call('POST', '/api/v1/places', {
+        'canonicalName': '测试地点C', 'canonicalNameLang': 'zh',
+        'placeType': 'settlement', 'description': '关联用例用地点'})
+    PID_C = r_c.get('placeId') if isinstance(r_c, dict) else None
+    check('P01b', '为关联用例预备两个地点 → 201/201', st_b == 201 and st_c == 201 and PID_B and PID_C,
+          '201/201', '%s/%s id=%s,%s' % (st_b, st_c, PID_B, PID_C))
 
     st, d = call('GET', '/api/v1/places/%s' % pid)
     check('P02', '未给坐标时保存为未定位（geom 为空、无经纬度）',
@@ -183,7 +198,7 @@ def main():
           '%s %s %s' % (st, row.get('role'), row.get('validFromYearAstro')))
 
     st, _ = call('POST', '/api/v1/events/%s/places' % eid, {'placeId': pid, 'locationRole': 'destination'})
-    st2, _ = call('POST', '/api/v1/events/%s/places' % eid, {'placeId': 900002, 'locationRole': 'origin'})
+    st2, _ = call('POST', '/api/v1/events/%s/places' % eid, {'placeId': PID_B, 'locationRole': 'origin'})
     st3, d = call('GET', '/api/v1/events/%s' % eid)
     check('L04', '一个事件关联多个地点', st == 201 and st2 == 201 and len(d['places']) == 2,
           '201/201 且 places=2', '%s/%s places=%s' % (st, st2, len(d.get('places') or [])))
@@ -192,11 +207,11 @@ def main():
     check('L05', '同事件同地点同角色重复 → 409', st == 409, '409', '%s' % st)
 
     st, pp = call('POST', '/api/v1/persons/%s/places' % pid2,
-                  {'placeId': 900003, 'relationType': 'residence',
+                  {'placeId': PID_C, 'relationType': 'residence',
                    'startYearAstro': -540, 'endYearAstro': -530, 'timePrecision': 'approximate',
                    'sequenceOrder': 1})
     st2, pp2 = call('POST', '/api/v1/persons/%s/places' % pid2,
-                    {'placeId': 900002, 'relationType': 'activity',
+                    {'placeId': PID_B, 'relationType': 'activity',
                      'startYearAstro': -520, 'endYearAstro': -510, 'timePrecision': 'range',
                      'sequenceOrder': 2})
     st3, d = call('GET', '/api/v1/persons/%s' % pid2)
@@ -206,7 +221,7 @@ def main():
           '201/201 且 places=2 有序', '%s/%s places=%s' % (st, st2, len(d.get('places') or [])))
 
     st, _ = call('PUT', '/api/v1/persons/%s/places/%s' % (pid2, pp['linkId']),
-                 {'placeId': 900003, 'relationType': 'birthplace',
+                 {'placeId': PID_C, 'relationType': 'birthplace',
                   'startYearAstro': -550, 'endYearAstro': -550, 'timePrecision': 'exact',
                   'sequenceOrder': 1})
     check('L07', '编辑人物-地点关系类型与区间', st == 200, '200', '%s' % st)
@@ -243,7 +258,7 @@ def main():
     check('T05', '卒年早于生年 → 400', st == 400, '400', '%s' % st)
 
     st, _ = call('POST', '/api/v1/persons/%s/places' % pid2,
-                 {'placeId': 900003, 'relationType': 'activity',
+                 {'placeId': PID_C, 'relationType': 'activity',
                   'startYearAstro': 100, 'timePrecision': 'unknown'})
     check('T06', '关联关系 timePrecision=unknown 却带年份 → 400', st == 400, '400', '%s' % st)
 

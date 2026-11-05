@@ -18,6 +18,10 @@ export interface PlaceSummary {
   locationPrecision: string | null
   nameCount: number
   locationCount: number
+  /** 读取侧展示名；占位名已替换为别名，完全无名称时为 null */
+  displayName: string | null
+  /** valid | alias_only | placeholder | no_name */
+  nameQuality: string
 }
 
 export interface SearchResult {
@@ -103,12 +107,24 @@ export interface PlaceDetail {
   sourceRecords: SourceRecordRef[]
   issues: IssueRef[]
   issueListTruncated?: boolean
+  /** 读取侧展示名（占位名已替换为真实别名）；完全无名称时为 null */
+  displayName: string | null
+  /** valid | alias_only | placeholder | no_name */
+  nameQuality: string
 }
 
 export interface PlaceFeatureProps {
   placeId: number
   name: string
   nameLang: string | null
+  /** 原始 canonical_name（未做占位名替换） */
+  rawName?: string
+  nameIsPlaceholder?: boolean
+  /** 占位名且无别名：默认不在地图上显示 */
+  unnamed?: boolean
+  nameFromAlt?: boolean
+  nameQuality?: string
+  geomType?: string | null
   placeType: string | null
   datasetId: string
   datasetName: string | null
@@ -292,6 +308,7 @@ export interface EventDetail {
 
 export interface AdminPlaceRow {
   placeId: number
+  /** 数据库原值，绝不改写（占位名也原样返回） */
   canonicalName: string
   canonicalNameLang: string | null
   placeType: string | null
@@ -303,6 +320,15 @@ export interface AdminPlaceRow {
   lon: number | null
   lat: number | null
   hasGeom: boolean
+  /** 读取侧算出的展示名；无有效名称时为 null */
+  displayName: string | null
+  /** valid | alias_only | placeholder | no_name */
+  nameQuality: string
+  datasetName: string | null
+  pointCount: number
+  lineCount: number
+  polygonCount: number
+  geomLocationCount: number
 }
 
 /** GET /api/v1/places/admin/options 的返回：取值与数据库 CHECK 约束一致 */

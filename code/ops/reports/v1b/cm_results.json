@@ -1,0 +1,150 @@
+{
+  "results": [
+    {
+      "id": "CM02-a",
+      "desc": "四类名称分类合计 = 全部地点（互斥且穷尽）",
+      "ok": true,
+      "detail": "{'valid': 54047, 'alias_only': 64, 'placeholder': 3856, 'no_name': 0} 合计 57967"
+    },
+    {
+      "id": "CM02-b",
+      "desc": "逐类数量与独立实现一致",
+      "ok": true,
+      "detail": "API {'valid': 54047, 'alias_only': 64, 'placeholder': 3856, 'no_name': 0} vs 独立 {'valid': 54047, 'alias_only': 64, 'placeholder': 3856, 'no_name': 0}"
+    },
+    {
+      "id": "CM01-a",
+      "desc": "四种几何筛选数量与独立实现一致",
+      "ok": true,
+      "detail": "API {'point': 42020, 'line': 4558, 'polygon': 4095, 'none': 8268} vs 独立 {'point': 42020, 'line': 4558, 'polygon': 4095, 'none': 8268}"
+    },
+    {
+      "id": "CM01-point",
+      "desc": "point 筛选的每一行都真的含该类几何、页内无重复",
+      "ok": true,
+      "detail": "不符 [] / 页内重复 0"
+    },
+    {
+      "id": "CM01-line",
+      "desc": "line 筛选的每一行都真的含该类几何、页内无重复",
+      "ok": true,
+      "detail": "不符 [] / 页内重复 0"
+    },
+    {
+      "id": "CM01-poly",
+      "desc": "polygon 筛选的每一行都真的含该类几何、页内无重复",
+      "ok": true,
+      "detail": "不符 [] / 页内重复 0"
+    },
+    {
+      "id": "CM01-e",
+      "desc": "同时有线和面的地点在两个筛选里都算（存在性语义）",
+      "ok": true,
+      "detail": "线+面 4558+4095=8653 条，其中线面兼有 31 个地点"
+    },
+    {
+      "id": "CM03-a",
+      "desc": "面 + 有效名称（AND）数量正确",
+      "ok": true,
+      "detail": "API 2245 vs 独立 2245"
+    },
+    {
+      "id": "CM03-b",
+      "desc": "线 + 占位无名（AND）数量正确",
+      "ok": true,
+      "detail": "API 8 vs 独立 8"
+    },
+    {
+      "id": "CM03-c",
+      "desc": "组合结果 ≤ 两个单条件（说明是 AND 不是 OR）",
+      "ok": true,
+      "detail": "2245 ≤ min(4095,54047)"
+    },
+    {
+      "id": "CM03-geomType",
+      "desc": "非法 geomType 返回 400",
+      "ok": true,
+      "detail": "400"
+    },
+    {
+      "id": "CM03-nameQuality",
+      "desc": "非法 nameQuality 返回 400",
+      "ok": true,
+      "detail": "400"
+    },
+    {
+      "id": "CM04-a",
+      "desc": "列表行含全部要求字段",
+      "ok": true,
+      "detail": "缺 []"
+    },
+    {
+      "id": "CM04-b",
+      "desc": "名称数/位置数/名称质量与库内一致",
+      "ok": true,
+      "detail": "计数不符 [] / 分类不符 []"
+    },
+    {
+      "id": "CM04-c",
+      "desc": "无名地点的 displayName 为 null（由前端拼「未命名地点 · #id」）",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "id": "CM04-d",
+      "desc": "占位名+有别名 → 详情给出真实别名（canonicalName 保持原值）",
+      "ok": true,
+      "detail": "不符 []"
+    },
+    {
+      "id": "CM05-a",
+      "desc": "page1 / page2 无重叠",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "id": "CM05-b",
+      "desc": "totalPages 与 total/size 相符",
+      "ok": true,
+      "detail": "2899"
+    },
+    {
+      "id": "CM05-c",
+      "desc": "末页条数正确",
+      "ok": true,
+      "detail": "7 条"
+    },
+    {
+      "id": "CM05-d",
+      "desc": "直接跳页可用且返回整页",
+      "ok": true,
+      "detail": "20 条"
+    },
+    {
+      "id": "CM05-e",
+      "desc": "超出范围的页返回空列表（不抛 500）",
+      "ok": true,
+      "detail": "items=0"
+    },
+    {
+      "id": "CM05-f",
+      "desc": "带筛选翻到第 2 页仍满足筛选条件",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "id": "CM07-a",
+      "desc": "列表最差 P95 ≤ 300ms",
+      "ok": true,
+      "detail": "97.7ms @ keyword_athens"
+    },
+    {
+      "id": "CM07-b",
+      "desc": "常规首页 P95 ≤ 300ms",
+      "ok": true,
+      "detail": "49.0ms"
+    }
+  ],
+  "passed": 24,
+  "total": 24
+}

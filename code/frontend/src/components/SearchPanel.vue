@@ -182,15 +182,20 @@ onBeforeUnmount(() => ctrl?.abort())
         @mouseleave="emit('hover', null)"
       >
         <div class="line1">
-          <span class="nm">{{ item.matchedName }}</span>
+          <span class="nm" :class="{ unnamed: !item.displayName }">
+            {{ item.displayName ?? `未命名地点 · #${item.placeId}` }}
+          </span>
           <span v-if="item.matchedNameType && item.matchedNameType !== 'primary'" class="badge">
             {{ item.matchedNameType === 'alternate' ? '别名' : item.matchedNameType === 'transliteration' ? '转写' : item.matchedNameType }}
           </span>
           <span class="id mono tiny dim">#{{ item.placeId }}</span>
         </div>
         <div class="line2 tiny">
-          <span v-if="item.matchedName !== item.canonicalName" class="dim">
-            正名 {{ item.canonicalName }} ·
+          <span
+            v-if="item.matchedName !== item.canonicalName && item.matchedName !== item.displayName"
+            class="dim"
+          >
+            正名 {{ item.canonicalName }} · 匹配 {{ item.matchedName }} ·
           </span>
           <span class="dim">{{ typeText(item.placeType) }}</span>
           <span class="dim"> · {{ yearRange(item) }}</span>
@@ -284,4 +289,5 @@ button.ghost { padding: 6px 10px; color: var(--ink-2); }
   padding: 8px 15px;
   border-top: 1px solid var(--line);
 }
+.nm.unnamed { color: var(--ink-3); font-style: italic; font-weight: 500; }
 </style>

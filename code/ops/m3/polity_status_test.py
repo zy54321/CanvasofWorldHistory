@@ -22,6 +22,7 @@
   python ops/m3/polity_status_test.py [http://127.0.0.1:8089]
 """
 import json
+import os
 import subprocess
 import sys
 import time
@@ -29,7 +30,8 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-DB = 'canvas_history_m2check'
+# 目标库可被环境变量覆盖：本轮跑在 V10 结构的隔离库上
+DB = os.environ.get('TEST_DB', 'canvas_history_m2check')
 BASE = 'http://127.0.0.1:8089'
 R = []
 

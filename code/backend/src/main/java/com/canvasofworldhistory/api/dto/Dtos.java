@@ -29,7 +29,10 @@ public final class Dtos {
             String locationPrecision,
             Integer uncertaintyM,
             Integer nameCount,
-            Integer locationCount) {
+            Integer locationCount,
+            // V1.0：读取侧名称质量。canonicalName 仍是原值，displayName 才是给人看的。
+            String displayName,
+            String nameQuality) {
     }
 
     public record Page<T>(List<T> items, int page, int size, long total, int totalPages) {
@@ -117,7 +120,10 @@ public final class Dtos {
             List<LocationRow> locations,
             List<SourceRecordRow> sourceRecords,
             List<IssueRow> issues,
-            boolean issueListTruncated) {
+            boolean issueListTruncated,
+            // V1.0：读取侧名称质量（见 PlaceNames）。canonicalName 保持原值不动。
+            String displayName,
+            String nameQuality) {
     }
 
     public record Stats(

@@ -28,7 +28,16 @@ public final class PlaceAdminDtos {
             int locationCount,
             Double lon,
             Double lat,
-            boolean hasGeom) {
+            boolean hasGeom,
+            // V1.0 内容管理：展示名与名称质量（读取侧计算，不改数据）
+            String displayName,
+            String nameQuality,
+            String datasetName,
+            // 逐类几何数量：同一地点可能同时有点/线/面，所以三个数可以并存
+            int pointCount,
+            int lineCount,
+            int polygonCount,
+            int geomLocationCount) {
     }
 
     @JsonInclude(JsonInclude.Include.ALWAYS)

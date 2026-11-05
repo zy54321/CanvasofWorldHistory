@@ -32,15 +32,6 @@ public class PlaceQueryService {
     public static final int DEFAULT_PAGE_SIZE = 20;
     public static final int MAX_MAP_FEATURES = 2000;
 
-    /**
-     * 源里的"占位标题"。Pleiades 对无正式名称的遗址写 Untitled / Unnamed Place，
-     * 这些字符串不是地名，不能当作正常命名地点展示（P0 审计：3,920 条）。
-     * 判定放在读取侧，canonical_name 与 source_record 原样保留、不改数据。
-     */
-    private static final java.util.Set<String> PLACEHOLDER_NAMES = java.util.Set.of(
-            "Untitled", "untitled", "Unnamed Place", "Unnamed place", "unnamed place",
-            "Unknown", "unknown", "Unknown place", "N/A", "?", "-", "(unknown)");
-
     private static final ObjectMapper JSON = new ObjectMapper();
 
     /** 每个地点的"代表坐标行"：有 geom、CRS 已确认、未被驳回；按 location_id 定序取第一行。 */
@@ -140,13 +131,23 @@ public class PlaceQueryService {
                        (SELECT count(*) FROM historical_place_name n2
                          WHERE n2.place_id = b.place_id AND n2.record_status <> 'rejected') AS name_count,
                        (SELECT count(*) FROM historical_place_location l2
-                         WHERE l2.place_id = b.place_id AND l2.geom IS NOT NULL) AS location_count
+                         WHERE l2.place_id = b.place_id AND l2.geom IS NOT NULL) AS location_count,
+                       alt.alt_name
                   FROM (SELECT * FROM best
                          ORDER BY hit_rank, name_text, place_id
                          LIMIT :limit OFFSET :offset) b
                   JOIN historical_place p ON p.place_id = b.place_id
                   JOIN data_dataset d ON d.dataset_id = p.dataset_id
                   %s
+                  LEFT JOIN LATERAL (
+                        -- 展示用别名：只对当前页这 20 行取一次，配合 ix_hpn_place 是索引扫描
+                        SELECT n.name_text AS alt_name
+                          FROM historical_place_name n
+                         WHERE n.place_id = b.place_id
+                           AND btrim(coalesce(n.name_text, '')) <> ''
+                         ORDER BY CASE n.name_type WHEN 'primary' THEN 0 ELSE 1 END, n.name_id
+                         LIMIT 1
+                  ) alt ON true
                  ORDER BY b.hit_rank, b.name_text, b.place_id
                 """.formatted(PREFERRED_LOCATION);
 
@@ -172,7 +173,9 @@ public class PlaceQueryService {
                     rs.getString("location_precision"),
                     (Integer) rs.getObject("uncertainty_m"),
                     rs.getInt("name_count"),
-                    rs.getInt("location_count"));
+                    rs.getInt("location_count"),
+                    PlaceNames.displayName(rs.getString("canonical_name"), rs.getString("alt_name")),
+                    PlaceNames.quality(rs.getString("canonical_name"), rs.getString("alt_name") != null));
         });
         return Dtos.Page.of(items, p, s, n);
     }
@@ -302,6 +305,17 @@ public class PlaceQueryService {
             issues = new ArrayList<>(issues.subList(0, issueLimit));
         }
 
+        // 展示名与名称质量：直接从已加载的 names（primary → alternate → 其他）里取第一个可用地名，
+        // 不额外发查询。canonicalName 保持原值，展示名另开字段。
+        String firstUsable = names.stream()
+                .map(Dtos.NameRow::nameText)
+                .filter(t -> t != null && !t.trim().isEmpty())
+                .findFirst()
+                .orElse(null);
+        String canonical = (String) h.get("canonicalName");
+        String displayName = PlaceNames.displayName(canonical, firstUsable);
+        String nameQuality = PlaceNames.quality(canonical, firstUsable != null);
+
         return Optional.of(new Dtos.PlaceDetail(
                 (Long) h.get("placeId"),
                 (String) h.get("canonicalName"),
@@ -321,7 +335,8 @@ public class PlaceQueryService {
                 (String) h.get("sourceName"),
                 (String) h.get("sourceHomepage"),
                 (String) h.get("sourceNote"),
-                names, locations, records, issues, truncated));
+                names, locations, records, issues, truncated,
+                displayName, nameQuality));
     }
 
     // ------------------------------------------------------------------ 地图
@@ -401,7 +416,7 @@ public class PlaceQueryService {
             String canonical = rs.getString("canonical_name");
             String altName = rs.getString("alt_name");
             String altLang = rs.getString("alt_lang");
-            boolean placeholder = isPlaceholderName(canonical);
+            boolean placeholder = PlaceNames.isPlaceholder(canonical);
             boolean hasAlt = altName != null && !altName.isBlank();
             String displayName = placeholder && hasAlt ? altName : canonical;
             // 真正的"无名地点"：源标题是占位名，且没有任何可用别名
@@ -409,12 +424,17 @@ public class PlaceQueryService {
 
             Map<String, Object> props = new LinkedHashMap<>();
             props.put("placeId", rs.getLong("place_id"));
-            props.put("name", displayName);
+            // 无名地点没有可展示的地名：给「未命名地点 · #id」这个唯一可区分标识，
+            // 而不是把源里的 Untitled 当地名直接铺到地图和候选列表上。
+            props.put("name", displayName != null
+                    ? displayName
+                    : "未命名地点 · #" + rs.getLong("place_id"));
             props.put("nameLang", placeholder && hasAlt ? altLang : rs.getString("canonical_name_lang"));
             props.put("rawName", canonical);
             props.put("nameIsPlaceholder", placeholder);
             props.put("unnamed", unnamed);
             props.put("nameFromAlt", placeholder && hasAlt);
+            props.put("nameQuality", PlaceNames.quality(canonical, hasAlt));
             props.put("placeType", rs.getString("place_type"));
             props.put("datasetId", rs.getString("dataset_id"));
             props.put("datasetName", rs.getString("dataset_name"));
@@ -462,15 +482,6 @@ public class PlaceQueryService {
         fc.put("features", features);
         fc.put("meta", meta);
         return fc;
-    }
-
-    /** 源标题是否属于"占位名"（不是地名）。 */
-    private static boolean isPlaceholderName(String name) {
-        if (name == null) {
-            return true;
-        }
-        String t = name.trim();
-        return t.isEmpty() || PLACEHOLDER_NAMES.contains(t) || PLACEHOLDER_NAMES.contains(name);
     }
 
     // ------------------------------------------------------------------ 概览

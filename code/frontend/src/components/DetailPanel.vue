@@ -50,6 +50,17 @@ watch(
  * 其余原样显示；undefined/空一律「未注明」，不显示空白或 null。
  * 原始代码放在 title 里，信息不丢。
  */
+/** 名称质量的中文标签（与后端 PlaceNames.quality 的四个码一一对应） */
+function qualityLabel(q: string | null | undefined): string {
+  switch (q) {
+    case 'valid': return '有效名称'
+    case 'alias_only': return '仅别名有效'
+    case 'placeholder': return '源为占位标题'
+    case 'no_name': return '源未提供名称'
+    default: return q ?? '未知'
+  }
+}
+
 function langLabel(code: string | null | undefined): string {
   const c = (code ?? '').trim()
   if (!c || c === 'und' || c === 'unknown') return '未注明'
@@ -130,7 +141,17 @@ function locate() {
   <aside v-if="placeId !== null" class="detail panel">
     <header class="hd">
       <div class="titles">
-        <h2 v-if="detail">{{ detail.canonicalName }}</h2>
+        <h2 v-if="detail">
+          {{ detail.displayName ?? '未命名地点' }}
+          <span class="tiny dim">#{{ detail.placeId }}</span>
+        </h2>
+        <!-- 展示名只是"给人看的"；原始标题必须留在界面上，否则看起来像改了数据 -->
+        <p
+          v-if="detail && detail.nameQuality !== 'valid'"
+          class="tiny dim raw-name"
+        >
+          源标题「{{ detail.canonicalName }}」· 名称质量：{{ qualityLabel(detail.nameQuality) }}
+        </p>
         <h2 v-else-if="loading" class="dim">加载中…</h2>
         <h2 v-else class="dim">#{{ placeId }}</h2>
         <p v-if="detail" class="tiny dim">

@@ -39,10 +39,11 @@ async function load() {
   error.value = null
   try {
     if (props.kind === 'place') {
-      const r = await placeAdmin.list(keyword.value, 1, 20, ctrl.signal)
+      const r = await placeAdmin.list({ keyword: keyword.value }, 1, 20, ctrl.signal)
       items.value = r.items.map((x) => ({
         id: x.placeId,
-        name: x.canonicalName,
+        // 选择器里也统一用展示名：否则选「Jurançon」时看到的是「Untitled」，认不出来
+        name: x.displayName ?? `未命名地点 · #${x.placeId}`,
         sub: [x.placeType, x.hasGeom && x.lon !== null ? `${x.lon.toFixed(2)}, ${x.lat?.toFixed(2)}` : '无坐标']
           .filter(Boolean)
           .join(' · '),
