@@ -16,7 +16,22 @@ export const STYLE_OPTIONS: StyleOption[] = [
   { id: 'hybrid', label: 'Hybrid', maptiler: 'hybrid' },
 ]
 
-export const MAPTILER_KEY: string = __MAPTILER_KEY__ || ''
+/**
+ * MapTiler key 的取值顺序：
+ *   1. 运行时注入：部署时由 config.js 提供 window.__ENV__.MAPTILER_KEY
+ *      —— 正式 Release 包不含任何密钥，部署后放一个 config.js 即可。
+ *   2. 构建期内联：开发态（vite dev）从 .env.dev 注入 __MAPTILER_KEY__。
+ *   3. 空字符串 → 走无底图降级，界面明确提示，不伪装成功。
+ */
+function resolveMapTilerKey(): string {
+  const runtime = (window as unknown as { __ENV__?: { MAPTILER_KEY?: string } }).__ENV__
+  if (runtime && typeof runtime.MAPTILER_KEY === 'string' && runtime.MAPTILER_KEY.length > 0) {
+    return runtime.MAPTILER_KEY
+  }
+  return typeof __MAPTILER_KEY__ === 'string' ? __MAPTILER_KEY__ : ''
+}
+
+export const MAPTILER_KEY: string = resolveMapTilerKey()
 
 export const HAS_BASEMAP = MAPTILER_KEY.length > 0
 

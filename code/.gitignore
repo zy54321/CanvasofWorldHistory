@@ -50,3 +50,20 @@ logs/
 # ---- 自检脚本依赖 ----
 ops/.deps/
 data/raw/
+
+# ---- 阶段执行产物（V1.0 收尾清理后新增）----
+# 各阶段的验收截图、运行日志、中间 JSON 属于「一次运行的产物」，不是工程资产：
+# 每次跑测试都会重新生成，且同一张图在多个阶段目录里重复出现（清理时实测 54 组重复、
+# 74 个冗余副本、23.7 MB）。历史产物已归档到仓库外：
+#   E:/01_Work/01_PersonalProjects/_archive/014-CanvasofWorldHistory/20261106/
+# 如需长期保留某份报告，请放到 docs/ 并在那里明确命名，不要写进本目录。
+# 例外：ops/reports/v1b/.gitkeep 是零字节占位，只为让 ops/v1b/test_cm.py 的输出目录存在
+#      （它写文件前不 mkdir）。等该脚本补上 mkdir 后，这个占位文件可以删掉。
+ops/reports/*
+!ops/reports/v1b/
+ops/reports/v1b/*
+!ops/reports/v1b/.gitkeep
+
+# ---- Python 缓存（此前 .pyc 曾被误纳入版本库）----
+__pycache__/
+*.pyc

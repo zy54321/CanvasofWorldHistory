@@ -1,0 +1,50 @@
+# 《世界历史时空画布》DEV 环境
+# 独立 PostgreSQL/PostGIS 实例，与生产（docker-compose.yml）完全分离。
+#
+# 启动：
+#   docker compose -f docker-compose.dev.yml --env-file .env.dev up -d
+# 停止（保留数据）：
+#   docker compose -f docker-compose.dev.yml --env-file .env.dev down
+#
+# 隔离要点（务必保持）：
+#   1. project name = canvas-history-dev，与生产的 canvas-history 不同
+#      —— 否则 `docker compose down -v` 会删掉生产卷；
+#   2. 容器名 / 卷名 / 网络名 / 端口全部带 -dev 后缀；
+#   3. 凭证只来自 .env.dev，本文件不含明文密码；
+#   4. 不挂载 data/ 目录：DEV 数据来自生产库的一次性复制，不依赖暂存 CSV。
+
+name: canvas-history-dev
+
+services:
+  db-dev:
+    image: postgis/postgis:17-3.6
+    container_name: canvas-history-db-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required, use .env.dev}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required, use .env.dev}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required, use .env.dev}
+      TZ: ${TZ:-Asia/Shanghai}
+      PGTZ: ${TZ:-Asia/Shanghai}
+    ports:
+      # 仅本机可连，且端口与生产的 15432 不同
+      - "127.0.0.1:${DB_HOST_PORT:-15433}:5432"
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -h 127.0.0.1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    shm_size: "256mb"
+    networks:
+      - dev
+
+volumes:
+  pgdata_dev:
+    name: canvas-history-dev-pgdata
+
+networks:
+  dev:
+    name: canvas-history-dev-net

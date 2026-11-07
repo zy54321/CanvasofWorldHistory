@@ -1,1 +1,0 @@
-name= V1.0 写入验证点（已改名） | type= settlement | names= [('V1.0 别名验证', 'zh')]

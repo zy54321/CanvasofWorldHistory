@@ -53,4 +53,31 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <!--
+      单 Jar 同源部署：把前端构建产物 frontend/dist 打进 jar 的 static/，
+      由 Spring Boot 同时提供页面与 API，不再需要 Vite 或 Nginx。
+
+      只在实际发布时启用，默认构建不受影响：
+          ./mvnw -B -DskipTests -Pwith-web clean package
+
+      前提：先执行前端构建（npm run build），dist 必须已存在。
+    -->
+    <profile>
+      <id>with-web</id>
+      <build>
+        <resources>
+          <resource>
+            <directory>src/main/resources</directory>
+          </resource>
+          <resource>
+            <directory>../frontend/dist</directory>
+            <targetPath>static</targetPath>
+            <filtering>false</filtering>
+          </resource>
+        </resources>
+      </build>
+    </profile>
+  </profiles>
 </project>

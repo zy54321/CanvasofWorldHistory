@@ -22,7 +22,8 @@ code/
       V1__enable_extensions.sql        # PostGIS 扩展（已执行）
       V2__core_data_model.sql          # 九张表 + 约束 + 索引（已执行）
       V3__derived_views.sql            # 三个派生视图（已执行）
-    run-dev.sh                         # 从 ../.env 注入凭证启动 jar（只读默认）
+    run-dev.sh                         # 通用启动器（必须显式 DB_NAME，无默认库）
+    run-dev-api.sh                     # DEV 专用：只读 ../.env.dev，强制 canvas_history_dev
     run-prod.sh                        # 正式环境：唯一正式库 + 受控写入 + 启动自检
   frontend/                 # Vue 3 + TS + MapLibre 前端
   tests/e2e/                # M0/M1 浏览器端到端验收脚本
@@ -56,21 +57,30 @@ cd frontend && npm install && npx vite --host 127.0.0.1       # WEB  http://127.
 任一项不符就杀掉刚起的进程并返回非 0。它只接受库名 `canvas_history`，
 传别的库或别的白名单会直接拒绝启动（防止顺手把测试库也放开）。
 
-**开发 / 只读**
+**开发（DEV 独立环境）**
 
 ```bash
-cd backend  && bash run-dev.sh        # 白名单为空 → writeAllowed=false，写操作返回 403
-cd frontend && npx vite --host 127.0.0.1
+bash start-dev.sh                     # 后端 8089 + 前端 5181，只读 ../.env.dev
 ```
+
+首次需先起 DEV 数据库：
+
+```bash
+docker compose -f docker-compose.dev.yml --env-file .env.dev up -d
+```
+
+**各启动方式的库与权限**
 
 | 启动方式 | 连接库 | 可写 | 用途 |
 |---|---|---|---|
 | `bash run-prod.sh` | `canvas_history` | **是**（白名单仅此一库） | 正式环境 |
-| `bash run-dev.sh` | `canvas_history` | 否 | 只读浏览、排障 |
-| `DB_NAME=<库> DB_WRITE_ALLOWED_DATABASES=<库> bash run-dev.sh` | 指定库 | 是 | 隔离测试（临时环境，用完删除） |
+| `bash run-dev-api.sh` | `canvas_history_dev` | 是（白名单仅此一库） | DEV 开发 |
+| `DB_NAME=<库> [DB_WRITE_ALLOWED_DATABASES=<库>] bash run-dev.sh` | 指定库 | 取决于白名单 | 临时排查 |
+| `bash run-dev.sh`（不带 DB_NAME） | — | — | **拒绝启动（exit 2）** |
 
 > `.env` 里 `DB_WRITE_ALLOWED_DATABASES` 保持**留空**（只读默认值）。
-> 可写这件事固定在 `run-prod.sh` 里，不靠每个人记住一条环境变量。
+> 可写这件事固定在 `run-prod.sh` / `run-dev-api.sh` 里，不靠每个人记住一条环境变量。
+> `run-dev.sh` 已取消「默认连 canvas_history」的回退，避免裸跑时静默连上正式库。
 
 - 接口：`GET /api/v1/places`、`/api/v1/places/{id}`、`/api/v1/places/map?bbox=w,s,e,n`、`/api/v1/meta/health|stats`
 - 地图底图需要 `code/.env` 的 `VITE_MAPTILER_API_KEY`（MapTiler **API key**，非 Service Token）。

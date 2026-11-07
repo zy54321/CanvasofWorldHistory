@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
-# 本地启动 API（凭证从 ../.env 读取，不落源码）
+# 通用启动器（凭证从 ../.env 读取，不落源码）
 #
-# 两个实例的典型用法（写保护靠库名白名单，见 application.yml 的 app.write.*）：
-#   正式库（只读）： bash run-dev.sh
-#   测试库（可写） ： DB_NAME=canvas_history_m2check API_PORT=8089 \
-#                    DB_WRITE_ALLOWED_DATABASES=canvas_history_m2check bash run-dev.sh
+# 目标库必须显式指定，没有默认值 —— 见下方 DB_NAME 检查。
+#
+# 日常请优先使用两个专用入口：
+#   DEV ： bash run-dev-api.sh    （只读 .env.dev，强制 canvas_history_dev）
+#   PROD： bash run-prod.sh       （强制 canvas_history，可写白名单仅此一库）
+#
+# 临时连某个库（例如测试库）时才直接用本脚本：
+#   DB_NAME=canvas_history_m2check API_PORT=8089 \
+#   DB_WRITE_ALLOWED_DATABASES=canvas_history_m2check bash run-dev.sh
 set -euo pipefail
 
 cd "$(dirname "$0")"
@@ -26,7 +31,25 @@ if [ -n "$_OVR_DB_NAME" ]; then DB_NAME="$_OVR_DB_NAME"; fi
 if [ -n "$_OVR_WRITE" ]; then DB_WRITE_ALLOWED_DATABASES="$_OVR_WRITE"; fi
 if [ -n "$_OVR_API_PORT" ]; then API_HOST_PORT="$_OVR_API_PORT"; fi
 
-DB_NAME="${DB_NAME:-${POSTGRES_DB:-canvas_history}}"
+# 目标库必须由调用方显式给出。
+#
+# 历史问题：这里原本是 DB_NAME="${DB_NAME:-${POSTGRES_DB:-canvas_history}}"，
+# 三级回退意味着「裸跑本脚本」会静默连上正式库 canvas_history。
+# 现在改为：没有显式 DB_NAME 就拒绝启动。
+#
+# 正常调用方都不受影响：
+#   - run-prod.sh 会在调用前 export DB_NAME=canvas_history；
+#   - run-dev-api.sh（DEV 专用）不经过本脚本；
+#   - 需要临时连某个库时，显式写 DB_NAME=<库名> bash run-dev.sh。
+if [ -z "${DB_NAME-}" ]; then
+  echo "拒绝启动：未指定 DB_NAME。" >&2
+  echo "        本脚本是通用启动器，不再默认连接正式库 canvas_history。" >&2
+  echo "" >&2
+  echo "        DEV  开发环境：  bash run-dev-api.sh" >&2
+  echo "        PROD 正式环境：  bash run-prod.sh" >&2
+  echo "        其它临时库：    DB_NAME=<库名> bash run-dev.sh" >&2
+  exit 2
+fi
 
 export DB_URL="jdbc:postgresql://127.0.0.1:${DB_HOST_PORT:-55432}/${DB_NAME}"
 export DB_USER="${POSTGRES_USER}"
