@@ -8,8 +8,8 @@ rem      deploy\publish-container.ps1
 rem
 rem  Usage:
 rem      double-click                          normal interactive deploy
-rem      default                              verify only, change nothing
-rem      with -Apply                          build + interactive PROD deployment
+rem      default                              interactive apply deployment
+rem      with -DryRun                        inspect only, no changes
 rem
 rem  Exit codes: 0 = finished normally (including user cancel),
 rem              1 = error (package check, db identity, migration, startup)
