@@ -42,8 +42,16 @@ function Read-Env([string]$Path) {
     return $result
 }
 function Run-Docker([string[]]$Arguments) {
-    & docker @Arguments
-    if ($LASTEXITCODE -ne 0) { throw "Docker command failed (exit $LASTEXITCODE): $($Arguments[0..([Math]::Min($Arguments.Count-1,4))] -join ' ')" }
+    $previousPreference = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        & docker @Arguments 2>&1 | ForEach-Object { Write-Host "$_" }
+        $code = $LASTEXITCODE
+    } finally { $ErrorActionPreference = $previousPreference }
+    if ($code -ne 0) {
+        $shortCommand = (($Arguments | Select-Object -First 4) -join ' ')
+        throw "Docker command failed (exit $code): $shortCommand"
+    }
 }
 function Check-Health {
     param([int]$Retries=40)
@@ -61,8 +69,8 @@ function Check-Health {
     return $false
 }
 function Compose-App([string[]]$Tail) {
-    $args = @('compose', '-p', $composeProject, '--env-file', $cfgPath, '-f', $composeFile) + $Tail
-    Run-Docker -Arguments $args
+    $composeArguments = @('compose', '-p', $composeProject, '--env-file', $cfgPath, '-f', $composeFile) + $Tail
+    Run-Docker -Arguments $composeArguments
 }
 function Restore-Legacy {
     if (-not $oldWorkingDir -or -not (Test-Path -LiteralPath (Join-Path $oldWorkingDir 'api\canvas-history-api.jar'))) {
