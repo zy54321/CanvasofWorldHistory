@@ -19,7 +19,7 @@ cd /d "%~dp0"
 
 chcp 65001 >nul
 
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0deploy\publish-prod.ps1" %*
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0deploy\publish-container.ps1" -Apply %*
 set "RC=%ERRORLEVEL%"
 
 echo.
