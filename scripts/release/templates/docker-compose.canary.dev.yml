@@ -1,0 +1,25 @@
+# DEV-only canary. No production database connection, volumes or networks.
+services:
+  canary:
+    image: ${CANVAS_APP_IMAGE:?CANVAS_APP_IMAGE required}
+    restart: "no"
+    environment:
+      DB_URL: jdbc:postgresql://canvas-history-db-dev:5432/canvas_history_dev
+      DB_USER: ${POSTGRES_USER:?DEV DB user required}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?DEV DB password required}
+      DB_WRITE_ALLOWED_DATABASES: canvas_history_dev
+      SPRING_FLYWAY_ENABLED: "false"
+      TZ: Asia/Shanghai
+      API_PORT: "5180"
+    ports:
+      - "127.0.0.1:5199:5180"
+    networks: [devnet]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=128m
+    security_opt:
+      - no-new-privileges:true
+networks:
+  devnet:
+    external: true
+    name: canvas-history-dev-net
