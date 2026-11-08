@@ -180,8 +180,8 @@ try {
         Write-Host '[DRY RUN] No Docker build, application cutover, or file changes. Pass -Apply to deploy.'
         exit 0
     }
-    $answer = Read-Host "Build and switch PROD $version to Docker at 127.0.0.1:$port? Type Y to proceed"
-    if ($answer -cne 'Y') { Write-Host '[CANCEL] No changes'; exit 0 }
+    $answer = Read-Host "Build and switch PROD $version to Docker at 127.0.0.1:${port}? Type Y to proceed"
+    if ($answer -ne 'Y') { Write-Host '[CANCEL] No changes'; exit 0 }
     $targetDir = Join-Path $ProdRoot $version
     if (Test-Path -LiteralPath $targetDir) {
         $existingJar = Join-Path $targetDir 'api\canvas-history-api.jar'
@@ -212,7 +212,7 @@ try {
     Require ($postBuildHealth -eq 'healthy') 'DB became unhealthy before cutover'
     if ($legacyPid) {
         $answer2 = Read-Host "Stop ONLY verified Windows Java PID $legacyPid and hand over port $port to Docker? Type Y"
-        if ($answer2 -cne 'Y') { Write-Host '[CANCEL] Docker image built; Windows PROD unchanged'; exit 0 }
+        if ($answer2 -ne 'Y') { Write-Host '[CANCEL] Docker image built; Windows PROD unchanged'; exit 0 }
         Stop-Process -Id $legacyPid -Force -ErrorAction Stop
         $oldJavaStopped = $true
         Start-Sleep -Seconds 3
