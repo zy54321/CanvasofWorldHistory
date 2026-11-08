@@ -115,6 +115,14 @@ else {
 }
 
 # ------------------------------------------------------------------ 应用
+Head 'Docker PROD app container'
+$app = & docker inspect canvas-history-prod-app --format '{{.State.Status}}|{{.State.Health.Status}}|{{.Config.Image}}' 2>$null
+if ($LASTEXITCODE -eq 0 -and $app) {
+    Say "Docker APP   : $app" 'Green'
+} else {
+    Say 'Docker APP   : not installed (legacy Windows JAR may be running)' 'Yellow'
+}
+
 Head '4/4 应用进程'
 $userSpecified = $PSBoundParameters.ContainsKey('Port') -and $Port -gt 0
 $effectivePort = if ($userSpecified) { $Port } elseif ($recordPort -gt 0) { $recordPort } else { 5180 }
