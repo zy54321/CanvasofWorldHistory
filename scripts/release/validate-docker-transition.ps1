@@ -77,7 +77,8 @@ if ($ApplyCanary) {
     $env:CANVAS_APP_IMAGE = $canaryImage
     $baseArgs = @('compose','-p','canvas-history-validation','--env-file',$DevEnvFile,'-f',$canaryCompose)
     try {
-        & docker @($baseArgs + @('up','-d','--no-build','canary'))
+        $launchArgs = $baseArgs + @('up','-d','--no-build','canary')
+        & docker @launchArgs
         if ($LASTEXITCODE -ne 0) { throw 'DEV canary startup failed' }
         $ok = $false
         for ($i=0; $i -lt 45; $i++) {
@@ -93,7 +94,8 @@ if ($ApplyCanary) {
         if (-not $ok) { throw 'DEV canary health/page failed; see docker compose logs (validation project)' }
         Write-Host '[PASS] DEV canary uses canvas_history_dev and serves HTTP 200.' -ForegroundColor Green
     } finally {
-        & docker @($baseArgs + @('down','--remove-orphans'))
+        $shutdownArgs = $baseArgs + @('down','--remove-orphans')
+        & docker @shutdownArgs
         Remove-Item Env:\CANVAS_APP_IMAGE -ErrorAction SilentlyContinue
         Write-Host '[CLEANUP] Removed DEV canary container. DEV and PROD databases untouched.'
     }
