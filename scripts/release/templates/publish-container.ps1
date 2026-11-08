@@ -197,7 +197,7 @@ try {
         Copy-Item -LiteralPath $jarPath -Destination (Join-Path $buildDir 'canvas-history-api.jar')
         Copy-Item -LiteralPath $dockerfile -Destination (Join-Path $buildDir 'Dockerfile.app')
         Write-Host "[BUILD] $imageTag"
-        Run-Docker @('build','-f',(Join-Path $buildDir 'Dockerfile.app'),'-t',$imageTag,$buildDir)
+        Run-Docker -Arguments @('build','-f',(Join-Path $buildDir 'Dockerfile.app'),'-t',$imageTag,$buildDir)
     } finally {
         Remove-Item -LiteralPath $buildDir -Recurse -Force -ErrorAction SilentlyContinue
     }
@@ -213,7 +213,7 @@ try {
     }
     $cutoverAttempted = $true
     Write-Host '[CUTOVER] Starting Docker app service only; DB container untouched.'
-    Compose-App @('up','-d','--no-deps','--force-recreate','app')
+    Compose-App -Tail @('up','-d','--no-deps','--force-recreate','app')
     if (-not (Check-Health -Retries 45)) { throw 'Docker app failed health/stats/page smoke check' }
     $dbAfter = (& docker inspect '--format={{.State.Health.Status}}' $dbContainer | Out-String).Trim()
     Require ($dbAfter -eq 'healthy') 'DB unhealthy after cutover'
@@ -248,10 +248,10 @@ try {
         try {
             if ($priorImage) {
                 $env:CANVAS_APP_IMAGE = $priorImage
-                Compose-App @('up','-d','--no-deps','--force-recreate','app')
+                Compose-App -Tail @('up','-d','--no-deps','--force-recreate','app')
                 if (-not (Check-Health -Retries 20)) { Write-Warning 'Previous Docker image did not pass health check' }
             } else {
-                Compose-App @('stop','app')
+                Compose-App -Tail @('stop','app')
                 if ($oldJavaStopped) { Restore-Legacy }
             }
         } catch {
