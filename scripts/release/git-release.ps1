@@ -674,7 +674,7 @@ try {
     Write-Step ("已放入 db/migration：{0} 个迁移" -f $migrations.Count)
 
     $tplDir = Join-Path $scriptDir 'templates'
-    foreach ($t in @('docker-compose.prod.yml', 'start-api.bat', 'start-api.sh', 'flyway.sh', 'publish-prod.ps1', 'prod-status.ps1', 'Dockerfile.app', 'docker-compose.app.prod.yml', 'publish-container.ps1', 'README-Docker-PROD.md')) {
+    foreach ($t in @('compose.yaml', 'start-api.bat', 'start-api.sh', 'flyway.sh', 'publish-prod.ps1', 'prod-status.ps1', 'Dockerfile.app', 'publish-container.ps1', 'README-Docker-PROD.md')) {
         $src = Join-Path $tplDir $t
         if (-not (Test-Path -LiteralPath $src)) { throw "缺少模板：$src" }
         Copy-Item -LiteralPath $src -Destination (Join-Path $pkg 'deploy')
@@ -794,9 +794,9 @@ try {
         'manifest.json', 'SHA256SUMS.txt',
         'api/canvas-history-api.jar',
         'db/migration/V1__enable_extensions.sql',
-        'deploy/docker-compose.prod.yml', 'deploy/start-api.bat', 'deploy/start-api.sh',
+        'deploy/compose.yaml', 'deploy/start-api.bat', 'deploy/start-api.sh',
         'deploy/flyway.sh', 'deploy/publish-prod.ps1', 'deploy/prod-status.ps1',
-        'deploy/Dockerfile.app', 'deploy/docker-compose.app.prod.yml', 'deploy/publish-container.ps1',
+        'deploy/Dockerfile.app', 'deploy/publish-container.ps1',
         'config/.env.example', 'docs/DEPLOY.md'
     )
     $missing = @()

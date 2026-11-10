@@ -57,7 +57,7 @@ if (-not (Test-Path -LiteralPath $ProdRoot)) {
 }
 
 # ------------------------------------------------------------------ 版本记录
-Head '1/4 版本记录'
+Head '1/5 版本记录'
 $recordPath = Join-Path $ProdRoot 'current.json'
 # 端口优先级：用户显式指定 > current.json 记录 > 5180
 $recordPort = 0
@@ -86,14 +86,14 @@ else {
 }
 
 # ------------------------------------------------------------------ 历史版本
-Head '2/4 已部署版本'
+Head '2/5 已部署版本'
 $versions = @(Get-ChildItem -LiteralPath $ProdRoot -Directory -ErrorAction SilentlyContinue |
     Where-Object { $_.Name -match '^\d+\.\d+\.\d+$' } | ForEach-Object { $_.Name } | Sort-Object)
 if ($versions.Count -eq 0) { Say '（无）' }
 else { Say (($versions -join ', ')) }
 
 # ------------------------------------------------------------------ 数据库
-Head '3/4 数据库'
+Head '3/5 数据库'
 $inspect = & docker inspect $DbContainer --format '{{.State.Health.Status}}' 2>&1
 if ($LASTEXITCODE -ne 0) {
     Say "容器 $DbContainer 不存在或不可查询" 'Red'
@@ -114,6 +114,56 @@ else {
     }
 }
 
+# ------------------------------------------------------------------ 编排
+Head '4/5 PROD 编排（唯一 Compose 入口）'
+$composeFile = Join-Path (Split-Path -Parent $ProdRoot) 'canvas-history\compose.yaml'
+$prodCfgPath = Join-Path $ProdRoot 'config\.env'
+if (Test-Path -LiteralPath $composeFile) {
+    $composeSha = (Get-FileHash -LiteralPath $composeFile -Algorithm SHA256).Hash.Substring(0, 16)
+    Say "Compose 文件: $composeFile" 'Green'
+    Say "SHA256(16)  : $composeSha"
+    if (Test-Path -LiteralPath $prodCfgPath) {
+        $svc = & docker compose -p canvas-history --env-file $prodCfgPath -f $composeFile config --services 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            Say "服务        : $((@($svc) -join ', '))" 'Green'
+        }
+        else {
+            Say '服务        : 无法解析（环境文件或 CANVAS_APP_IMAGE 缺失）' 'Red'
+        }
+    }
+    else {
+        Say "缺少环境文件: $prodCfgPath" 'Red'
+    }
+}
+else {
+    Say "未安装统一 Compose: $composeFile" 'Yellow'
+}
+foreach ($c in @($DbContainer, 'canvas-history-prod-app')) {
+    $applied = $false
+    $proj = ''
+    $cf = ''
+    $rawLabels = (& docker inspect '--format={{json .Config.Labels}}' $c 2>$null | Out-String).Trim()
+    if ($LASTEXITCODE -eq 0 -and $rawLabels) {
+        try {
+            $labels = $rawLabels | ConvertFrom-Json
+            $proj = [string]$labels.'com.docker.compose.project'
+            $cf = [string]$labels.'com.docker.compose.project.config_files'
+            $applied = $true
+        }
+        catch { $applied = $false }
+    }
+    if ($applied -and $proj) {
+        $aligned = ($cf -eq $composeFile)
+        Say ("{0,-22}: project={1} config={2}" -f $c, $proj, $(if ($cf) { $cf } else { '(none)' })) $(if ($aligned) { 'Green' } else { 'Yellow' })
+        if (-not $aligned) {
+            Say ("{0,-22}  未与本文件对齐（容器仍由旧定义创建，重建后才会对齐）" -f '') 'Yellow'
+        }
+    }
+    else {
+        Say ("{0,-22}: 容器不存在或无法查询" -f $c) 'Yellow'
+    }
+}
+
 # ------------------------------------------------------------------ 应用
 Head 'Docker PROD app container'
 $app = & docker inspect canvas-history-prod-app --format '{{.State.Status}}|{{.State.Health.Status}}|{{.Config.Image}}' 2>$null
@@ -123,7 +173,7 @@ if ($LASTEXITCODE -eq 0 -and $app) {
     Say 'Docker APP   : not installed (legacy Windows JAR may be running)' 'Yellow'
 }
 
-Head '4/4 应用进程'
+Head '5/5 应用进程'
 $userSpecified = $PSBoundParameters.ContainsKey('Port') -and $Port -gt 0
 $effectivePort = if ($userSpecified) { $Port } elseif ($recordPort -gt 0) { $recordPort } else { 5180 }
 if ($userSpecified) {

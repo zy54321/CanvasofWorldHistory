@@ -1,0 +1,105 @@
+# =============================================================================
+# 《世界历史时空画布》—— PROD 唯一编排入口（Single Source of Truth）
+# =============================================================================
+# 本文件同时管理 PROD 的 app 与 db 两个服务，项目名固定为 canvas-history。
+# 除此之外，没有任何其它 Compose 文件被允许对 canvas-history 项目执行 up/down。
+#
+# 版本化来源：<repo>\scripts\release\templates\compose.yaml
+# 正式运行配置：E:\01_Work\04_Prod\01_Personal\canvas-history\compose.yaml
+#   —— 由发布脚本 03_发布Prod.bat 在部署时从 Release 包 deploy/compose.yaml 安装，
+#      两者内容必须逐字一致；手工改动运行副本会在下次发布时被覆盖。
+#
+# 运行（必须显式给出 PROD 环境文件，凭据只存在于该文件）：
+#   docker compose -f <PROD>\canvas-history\compose.yaml \
+#                  --env-file <PROD>\CanvasofWorldHistory\config\.env ps
+#
+# 数据安全约定：
+#   1. 数据卷 canvas-history-pgdata 声明为 external，Compose 不会创建、也不会删除它。
+#      卷不存在时 up 直接报错，绝不静默初始化一个空库。
+#   2. 禁止 `docker compose down -v`；本文件的卷是 external，即使误执行也不会删数据。
+#   3. 数据库迁移（Flyway）不随容器启动自动执行，只经 deploy/flyway.sh 显式触发：
+#      应用侧 SPRING_FLYWAY_ENABLED 恒为 false。
+#   4. 容器名 / 端口 / 卷名 / 网络名与整改前完全一致，切换不产生新卷、新网络。
+#
+# DEV 隔离：DEV 使用 code/docker-compose.dev.yml（项目名 canvas-history-dev），
+#          与本文件无任何共享资源，严禁把两者合并。
+# =============================================================================
+
+name: canvas-history
+
+services:
+  # ---------------------------------------------------------------------------
+  # 数据库：PostgreSQL 17 + PostGIS 3.6
+  # ---------------------------------------------------------------------------
+  db:
+    image: postgis/postgis:17-3.6
+    container_name: canvas-history-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB required — pass --env-file <PROD>/config/.env}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER required — pass --env-file <PROD>/config/.env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required — pass --env-file <PROD>/config/.env}
+      TZ: ${TZ:-Asia/Shanghai}
+      PGTZ: ${TZ:-Asia/Shanghai}
+    ports:
+      # 仅本机可连：127.0.0.1:15432 -> 容器 5432
+      - "127.0.0.1:${DB_HOST_PORT:-15432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -h 127.0.0.1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    shm_size: "256mb"
+    networks: [backend]
+
+  # ---------------------------------------------------------------------------
+  # 应用：单 Jar（前端 + API 同源），5180
+  # ---------------------------------------------------------------------------
+  app:
+    image: ${CANVAS_APP_IMAGE:?CANVAS_APP_IMAGE required — set by the release publisher}
+    container_name: canvas-history-prod-app
+    restart: unless-stopped
+    depends_on:
+      # 数据库健康后再启动应用，避免启动期连接风暴导致假死
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://canvas-history-db:5432/canvas_history
+      DB_USER: ${POSTGRES_USER:?POSTGRES_USER required — pass --env-file <PROD>/config/.env}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required — pass --env-file <PROD>/config/.env}
+      DB_WRITE_ALLOWED_DATABASES: canvas_history
+      # 迁移永远不随启动执行，只能显式触发（见文件头说明）
+      SPRING_FLYWAY_ENABLED: "false"
+      TZ: Asia/Shanghai
+      API_PORT: "5180"
+    ports:
+      - "127.0.0.1:${API_PORT:-5180}:5180"
+    volumes:
+      # 浏览器端 MapTiler key 注入点：构建产物不含密钥，运行时只读挂载
+      - type: bind
+        source: ${CANVAS_CONFIG_JS_PATH:?CANVAS_CONFIG_JS_PATH required — see <PROD>/config/.env}
+        target: /app/web/config.js
+        read_only: true
+        bind:
+          create_host_path: false
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=128m
+    security_opt:
+      - no-new-privileges:true
+    networks: [backend]
+
+volumes:
+  pgdata:
+    # external：只复用已存在的生产数据卷，绝不新建、绝不删除。
+    # 这是防止「目录/项目名变化导致生成新空卷」的核心保护。
+    external: true
+    name: canvas-history-pgdata
+
+networks:
+  backend:
+    # 网络可再生，允许不存在时创建；名称固定，保证与 db/app/flyway 的连接语义不变
+    name: canvas-history-net

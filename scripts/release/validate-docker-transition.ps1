@@ -29,7 +29,7 @@ foreach ($file in $toParse) {
 }
 $cfg = Join-Path $ProdRoot 'config\.env'
 if (-not (Test-Path -LiteralPath $cfg)) { throw "Missing existing production configuration: $cfg" }
-$compose = Join-Path $templates 'docker-compose.app.prod.yml'
+$compose = Join-Path $templates 'compose.yaml'
 $env:CANVAS_APP_IMAGE = 'canvas-history-app:config-check'
 $env:CANVAS_CONFIG_JS_PATH = Join-Path $ProdRoot 'config\web\config.js'
 try {
@@ -38,7 +38,12 @@ try {
     try { & docker compose -p canvas-history --env-file $cfg -f $compose config --quiet 2>&1 | ForEach-Object { Write-Host "$_" }; $rc = $LASTEXITCODE }
     finally { $ErrorActionPreference = $prev }
     if ($rc -ne 0) { throw "Docker Compose config failed: $rc" }
-    Write-Host '[PASS] Docker app Compose validates (no startup)' -ForegroundColor Green
+    $services = @(& docker compose -p canvas-history --env-file $cfg -f $compose config --services 2>&1)
+    if ($LASTEXITCODE -ne 0) { throw "Docker Compose service listing failed" }
+    if (-not (($services -join ',') -match 'app') -or -not (($services -join ',') -match 'db')) {
+        throw "Unified PROD compose must define both app and db, got: $($services -join ',')"
+    }
+    Write-Host ("[PASS] Unified PROD Compose validates (app + db, project canvas-history, no startup): {0}" -f $compose) -ForegroundColor Green
 } finally {
     Remove-Item Env:\CANVAS_APP_IMAGE,Env:\CANVAS_CONFIG_JS_PATH -ErrorAction SilentlyContinue
 }

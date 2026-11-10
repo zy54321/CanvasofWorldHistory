@@ -11,7 +11,8 @@
 
 ```text
 code/
-  docker-compose.yml        # 数据库服务（api/web 预留段见文件末尾）
+  docker-compose.yml        # 本地沙箱库 canvas-history-local（端口 55432，非生产）
+  docker-compose.dev.yml    # DEV 库 canvas-history-db-dev（端口 15433）
   .env.example              # 环境变量模板（提交）
   .env                      # 真实凭证（已 gitignore，不提交）
   .gitignore
@@ -32,7 +33,7 @@ code/
   ops/                      # 运维自检脚本与各阶段验收证据
 ```
 
-## 2. 首次启动
+## 2. 首次启动（本地沙箱）
 
 ```bash
 cp .env.example .env
@@ -42,6 +43,10 @@ openssl rand -base64 24 | tr -d '/+=' | cut -c1-24
 docker compose up -d
 docker compose ps            # 等到 STATUS 出现 (healthy)
 ```
+
+> 2026-11-10 起 `docker-compose.yml` 只创建本地沙箱库 `canvas-history-local`
+> （容器 `canvas-history-db-local`、卷 `canvas-history-local-pgdata`、端口 55432）。
+> 它不再等同于生产库，也不会读写生产卷。生产编排见 `docs/PROD_Compose_统一整改.md`。
 
 ## 2.5 应用启动（正式环境 / 开发只读）
 
@@ -132,15 +137,18 @@ DEL      /api/v1/events/{id}/polities/{linkId}                        解除关�
 - 政权是**展示分组**用的最小对象（名称 + 展示地区 + 可选存在区间），不做疆域、不做继承；
   事件是否进入矩阵取决于**有没有人工建立的政权关联**，不会按名称或坐标自动推断。
 
-## 3. 日常命令
+## 3. 日常命令（本地沙箱库 canvas-history-local）
+
+> 以下命令只作用于本地沙箱，**不会**触碰生产库。
+> 生产编排（app + db 同一文件）见 `E:\01_Work\04_Prod\01_Personal\canvas-history\compose.yaml`。
 
 ```bash
 docker compose ps                                  # 状态
 docker compose logs -f db                          # 日志
 docker compose exec db psql -U canvas_app -d canvas_history   # 进入 psql
 docker compose restart db                          # 重启（数据保留）
-docker compose down                                # 停止并删容器（数据卷保留）
-docker compose down -v                             # 危险：连数据卷一起删除，禁止随手使用
+docker compose down                                # 停止并删容器（沙箱数据卷保留）
+docker compose down -v                             # 危险：删沙箱卷；对生产卷已无效（生产卷是 external）
 ```
 
 宿主机直连（需要本机 psql 或任意 PG 客户端）：
@@ -178,14 +186,18 @@ PYTHONPATH=./ops/.deps python ops/verify_schema.py canvas_history_migrationcheck
 
 ## 6. 版本与端口
 
-| 项 | 值 |
+| 项 | 值（本地沙箱 `canvas-history-local`） |
 |---|---|
 | 镜像 | `postgis/postgis:17-3.6`（PostgreSQL 17.11 / PostGIS 3.6.4，固定版本，不使用 latest） |
-| 容器名 | `canvas-history-db` |
-| 卷 | `canvas-history-pgdata` |
-| 网络 | `canvas-history-net` |
+| 容器名 | `canvas-history-db-local` |
+| 卷 | `canvas-history-local-pgdata` |
+| 网络 | `canvas-history-local-net` |
 | 宿主端口 | `127.0.0.1:55432 -> 5432`（仅本机，不对局域网暴露） |
 | 预留端口 | api 8088 / web 5180（5432、5433、5173 已被本机其他项目占用） |
+
+> 生产资源（容器 `canvas-history-db` / `canvas-history-prod-app`、卷 `canvas-history-pgdata`、
+> 网络 `canvas-history-net`、端口 15432 / 5180）由 PROD compose.yaml 唯一管理，
+> 本仓库不再提供第二份可操作它们的文件。
 
 ## 7. 铁律
 
